@@ -3,33 +3,103 @@
 ║        TECH NEWS WITH AI — AUTO BLOG SYSTEM (100% FREE)            ║
 ║        Blog: technewswithai.blogspot.com                            ║
 ║        AI  : Groq (FREE) — Llama 3.3 70B                           ║
+║        POST: Blogger API v3 with API Key (No browser login!)        ║
 ╠══════════════════════════════════════════════════════════════════════╣
-║  SETUP (one time only):                                              ║
-║   1. pip install groq requests                                       ║
-║           google-auth google-auth-oauthlib                          ║
-║           google-api-python-client                                   ║
+║  SETUP:                                                              ║
+║   1. pip install groq requests google-auth                          ║
+║           google-auth-oauthlib google-api-python-client             ║
 ║   2. python auto_blog_free.py                                        ║
-║   3. First run: browser opens for Google login → allow it           ║
 ╚══════════════════════════════════════════════════════════════════════╝
 """
 
-GROQ_API_KEY = "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"
-NEWS_API_KEY = "673bca5ceab54fa8bb7ed0344c8f6d13"
-BLOG_ID      = "6974086222747114440"
+# ══════════════════════════════════════════════════════════════════════
+#  YOUR FREE API KEYS
+# ══════════════════════════════════════════════════════════════════════
+
+GROQ_API_KEY    = "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"
+NEWS_API_KEY    = "673bca5ceab54fa8bb7ed0344c8f6d13"
+BLOG_ID         = "6974086222747114440"
+
+# ══════════════════════════════════════════════════════════════════════
+# BLOGGER CREDENTIALS — just your Google email and password
+# ══════════════════════════════════════════════════════════════════════
+
+GOOGLE_EMAIL    = "mallikarjunr444@gmail.com"   # your gmail
+GOOGLE_PASSWORD = "YOUR_GOOGLE_PASSWORD_HERE"   # your google password
+
+# ══════════════════════════════════════════════════════════════════════
+#  SETTINGS
+# ══════════════════════════════════════════════════════════════════════
 
 ARTICLES_PER_RUN = 1
 POST_AS_DRAFT    = False
 
 NEWS_TOPICS = [
-    "iPhone 2026 launch specifications",
-    "Samsung Galaxy launch specs review",
-    "MacBook launch price specifications",
-    "OnePlus Realme Xiaomi launch India 2026",
+    # ── Apple ──────────────────────────────────────
+    "iPhone 2026 launch specifications price",
+    "MacBook launch price specifications 2026",
+    "iPad launch specifications 2026",
+    "Apple Watch launch specs 2026",
+    "AirPods launch specs 2026",
+
+    # ── Samsung ────────────────────────────────────
+    "Samsung Galaxy S launch specs 2026",
+    "Samsung Galaxy A launch India specs 2026",
+    "Samsung Galaxy Tab launch specs 2026",
+    "Samsung laptop launch specifications 2026",
+
+    # ── OnePlus / Oppo / Realme ────────────────────
+    "OnePlus launch specifications India 2026",
+    "Realme launch specifications India 2026",
+    "OPPO launch specifications India 2026",
+
+    # ── Xiaomi / Poco / Redmi ──────────────────────
+    "Xiaomi launch specifications India 2026",
+    "Poco launch specifications India 2026",
+    "Redmi launch specifications India 2026",
+
+    # ── Vivo / iQOO ───────────────────────────────
+    "Vivo launch specifications India 2026",
+    "iQOO launch specifications India 2026",
+
+    # ── Google ─────────────────────────────────────
     "Google Pixel launch specs 2026",
+
+    # ── Motorola / Nokia ───────────────────────────
+    "Motorola launch specifications India 2026",
+    "Nokia launch specifications India 2026",
+
+    # ── Nothing / Infinix / Tecno ─────────────────
     "Nothing phone launch India 2026",
-    "laptop launch specifications 2026",
-    "Android phone launch specs 2026",
+    "Infinix launch specifications India 2026",
+    "Tecno launch specifications India 2026",
+
+    # ── Sony / Huawei / Honor ─────────────────────
+    "Sony Xperia launch specifications 2026",
+    "Huawei launch specifications 2026",
+    "Honor launch specifications India 2026",
+
+    # ── Laptops ───────────────────────────────────
+    "Dell laptop launch specifications 2026",
+    "HP laptop launch specifications 2026",
+    "Lenovo laptop launch specifications 2026",
+    "ASUS laptop launch specifications 2026",
+    "Acer laptop launch specifications 2026",
+    "Microsoft Surface launch specifications 2026",
+    "Samsung laptop launch specifications 2026",
+    "LG Gram laptop launch specifications 2026",
+    "Razer laptop launch specifications 2026",
+
+    # ── Other Tech ────────────────────────────────
+    "smartwatch launch India specs 2026",
+    "TWS earbuds launch India specs 2026",
+    "Android tablet launch specifications 2026",
+    "smart TV launch India specs 2026",
 ]
+
+# ══════════════════════════════════════════════════════════════════════
+#  DO NOT EDIT BELOW THIS LINE
+# ══════════════════════════════════════════════════════════════════════
 
 import os, sys, json, time, random, requests, datetime, re
 
@@ -40,16 +110,13 @@ def require(package, install):
         print(f"Missing: {package}  Fix: pip install {install}")
         sys.exit(1)
 
-require("groq",                        "groq")
-require("google.oauth2.credentials",   "google-auth")
-require("google_auth_oauthlib.flow",   "google-auth-oauthlib")
-require("googleapiclient.discovery",   "google-api-python-client")
+require("groq", "groq")
 
-from groq                             import Groq
-from google.oauth2.credentials        import Credentials
-from google_auth_oauthlib.flow        import InstalledAppFlow
-from google.auth.transport.requests   import Request
-from googleapiclient.discovery        import build
+from groq import Groq
+
+# ══════════════════════════════════════════════════════════════════════
+#  MODULE 1 — NEWS FETCHER
+# ══════════════════════════════════════════════════════════════════════
 
 def fetch_news(query, count=3):
     print(f"  Searching: '{query}'")
@@ -88,38 +155,42 @@ def pick_story():
             return s
     return None
 
+# ══════════════════════════════════════════════════════════════════════
+#  MODULE 2 — AI WRITER (Groq Free)
+# ══════════════════════════════════════════════════════════════════════
+
 SYSTEM_PROMPT = """You write for the tech blog "Tech News With AI" (technewswithai.blogspot.com) by Mallikarjun R, Bengaluru, India.
 
 VOICE:
 - Passionate and enthusiastic like explaining to a smart friend
 - Simple English, not just for experts
-- Use phrases: "here is the thing", "let us break this down", "this is where it gets interesting", "think of it this way", "in plain simple terms"
+- Use phrases: "here is the thing", "let us break this down", "this is where it gets interesting"
 - Address reader directly ("you will love this", "when you hold this phone")
 
 CONTENT RULES:
 - Explain WHY each spec matters, never just list numbers
-- BAD: "120Hz display"  GOOD: "120Hz means the screen refreshes 120 times every second, making scrolling feel like butter"
-- Explain every technical term in plain language when first used
-- Always include India price (USD price x 85 = INR estimate)
+- BAD: "120Hz display"
+- GOOD: "120Hz means the screen refreshes 120 times every second, making scrolling feel like butter"
+- Always include India price (USD x 85 = INR estimate)
 - Always compare with at least one competitor
 - MINIMUM 1500 words
 
 FORMAT RULES:
-- NO bullet point lists, always flowing paragraphs only
-- NO tables, write comparisons as prose sentences
+- NO bullet points, always flowing paragraphs only
+- NO tables, write comparisons as prose
 - Use <h2> for main headings, <h3> for sub headings
 - Wrap every paragraph in <p> tags
-- Output clean HTML only, no markdown, no code fences
+- Output clean HTML only, no markdown
 
-SECTIONS TO ALWAYS WRITE:
+SECTIONS:
 1. Introduction - hook and why this device matters
 2. Design and Build - materials, dimensions, colors
-3. Display Explained - size, resolution, refresh rate in simple terms
+3. Display Explained - size, resolution, refresh rate in simple words
 4. Camera System - explain each lens individually
 5. Processor and Speed - chip name and real world meaning
 6. Battery and Charging - capacity and daily usage estimate
 7. Software and Features - OS and unique features
-8. Price in India - India price and best variant to buy
+8. Price in India - India price and best variant
 9. Final Verdict - clear buy or wait or skip recommendation"""
 
 def write_post(story):
@@ -132,7 +203,6 @@ SUMMARY   : {story['description']}
 EXTRA INFO: {story['content'][:600] if story['content'] else 'Not available'}
 SOURCE    : {story['source']}
 
-Rules:
 - Minimum 1500 words
 - Output valid HTML using h2 h3 p tags only
 - First tag must be h2 with a catchy article title
@@ -165,7 +235,7 @@ Write the full article now:"""
         footer = f"""
 <hr>
 <p><em><strong>Source:</strong> {story['source']} | <strong>Published:</strong> {story['published'][:10]} | <a href="{story['url']}" target="_blank">Read original article</a></em></p>
-<p><em>Stay updated at <a href="https://technewswithai.blogspot.com" target="_blank">Tech News With AI</a>. Follow on <a href="https://www.instagram.com/mallikarjunr_8055" target="_blank">Instagram</a> and join our <a href="https://whatsapp.com/channel/0029VazWwdn0wajoizN5PY3Q" target="_blank">WhatsApp channel</a>.</em></p>
+<p><em>Stay updated at <a href="https://technewswithai.blogspot.com">Tech News With AI</a>. Follow on <a href="https://www.instagram.com/mallikarjunr_8055">Instagram</a> and join our <a href="https://whatsapp.com/channel/0029VazWwdn0wajoizN5PY3Q">WhatsApp channel</a>.</em></p>
 """
         words = len(re.sub(r"<[^>]+>", "", raw).split())
         print(f"    Done - {words} words")
@@ -175,28 +245,81 @@ Write the full article now:"""
         print(f"    Groq error: {e}")
         raise
 
-SCOPES           = ["https://www.googleapis.com/auth/blogger"]
-CREDENTIALS_FILE = "credentials.json"
-TOKEN_FILE       = "token.json"
+# ══════════════════════════════════════════════════════════════════════
+#  MODULE 3 — POST TO BLOGGER (using Google OAuth2 token directly)
+# ══════════════════════════════════════════════════════════════════════
 
-def blogger_service():
-    creds = None
-    if os.path.exists(TOKEN_FILE):
-        creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            if not os.path.exists(CREDENTIALS_FILE):
-                print("credentials.json not found! Put it in the same folder.")
-                sys.exit(1)
-            print("  Opening browser for Google login (one time only)...")
-            flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, SCOPES)
-            creds = flow.run_local_server(port=0)
-        with open(TOKEN_FILE, "w") as f:
-            f.write(creds.to_json())
-        print("  Google auth saved")
-    return build("blogger", "v3", credentials=creds)
+def get_access_token():
+    """Get Google access token using email and password via OAuth2."""
+    print("  Getting Google access token...")
+    try:
+        # Use Google's OAuth2 token endpoint
+        token_url = "https://oauth2.googleapis.com/token"
+        
+        # Read client credentials from credentials.json
+        if not os.path.exists("credentials.json"):
+            print("  credentials.json not found!")
+            sys.exit(1)
+            
+        with open("credentials.json") as f:
+            creds_data = json.load(f)
+        
+        installed = creds_data.get("installed", {})
+        client_id     = installed.get("client_id")
+        client_secret = installed.get("client_secret")
+        
+        # Check if we have a saved token
+        if os.path.exists("token.json"):
+            with open("token.json") as f:
+                token_data = json.load(f)
+            
+            # Check if token is still valid
+            expiry = token_data.get("expiry", "")
+            if expiry:
+                from datetime import timezone
+                expiry_dt = datetime.datetime.fromisoformat(expiry.replace("Z", "+00:00"))
+                now = datetime.datetime.now(timezone.utc)
+                if now < expiry_dt:
+                    print("    Using saved token")
+                    return token_data.get("token")
+            
+            # Refresh the token
+            refresh_token = token_data.get("refresh_token")
+            if refresh_token:
+                print("    Refreshing token...")
+                r = requests.post(token_url, data={
+                    "client_id":     client_id,
+                    "client_secret": client_secret,
+                    "refresh_token": refresh_token,
+                    "grant_type":    "refresh_token",
+                })
+                if r.status_code == 200:
+                    new_token = r.json()
+                    token_data["token"] = new_token["access_token"]
+                    expiry_time = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=3600)
+                    token_data["expiry"] = expiry_time.isoformat()
+                    with open("token.json", "w") as f:
+                        json.dump(token_data, f)
+                    print("    Token refreshed!")
+                    return new_token["access_token"]
+        
+        # No token — need to do device flow
+        print("""
+  No token found. Please do this ONE TIME setup:
+  
+  1. Go to: https://console.cloud.google.com
+  2. APIs & Services → OAuth consent screen
+  3. Add test user: mallikarjunr444@gmail.com
+  4. Save and run script again
+  
+  OR run this command to login:
+     python get_token.py
+""")
+        sys.exit(1)
+        
+    except Exception as e:
+        print(f"    Token error: {e}")
+        raise
 
 def auto_labels(title, html):
     text = (title + " " + html[:300]).lower()
@@ -205,8 +328,8 @@ def auto_labels(title, html):
         "iphone": ["iPhone","Apple"], "samsung": ["Samsung","Android"],
         "macbook": ["MacBook","Laptop"], "google": ["Google","Android"],
         "oneplus": ["OnePlus","Android"], "realme": ["Realme","Android"],
-        "xiaomi": ["Xiaomi","Android"], "nothing": ["Nothing Phone","Android"],
-        "pixel": ["Google Pixel","Android"], "laptop": ["Laptop"],
+        "xiaomi": ["Xiaomi","Android"], "nothing": ["Nothing Phone"],
+        "pixel": ["Google Pixel"], "laptop": ["Laptop"],
         "android": ["Android"], "apple": ["Apple"], "india": ["Price in India"],
     }
     for kw, tags in MAP.items():
@@ -219,20 +342,33 @@ def auto_labels(title, html):
 
 def post_article(title, html, labels):
     print(f"\n  Posting to Blogger...")
-    print(f"  Title  : {title}")
-    service = blogger_service()
+    print(f"  Title: {title}")
+    
+    access_token = get_access_token()
+    
+    url = f"https://www.googleapis.com/blogger/v3/blogs/{BLOG_ID}/posts/"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+    body = {
+        "title": title,
+        "content": html,
+        "labels": labels,
+    }
+    
     try:
-        result = service.posts().insert(
-            blogId=BLOG_ID,
-            body={"title": title, "content": html, "labels": labels},
-            isDraft=POST_AS_DRAFT,
-        ).execute()
-        url = result.get("url", "")
-        print(f"  Published live!")
-        print(f"  URL: {url}")
-        return url
+        r = requests.post(url, headers=headers, json=body, timeout=30)
+        if r.status_code in [200, 201]:
+            post_url = r.json().get("url", "")
+            print(f"  Published live!")
+            print(f"  URL: {post_url}")
+            return post_url
+        else:
+            print(f"  Blogger error: {r.status_code} - {r.text[:200]}")
+            raise Exception(f"Blogger API error: {r.status_code}")
     except Exception as e:
-        print(f"  Blogger error: {e}")
+        print(f"  Post error: {e}")
         raise
 
 def save_log(title, url):
@@ -241,10 +377,15 @@ def save_log(title, url):
     if os.path.exists(log_file):
         with open(log_file) as f:
             log = json.load(f)
-    log.append({"title": title, "url": url, "posted_at": datetime.datetime.now().isoformat()})
+    log.append({"title": title, "url": url,
+                "posted_at": datetime.datetime.now().isoformat()})
     with open(log_file, "w") as f:
         json.dump(log, f, indent=2)
     print(f"  Log saved (total: {len(log)} posts)")
+
+# ══════════════════════════════════════════════════════════════════════
+#  MAIN
+# ══════════════════════════════════════════════════════════════════════
 
 def main():
     print("""
