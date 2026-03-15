@@ -31,7 +31,7 @@ GOOGLE_PASSWORD = "YOUR_GOOGLE_PASSWORD_HERE"   # your google password
 #  SETTINGS
 # ══════════════════════════════════════════════════════════════════════
 
-ARTICLES_PER_RUN = 1
+ARTICLES_PER_RUN = 3
 POST_AS_DRAFT    = False
 
 NEWS_TOPICS = [
@@ -115,11 +115,95 @@ require("groq", "groq")
 from groq import Groq
 
 # ══════════════════════════════════════════════════════════════════════
-#  MODULE 1 — NEWS FETCHER
+#  MODULE 1 — NEWS FETCHER (Multiple Sources)
 # ══════════════════════════════════════════════════════════════════════
 
-def fetch_news(query, count=3):
-    print(f"  Searching: '{query}'")
+# FREE RSS FEEDS — Top Tech News Channels
+RSS_FEEDS = [
+    # ── Global Tech News ──────────────────────────────
+    ("The Verge",          "https://www.theverge.com/rss/index.xml"),
+    ("TechCrunch",         "https://techcrunch.com/feed/"),
+    ("Engadget",           "https://www.engadget.com/rss.xml"),
+    ("Wired",              "https://www.wired.com/feed/rss"),
+    ("CNET",               "https://www.cnet.com/rss/news/"),
+    ("GSMArena",           "https://www.gsmarena.com/rss-news-articles.php3"),
+    ("AndroidAuthority",   "https://www.androidauthority.com/feed/"),
+    ("9to5Mac",            "https://9to5mac.com/feed/"),
+    ("9to5Google",         "https://9to5google.com/feed/"),
+    ("MacRumors",          "https://feeds.macrumors.com/MacRumors-All"),
+    ("PhoneArena",         "https://www.phonearena.com/phones/articles/rss"),
+    ("XDA Developers",     "https://www.xda-developers.com/feed/"),
+    ("NotebookCheck",      "https://www.notebookcheck.net/News.rss"),
+    ("LaptopMag",          "https://www.laptopmag.com/feeds/all"),
+    ("Tom's Guide",       "https://www.tomsguide.com/feeds/all"),
+    # ── India Tech News ───────────────────────────────
+    ("91Mobiles",          "https://www.91mobiles.com/hub/feed/"),
+    ("MySmartPrice",       "https://www.mysmartprice.com/feed/"),
+    ("GizmoChina",         "https://www.gizmochina.com/feed/"),
+    ("Pricebaba",          "https://pricebaba.com/blog/feed/"),
+    ("GadgetsNow",         "https://www.gadgetsnow.com/rssfeedstopstories.cms"),
+]
+
+def fetch_from_rss(feed_name, feed_url, keyword):
+    """Fetch latest articles from an RSS feed matching a keyword."""
+    try:
+        import xml.etree.ElementTree as ET
+        r = requests.get(feed_url, timeout=8,
+                        headers={"User-Agent": "Mozilla/5.0"})
+        if r.status_code != 200:
+            return []
+
+        root = ET.fromstring(r.content)
+        ns = {"atom": "http://www.w3.org/2005/Atom"}
+
+        articles = []
+        # Handle both RSS and Atom feeds
+        items = root.findall(".//item") or root.findall(".//atom:entry", ns)
+
+        for item in items[:10]:
+            # Get title
+            title_el = item.find("title")
+            title = title_el.text if title_el is not None else ""
+            if not title:
+                continue
+
+            # Filter by keyword
+            if keyword.lower().split()[0] not in title.lower():
+                continue
+
+            # Get description
+            desc_el = item.find("description") or item.find("summary")
+            description = desc_el.text if desc_el is not None else ""
+            if description:
+                import re
+                description = re.sub(r"<[^>]+>", "", description)[:300]
+
+            # Get link
+            link_el = item.find("link")
+            link = link_el.text if link_el is not None else feed_url
+
+            # Get date
+            date_el = item.find("pubDate") or item.find("published")
+            published = date_el.text if date_el is not None else ""
+
+            if title and description:
+                articles.append({
+                    "title":       title.strip(),
+                    "description": description.strip(),
+                    "content":     description.strip(),
+                    "url":         link.strip() if link else feed_url,
+                    "source":      feed_name,
+                    "published":   published or "2026-03-15T00:00:00Z",
+                })
+
+        return articles[:3]
+
+    except Exception:
+        return []
+
+
+def fetch_from_newsapi(query, count=3):
+    """Fetch from NewsAPI (backup source)."""
     try:
         r = requests.get(
             "https://newsapi.org/v2/everything",
@@ -130,22 +214,55 @@ def fetch_news(query, count=3):
         data = r.json()
         if data.get("status") != "ok":
             return []
-        articles = [
+        return [
             {"title": a["title"], "description": a.get("description") or "",
              "content": a.get("content") or "", "url": a["url"],
              "source": a["source"]["name"], "published": a["publishedAt"]}
             for a in data.get("articles", [])
             if a.get("title") and a.get("description")
         ]
-        print(f"    {len(articles)} articles found")
-        return articles
-    except Exception as e:
-        print(f"    Error: {e}")
+    except Exception:
         return []
 
+
+def fetch_news(query, count=3):
+    """Fetch from RSS feeds + NewsAPI combined."""
+    print(f"  Searching: '{query}'")
+    all_articles = []
+
+    # Extract main keyword from query
+    keyword = query.split()[0]
+
+    # Try RSS feeds first (faster and more sources)
+    random.shuffle(RSS_FEEDS)
+    for feed_name, feed_url in RSS_FEEDS[:8]:
+        articles = fetch_from_rss(feed_name, feed_url, keyword)
+        all_articles.extend(articles)
+        if len(all_articles) >= 3:
+            break
+
+    # If RSS didn't find enough, use NewsAPI
+    if len(all_articles) < 2:
+        newsapi_articles = fetch_from_newsapi(query, count)
+        all_articles.extend(newsapi_articles)
+
+    # Remove duplicates by title
+    seen = set()
+    unique = []
+    for a in all_articles:
+        if a["title"] not in seen:
+            seen.add(a["title"])
+            unique.append(a)
+
+    print(f"    {len(unique)} articles found")
+    return unique[:count]
+
+
 def pick_story():
+    """Pick best story from all sources."""
     topics = NEWS_TOPICS.copy()
     random.shuffle(topics)
+
     for topic in topics:
         articles = fetch_news(topic)
         if articles:
@@ -173,7 +290,10 @@ CONTENT RULES:
 - GOOD: "120Hz means the screen refreshes 120 times every second, making scrolling feel like butter"
 - Always include India price (USD x 85 = INR estimate)
 - Always compare with at least one competitor
-- MINIMUM 1500 words
+- MINIMUM 2000 words — longer is better for SEO
+- Always write original content, never copy paste
+- Add real world examples and use cases
+- Mention who should buy this device (students, professionals, gamers etc)
 
 FORMAT RULES:
 - NO bullet points, always flowing paragraphs only
@@ -181,17 +301,20 @@ FORMAT RULES:
 - Use <h2> for main headings, <h3> for sub headings
 - Wrap every paragraph in <p> tags
 - Output clean HTML only, no markdown
+- Add a FAQ section at the end with 5 questions and answers
 
 SECTIONS:
-1. Introduction - hook and why this device matters
-2. Design and Build - materials, dimensions, colors
+1. Introduction - hook and why this device matters right now
+2. Design and Build - materials, dimensions, colors, feel in hand
 3. Display Explained - size, resolution, refresh rate in simple words
-4. Camera System - explain each lens individually
-5. Processor and Speed - chip name and real world meaning
-6. Battery and Charging - capacity and daily usage estimate
-7. Software and Features - OS and unique features
-8. Price in India - India price and best variant
-9. Final Verdict - clear buy or wait or skip recommendation"""
+4. Camera System - explain each lens individually and real world use
+5. Processor and Speed - chip name and real world meaning for gaming and daily use
+6. Battery and Charging - capacity and realistic all day usage estimate
+7. Software and Features - OS and unique features explained simply
+8. Price in India - India price, variants, and which one to buy
+9. Who Should Buy This - students, professionals, content creators, gamers
+10. Final Verdict - clear buy or wait or skip recommendation with reasons
+11. FAQ - 5 most asked questions with detailed answers"""
 
 def write_post(story):
     print("\n  Writing with Groq Llama 3.3 70B...")
@@ -203,11 +326,11 @@ SUMMARY   : {story['description']}
 EXTRA INFO: {story['content'][:600] if story['content'] else 'Not available'}
 SOURCE    : {story['source']}
 
-- Minimum 2500 words
+- Minimum 2000 words
 - Output valid HTML using h2 h3 p tags only
 - First tag must be h2 with a catchy article title
 - Do NOT include html head body tags
-- Write all 9 sections
+- Write all 11 sections including FAQ
 - Always mention India pricing
 
 Write the full article now:"""
