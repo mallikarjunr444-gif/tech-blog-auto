@@ -379,39 +379,6 @@ Write the full article now:"""
 #  MODULE 3 — POST TO BLOGGER (using Google OAuth2 token directly)
 # ══════════════════════════════════════════════════════════════════════
 
-def get_access_token():
-    """Get Google access token using Service Account — no browser needed!"""
-    print("  Getting Google access token via Service Account...")
-    try:
-        import json as _json
-
-        # Service account credentials hardcoded
-        service_json = os.environ.get("GOOGLE_SERVICE_JSON", "")
-        if service_json:
-            info = _json.loads(service_json)
-        else:
-            info = {"type":"service_account","project_id":"beaming-oarlock-479403-b5","private_key_id":"598523c82f8cf859696dc378ac79fba44fff6da5","private_key":"-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDk+TuVfgc0L0v8\nuigRqifUUgOmHYfRX+OJ2LUIpsv1nZ+fEeCezirYWZ5c8B/4H61snUhSHtvem6ch\nlhY3lld0XmvC8DTz26qkvqU8XumrT/W1OPhKKK2sQyNbUhmaXmiF3648Cx1Pt9Yh\ngPUMGWT1CwzhZDLKNRHwLf75u5mMeXCeAAX0+pZR44/AzoHDB3gzhNBvdlPQM7CC\nfls0P0o6lL5SCbbZLxF7QA9kuLH4WefcRz0XHaOZyjlIypSRsMCX4+cdMH72bArv\nZA5d2P8mdgQKR1DigJ29IkrAqpkBWpY7j3jK0dJZhRa8Z7z7VEWHofbuOyLlKn7b\ngnaLAZyDAgMBAAECggEAC+c4UD7omGhJtAi9oRF1e2IaF+c+Uoy5aH+3WuIPk8Cr\nWXccnvFDz31YvnxxaJI3OfJPc1QbdscIJ2E2wQQFu0zkn1kwoxQNKRqL2wei/nRI\nvIXDfMqO59t1a3iFiTZ5GOQZxJ9sZ388kVTB0xdAbCh7Z1MUNYS7F2Lr21VZJhSE\nP54FX24/B/PPmEuXDI+67OktA5vkimKzXqg7ikz82u3T12ZH3M/RomYOqoAYvylm\nGUQDu1UABebvo/+bUkN/HWV2lt9MAQwQuPn+ROwuUeSmKEccN5HejPSp/MiwWL3k\nucIw4jimGNU8AqT7SFPoHfwTqDdY6ohFI+V4DqQYUQKBgQDzDA8cnbs9PHjQCz/M\nK+qTXF7T6yaFGh7ZpIBI+CHAbYY0CMZZ1nwNvEWGgNQ9DlJh10zD9Iz8WZNnn9Kq\nvqD6b1RB7S1XUat2j6dH1Oh87sBotlx189axJRuL5etcz3vMM+ihvKUTEpT3bfnf\nYGilgwTH1nP3yf1h0kNsPInw0wKBgQDxLSph3rrIKgeo68ydtY+46g88qD6MGmwF\nVv2NIQd9TxHdFi3f0KrB48dr9OvW6EpLrmZHgf9DTN2qYyPWmSM/sJW5cSSMJtcu\nStHPGEHfNx1ifDf2YORVM+kNc4pls+Q22wMNTzCcFVuaFS9kRYJD7LRnf1ApJAMa\n7ZLiToXXkQKBgQDSsZiEGSSREFQ3HhlfOI7w0jmOgqJw7lTiHZ3sI9a2hvu5LgYt\nKSd/jL/EuvfCOiEmmkr88Ior1MdZJI6u3/STRWGIiUAuGymF7UB5n9MvQpXf8H60\n7f4msOFxZI6ldWR/gFxhoTSFFS24VUkw4NW27Z5+UqVToHIck/dI5C48awKBgQDB\n5zFDHMMJeZlM+8A4MCiMYEq91vrqw7eDl4wlcp/F5NOU8GcTon4Xgx3rszAGSh6p\nuF7tMRxdLKivfCPtPpQzebL3NHtQ3010H52OJo+XeoV6kCqiQQZzZlgCg5mK6VYb\nsHxEsB2B8D4EpPHEaYoxOFdXOunlGdoRRV8p6j37sQKBgDKdOLr6VJwLiJwT2fJe\nKiEZGuQaZK2p4fPJd5CJ9RcqtXC1Gr7Sf5gWdBAFISK2aVkBLIts4hnuJpYzBNMy\nLWrpWlkw59+5WaXzFpCXP2fbf2AdaLSqYPqJGBCPhaeCMrqDZbCOfoAGYrUEqlYm\nA9/qR5L/EM/f6HgRpgp1gbEl\n-----END PRIVATE KEY-----\n","client_email":"techblog-bot@beaming-oarlock-479403-b5.iam.gserviceaccount.com","client_id":"105368637692252418805","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_x509_cert_url":"https://www.googleapis.com/robot/v1/metadata/x509/techblog-bot%40beaming-oarlock-479403-b5.iam.gserviceaccount.com","universe_domain":"googleapis.com"}
-
-        # Get access token using service account
-        import time as _time
-        import base64, hashlib, hmac
-
-        # Use google-auth library for service account
-        from google.oauth2 import service_account
-        from google.auth.transport.requests import Request as GRequest
-
-        creds = service_account.Credentials.from_service_account_info(
-            info,
-            scopes=["https://www.googleapis.com/auth/blogger"]
-        )
-        creds.refresh(GRequest())
-        print("    Service Account token obtained!")
-        return creds.token
-
-    except Exception as e:
-        print(f"    Token error: {e}")
-        raise
-
 def auto_labels(title, html):
     text = (title + " " + html[:300]).lower()
     labels = ["Tech News"]
@@ -448,4 +415,69 @@ def post_via_email(title, html, labels):
         msg.attach(MIMEText(html, "html"))
 
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            serve
+            server.login(GMAIL_ADDRESS, gmail_password)
+            server.sendmail(GMAIL_ADDRESS, BLOGGER_POST_EMAIL, msg.as_string())
+
+        print(f"  ✅ Posted via email!")
+        print(f"  🔗 https://technewswithai.blogspot.com")
+        return "https://technewswithai.blogspot.com"
+
+    except Exception as e:
+        print(f"  ❌ Email error: {e}")
+        raise
+
+def post_article(title, html, labels):
+    print(f"\n  Posting: {title[:60]}...")
+    return post_via_email(title, html, labels)
+
+def save_log(title, url):
+    log_file = "posted_articles.json"
+    log = []
+    if os.path.exists(log_file):
+        with open(log_file) as f:
+            log = json.load(f)
+    log.append({"title": title, "url": url,
+                "posted_at": datetime.datetime.now().isoformat()})
+    with open(log_file, "w") as f:
+        json.dump(log, f, indent=2)
+    print(f"  Log saved (total: {len(log)} posts)")
+
+# ══════════════════════════════════════════════════════════════════════
+#  MAIN
+# ══════════════════════════════════════════════════════════════════════
+
+def main():
+    print("""
+╔══════════════════════════════════════════════════════╗
+║    TECH NEWS WITH AI — AUTO BLOG (100% FREE)        ║
+║    technewswithai.blogspot.com                      ║
+╚══════════════════════════════════════════════════════╝""")
+
+    success = 0
+    for i in range(ARTICLES_PER_RUN):
+        try:
+            story = pick_story()
+            if not story:
+                continue
+            title, html = write_post(story)
+            labels      = auto_labels(title, html)
+            url         = post_article(title, html, labels)
+            save_log(title, url)
+            success += 1
+            if i < ARTICLES_PER_RUN - 1:
+                time.sleep(20)
+        except KeyboardInterrupt:
+            print("\nStopped.")
+            break
+        except Exception as e:
+            print(f"\nFailed: {e}")
+            continue
+
+    print(f"""
+╔══════════════════════════════════════════════════════╗
+║  DONE! {success}/{ARTICLES_PER_RUN} article(s) posted!
+║  technewswithai.blogspot.com
+╚══════════════════════════════════════════════════════╝""")
+
+if __name__ == "__main__":
+    main()
