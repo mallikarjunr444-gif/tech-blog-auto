@@ -31,6 +31,13 @@ GOOGLE_PASSWORD = "YOUR_GOOGLE_PASSWORD_HERE"   # your google password
 #  SETTINGS
 # ══════════════════════════════════════════════════════════════════════
 
+# ══════════════════════════════════════════════════════════════════════
+#  BLOGGER EMAIL POSTING — No token needed!
+# ══════════════════════════════════════════════════════════════════════
+BLOGGER_POST_EMAIL = "mallikarjunr444.technewswithai6361@blogger.com"
+GMAIL_ADDRESS      = "mallikarjunr444@gmail.com"
+GMAIL_APP_PASSWORD = "oeirtosmlhuwntka"  # Get from Google Account settings
+
 ARTICLES_PER_RUN = 3
 POST_AS_DRAFT    = False
 
@@ -424,85 +431,21 @@ def auto_labels(title, html):
     labels.append(str(datetime.datetime.now().year))
     return labels[:10]
 
-def post_article(title, html, labels):
-    print(f"\n  Posting to Blogger...")
-    print(f"  Title: {title}")
-    
-    access_token = get_access_token()
-    
-    url = f"https://www.googleapis.com/blogger/v3/blogs/{BLOG_ID}/posts/"
-    headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/json",
-    }
-    body = {
-        "title": title,
-        "content": html,
-        "labels": labels,
-    }
-    
+def post_via_email(title, html, labels):
+    """Post to Blogger via email — no token, no OAuth needed!"""
+    import smtplib
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+
+    print(f"  Sending to Blogger via email...")
+    gmail_password = os.environ.get("GMAIL_APP_PASSWORD", GMAIL_APP_PASSWORD)
+
     try:
-        r = requests.post(url, headers=headers, json=body, timeout=30)
-        if r.status_code in [200, 201]:
-            post_url = r.json().get("url", "")
-            print(f"  Published live!")
-            print(f"  URL: {post_url}")
-            return post_url
-        else:
-            print(f"  Blogger error: {r.status_code} - {r.text[:200]}")
-            raise Exception(f"Blogger API error: {r.status_code}")
-    except Exception as e:
-        print(f"  Post error: {e}")
-        raise
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = title
+        msg["From"]    = GMAIL_ADDRESS
+        msg["To"]      = BLOGGER_POST_EMAIL
+        msg.attach(MIMEText(html, "html"))
 
-def save_log(title, url):
-    log_file = "posted_articles.json"
-    log = []
-    if os.path.exists(log_file):
-        with open(log_file) as f:
-            log = json.load(f)
-    log.append({"title": title, "url": url,
-                "posted_at": datetime.datetime.now().isoformat()})
-    with open(log_file, "w") as f:
-        json.dump(log, f, indent=2)
-    print(f"  Log saved (total: {len(log)} posts)")
-
-# ══════════════════════════════════════════════════════════════════════
-#  MAIN
-# ══════════════════════════════════════════════════════════════════════
-
-def main():
-    print("""
-╔══════════════════════════════════════════════════════╗
-║    TECH NEWS WITH AI — AUTO BLOG (100% FREE)        ║
-║    technewswithai.blogspot.com                      ║
-╚══════════════════════════════════════════════════════╝""")
-
-    success = 0
-    for i in range(ARTICLES_PER_RUN):
-        try:
-            story = pick_story()
-            if not story:
-                continue
-            title, html = write_post(story)
-            labels      = auto_labels(title, html)
-            url         = post_article(title, html, labels)
-            save_log(title, url)
-            success += 1
-            if i < ARTICLES_PER_RUN - 1:
-                time.sleep(20)
-        except KeyboardInterrupt:
-            print("\nStopped.")
-            break
-        except Exception as e:
-            print(f"\nFailed: {e}")
-            continue
-
-    print(f"""
-╔══════════════════════════════════════════════════════╗
-║  DONE! {success}/{ARTICLES_PER_RUN} article(s) posted!
-║  technewswithai.blogspot.com
-╚══════════════════════════════════════════════════════╝""")
-
-if __name__ == "__main__":
-    main()
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            serve
