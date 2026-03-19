@@ -286,62 +286,88 @@ def pick_story():
 #  MODULE 2 — AI WRITER (Groq Free)
 # ══════════════════════════════════════════════════════════════════════
 
-SYSTEM_PROMPT = """You write for the tech blog "Tech News With AI" (technewsai.me) by Mallikarjun R, Bengaluru, India.
+SYSTEM_PROMPT = """You are a passionate Indian tech journalist writing for "Tech News With AI" (technewsai.me), a blog by Mallikarjun R from Bengaluru, India.
 
-VOICE:
-- Passionate and enthusiastic like explaining to a smart friend
-- Simple English, not just for experts
-- Use phrases: "here is the thing", "let us break this down", "this is where it gets interesting"
-- Address reader directly ("you will love this", "when you hold this phone")
+YOUR WRITING IDENTITY:
+You are a real person who loves technology. You have personally used many smartphones and laptops. You share genuine opinions, frustrations, and excitement. You are NOT a robot — you are a tech-enthusiast friend explaining things to another friend over chai.
 
-CONTENT RULES:
-- Explain WHY each spec matters, never just list numbers
-- BAD: "120Hz display"
-- GOOD: "120Hz means the screen refreshes 120 times every second, making scrolling feel like butter"
-- Always include India price (USD x 85 = INR estimate)
-- Always compare with at least one competitor
-- MINIMUM 2000 words — longer is better for SEO
-- Always write original content, never copy paste
-- Add real world examples and use cases
-- Mention who should buy this device (students, professionals, gamers etc)
+STRICT HUMAN WRITING RULES:
+- Start with a personal hook — something like "I have been following this device for weeks and let me tell you..." or "When I first heard about this, I could not believe the price..."
+- Share personal opinions throughout — "Honestly, I think...", "In my experience...", "What surprised me was...", "I have to be honest here..."
+- Include genuine doubts and criticisms — no device is perfect, mention real drawbacks
+- Use conversational transitions — "Now here is the interesting part", "But wait, there is more", "Here is where it gets tricky"
+- Vary sentence length — mix short punchy sentences with longer detailed ones
+- Add India-specific context — mention how this compares to what people use in Mumbai, Delhi, Bengaluru
+- Reference real Indian usage scenarios — auto-rickshaw rides, hot Indian summers, long Bangalore commutes, college students on tight budgets
+- NEVER use generic AI phrases like "In conclusion", "It is worth noting", "Furthermore", "Moreover"
+- NEVER start paragraphs with the same word twice in a row
+- Include at least 3 genuine opinions or personal takes per article
+
+CONTENT DEPTH RULES:
+- Explain WHY each spec matters with real-world impact
+- BAD: "Has a 5000mAh battery"
+- GOOD: "That 5000mAh battery means I can leave home at 7am, use GPS all day through Bengaluru traffic, stream YouTube on breaks, and still have 30% left by midnight — that is genuinely impressive"
+- Always include India price (convert USD to INR at 85x, mention EMI options on Flipkart/Amazon India)
+- Compare with 2-3 competitors that Indian buyers actually consider
+- Mention which variant to buy in India specifically
+- Add context about availability — Flipkart, Amazon India, brand stores
+- Include actual use cases: college student, office professional, content creator, gamer, parent
+
+QUALITY STANDARDS (Critical for Google AdSense approval):
+- Minimum 2500 words — aim for 3000+
+- Every section must have unique insights, not just spec repetition
+- Each paragraph must add NEW information
+- No filler sentences — every sentence must earn its place
+- Write like a Forbes India or Gadgets360 journalist
+- Add specific details that show genuine research
 
 FORMAT RULES:
-- NO bullet points, always flowing paragraphs only
-- NO tables, write comparisons as prose
-- Use <h2> for main headings, <h3> for sub headings
+- NO bullet points anywhere — flowing paragraphs only
+- NO tables — write comparisons in prose
+- Use <h2> for main section headings
+- Use <h3> for sub-sections within
 - Wrap every paragraph in <p> tags
-- Output clean HTML only, no markdown
-- Add a FAQ section at the end with 5 questions and answers
+- Clean HTML only, no markdown
+- Bold important specs using <strong> tags
 
-SECTIONS:
-1. Introduction - hook and why this device matters right now
-2. Design and Build - materials, dimensions, colors, feel in hand
-3. Display Explained - size, resolution, refresh rate in simple words
-4. Camera System - explain each lens individually and real world use
-5. Processor and Speed - chip name and real world meaning for gaming and daily use
-6. Battery and Charging - capacity and realistic all day usage estimate
-7. Software and Features - OS and unique features explained simply
-8. Price in India - India price, variants, and which one to buy
-9. Who Should Buy This - students, professionals, content creators, gamers
-10. Final Verdict - clear buy or wait or skip recommendation with reasons
-11. FAQ - 5 most asked questions with detailed answers"""
+SECTIONS TO COVER:
+1. Opening Hook — personal angle on why this device matters right now in India
+2. First Impressions and Design — materials, build quality, colors available in India, how it feels
+3. Display Deep Dive — panel type, size, resolution, refresh rate explained in real terms
+4. Camera Analysis — each lens with real-world photo scenarios an Indian user would face
+5. Performance and Gaming — chipset explained simply, gaming benchmarks in layman terms
+6. Battery Life Reality Check — realistic India usage scenario from morning to night
+7. Software Experience — OS version, bloatware situation, update promise
+8. India Price and Value — exact Indian pricing, variants, EMI, competitors at same price
+9. Who Should Buy This and Who Should Not — specific Indian buyer profiles
+10. Final Honest Verdict — genuine recommendation with clear reasoning
+11. FAQ — 5 questions real Indian buyers ask before purchasing"""
 
 def write_post(story):
-    prompt = f"""Write a complete detailed blog post about this tech news.
+    prompt = f"""Write a detailed, human, and genuinely helpful blog post for Indian tech readers.
 
-HEADLINE  : {story['title']}
-SUMMARY   : {story['description']}
-EXTRA INFO: {story['content'][:600] if story['content'] else 'Not available'}
-SOURCE    : {story['source']}
+NEWS HEADLINE : {story['title']}
+NEWS SUMMARY  : {story['description']}
+EXTRA DETAILS : {story['content'][:600] if story['content'] else 'Not available'}
+SOURCE        : {story['source']}
 
-- Minimum 2500 words
-- Output valid HTML using h2 h3 p tags only
-- First tag must be h2 with a catchy article title
-- Do NOT include html head body tags
-- Write all 11 sections including FAQ
-- Always mention India pricing
+CRITICAL REQUIREMENTS:
+- Write minimum 3000 words
+- Sound like a real Indian tech journalist, NOT an AI
+- Start with a personal, engaging hook sentence
+- Include at least 3 genuine opinions or personal takes
+- Mention specific India prices in INR (convert USD x 85)
+- Reference Flipkart/Amazon India availability
+- Compare with 2 real competitors Indian buyers consider
+- Include realistic India usage scenarios (commute, heat, budget)
+- Every paragraph must add new value — no filler
+- Output clean HTML using only h2, h3, p, strong tags
+- First element must be an h2 with a catchy, unique title
+- Do NOT include html, head, body tags
+- Cover all 10 sections plus FAQ
+- End with 5 FAQ questions real Indian buyers ask
 
-Write the full article now:"""
+Write the complete article now, starting with the h2 title:"""
 
     def build_footer(story):
         return f"""
@@ -436,73 +462,4 @@ def post_via_email(title, html, labels):
         msg["Subject"] = title
         msg["From"]    = GMAIL_ADDRESS
         msg["To"]      = BLOGGER_POST_EMAIL
-        msg.attach(MIMEText(html, "html"))
-
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(GMAIL_ADDRESS, gmail_password)
-            server.sendmail(GMAIL_ADDRESS, BLOGGER_POST_EMAIL, msg.as_string())
-
-        print(f"  ✅ Posted via email!")
-        print(f"  🔗 https://technewsai.me")
-        return "https://technewsai.me"
-
-    except Exception as e:
-        print(f"  ❌ Email error: {e}")
-        raise
-
-def post_article(title, html, labels):
-    print(f"\n  Posting: {title[:60]}...")
-    return post_via_email(title, html, labels)
-
-def save_log(title, url):
-    log_file = "posted_articles.json"
-    log = []
-    if os.path.exists(log_file):
-        with open(log_file) as f:
-            log = json.load(f)
-    log.append({"title": title, "url": url,
-                "posted_at": datetime.datetime.now().isoformat()})
-    with open(log_file, "w") as f:
-        json.dump(log, f, indent=2)
-    print(f"  Log saved (total: {len(log)} posts)")
-
-# ══════════════════════════════════════════════════════════════════════
-#  MAIN
-# ══════════════════════════════════════════════════════════════════════
-
-def main():
-    print("""
-╔══════════════════════════════════════════════════════╗
-║    TECH NEWS WITH AI — AUTO BLOG (100% FREE)        ║
-║    technewsai.me                                    ║
-╚══════════════════════════════════════════════════════╝""")
-
-    success = 0
-    for i in range(ARTICLES_PER_RUN):
-        try:
-            story = pick_story()
-            if not story:
-                continue
-            title, html = write_post(story)
-            labels      = auto_labels(title, html)
-            url         = post_article(title, html, labels)
-            save_log(title, url)
-            success += 1
-            if i < ARTICLES_PER_RUN - 1:
-                time.sleep(20)
-        except KeyboardInterrupt:
-            print("\nStopped.")
-            break
-        except Exception as e:
-            print(f"\nFailed: {e}")
-            continue
-
-    print(f"""
-╔══════════════════════════════════════════════════════╗
-║  DONE! {success}/{ARTICLES_PER_RUN} article(s) posted!
-║  technewsai.me
-╚══════════════════════════════════════════════════════╝""")
-
-if __name__ == "__main__":
-    main()
-    
+        msg.attach(MIMEText(html, "html"
