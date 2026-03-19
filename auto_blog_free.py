@@ -16,6 +16,8 @@
 #  YOUR FREE API KEYS
 # ══════════════════════════════════════════════════════════════════════
 
+import os
+
 GROQ_API_KEY    = os.environ.get("GROQ_API_KEY", "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")
 NEWS_API_KEY    = os.environ.get("NEWS_API_KEY", "673bca5ceab54fa8bb7ed0344c8f6d13")
 XAI_API_KEY     = os.environ.get("XAI_API_KEY", "")   # Get free key at console.x.ai
@@ -503,3 +505,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
