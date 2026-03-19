@@ -300,6 +300,15 @@ def parse_response(raw, story):
     raw = re.sub(r"```html\s*", "", raw)
     raw = re.sub(r"```\s*", "", raw)
     raw = raw.strip()
+    # Convert markdown bold to HTML strong tags
+    raw = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", raw)
+    # Convert markdown italic to HTML em tags
+    raw = re.sub(r"\*(.+?)\*", r"<em>\1</em>", raw)
+    # Remove duplicate h2 title if appears more than once
+    h2_list = re.findall(r"<h2[^>]*>.*?</h2>", raw, re.IGNORECASE | re.DOTALL)
+    if len(h2_list) > 1:
+        raw = raw.replace(h2_list[0], "", 1)
+    # Get clean title from first h2
     title = story["title"]
     m = re.search(r"<h2[^>]*>(.*?)</h2>", raw, re.IGNORECASE | re.DOTALL)
     if m:
