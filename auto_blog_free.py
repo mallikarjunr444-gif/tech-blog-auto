@@ -333,7 +333,7 @@ SUMMARY   : {story['description']}
 EXTRA INFO: {story['content'][:600] if story['content'] else 'Not available'}
 SOURCE    : {story['source']}
 
-- Minimum 2000 words
+- Minimum 2500 words
 - Output valid HTML using h2 h3 p tags only
 - First tag must be h2 with a catchy article title
 - Do NOT include html head body tags
