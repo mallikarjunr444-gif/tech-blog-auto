@@ -1,5 +1,5 @@
 """
-TECH NEWS WITH AI - AUTO BLOG SYSTEM v3.0
+TECH NEWS WITH AI - AUTO BLOG SYSTEM v4.0
 Blog    : technewsai.me
 Author  : Mallikarjun R, Bengaluru
 AI      : Groq Llama 3.3 70B (FREE) with Grok fallback
@@ -34,43 +34,44 @@ ARTICLES_PER_RUN   = 3
 BLOG_URL           = "https://www.technewsai.me"
 AUTHOR_NAME        = "Mallikarjun R"
 AUTHOR_BIO         = (
-    "Mallikarjun R is a tech enthusiast and Computer Science Engineering student "
-    "specializing in Cyber Security at DSATM, Bengaluru, India. "
-    "He covers smartphones, laptops, and AI news for Indian readers on technewsai.me."
+    "Mallikarjun R is a first-year Computer Science Engineering student at DSATM, "
+    "Bengaluru, India. He is passionate about technology, smartphones, and AI. "
+    "He runs Tech News With AI (technewsai.me) to bring the latest tech news "
+    "and honest reviews to Indian readers."
 )
-INSTAGRAM_URL      = "https://www.instagram.com/mallikarjunr_8055"
-LINKEDIN_URL       = "https://in.linkedin.com/in/mallikarjun-r-a85685367"
-WHATSAPP_URL       = "https://whatsapp.com/channel/0029VazWwdn0wajoizN5PY3Q"
+INSTAGRAM_URL  = "https://www.instagram.com/mallikarjunr_8055"
+LINKEDIN_URL   = "https://in.linkedin.com/in/mallikarjun-r-a85685367"
+WHATSAPP_URL   = "https://whatsapp.com/channel/0029VazWwdn0wajoizN5PY3Q"
 
 # ══════════════════════════════════════════════════════
-#  INTERNAL LINKS — fetched from your real blog posts
+#  INTERNAL LINKS
 # ══════════════════════════════════════════════════════
 
 INTERNAL_LINKS = [
     {
-        "title": "Samsung Galaxy A37 and A57 Review",
-        "url":   "https://www.technewsai.me/2026/03/the-wait-is-over-galaxy-a37-and-a57.html",
+        "title":    "Samsung Galaxy A37 and A57 Review",
+        "url":      "https://www.technewsai.me/2026/03/the-wait-is-over-galaxy-a37-and-a57.html",
         "keywords": ["samsung", "galaxy", "mid-range", "android"],
     },
     {
-        "title": "OPPO Find N6 Review: Gold Standard of Foldables",
-        "url":   "https://www.technewsai.me/2026/03/oppo-find-n6-review-gold-standard-of.html",
+        "title":    "OPPO Find N6 Review: Gold Standard of Foldables",
+        "url":      "https://www.technewsai.me/2026/03/oppo-find-n6-review-gold-standard-of.html",
         "keywords": ["oppo", "foldable", "find n6"],
     },
     {
-        "title": "ROG Strix Scar 18: Beast Gaming Laptop 2026",
-        "url":   "https://www.technewsai.me/2026/03/new-rog-strix-scar-18-unleashing-beast.html",
+        "title":    "ROG Strix Scar 18: Beast Gaming Laptop 2026",
+        "url":      "https://www.technewsai.me/2026/03/new-rog-strix-scar-18-unleashing-beast.html",
         "keywords": ["rog", "gaming laptop", "asus", "laptop"],
     },
     {
-        "title": "Best Battery and Performance Phones 2026",
-        "url":   "https://www.technewsai.me/2026/03/get-ready-for-battery-and-performance.html",
+        "title":    "Best Battery and Performance Phones 2026",
+        "url":      "https://www.technewsai.me/2026/03/get-ready-for-battery-and-performance.html",
         "keywords": ["battery", "performance", "best phone"],
     },
 ]
 
 # ══════════════════════════════════════════════════════
-#  HIGH CPC NEWS TOPICS WITH SEO KEYWORDS
+#  HIGH CPC NEWS TOPICS
 # ══════════════════════════════════════════════════════
 
 NEWS_TOPICS = [
@@ -241,7 +242,7 @@ def pick_story():
     return None
 
 # ══════════════════════════════════════════════════════
-#  INTERNAL LINK BUILDER
+#  INTERNAL LINKS
 # ══════════════════════════════════════════════════════
 
 def get_relevant_internal_links(title, content):
@@ -269,7 +270,7 @@ def build_internal_links_html(links):
     return html
 
 # ══════════════════════════════════════════════════════
-#  AI WRITER SYSTEM PROMPT
+#  SYSTEM PROMPT
 # ══════════════════════════════════════════════════════
 
 SYSTEM_PROMPT = (
@@ -277,13 +278,11 @@ SYSTEM_PROMPT = (
     "You write for your blog technewsai.me. You are a real human who loves gadgets, "
     "has opinions, and writes from personal experience. "
     "You are NOT an AI assistant. You are a person.\n\n"
-
-    "EEAT REQUIREMENTS (Critical for Google AdSense approval):\n"
+    "EEAT REQUIREMENTS:\n"
     "Experience: Write as someone who has personally handled devices. "
     "Expertise: Show deep technical knowledge explained simply. "
     "Authority: Give clear confident recommendations. "
     "Trust: Be honest about flaws, never just praise everything.\n\n"
-
     "HUMAN WRITING STYLE:\n"
     "Open with a personal story or strong opinion. "
     "Use phrases like: I have been testing this, Honestly speaking, "
@@ -291,24 +290,16 @@ SYSTEM_PROMPT = (
     "After using this for a week, In my honest opinion. "
     "Include frustrations: The one thing that bothered me, "
     "I wish they had fixed, This is where it falls short. "
-    "Vary sentence lengths. Short punchy sentences matter. "
-    "Then longer analytical ones that go deeper into the topic. "
+    "Vary sentence lengths. "
     "FORBIDDEN words: Furthermore, Moreover, In conclusion, It is worth noting, "
     "Transitioning to, It is important to note, In summary.\n\n"
-
-    "INDIA CONTEXT (Mandatory):\n"
-    "Always mention India price in INR. Convert USD to INR at 85 rupees per dollar. "
-    "Mention EMI options on Flipkart and Amazon India. "
-    "Compare with alternatives at similar India price points. "
-    "Reference Indian usage: Bengaluru traffic, Mumbai commute, Delhi heat, "
-    "college student budget, office professional needs. "
-    "Mention availability: Flipkart, Amazon India, brand stores, "
-    "offline retail in India.\n\n"
-
-    "ARTICLE STRUCTURE (follow exactly):\n"
-    "H1 handled by blog theme - do not add H1.\n"
-    "Start with H2 title that includes main keyword.\n"
-    "Section 1 H2: Opening - personal hook and why this matters in India now\n"
+    "INDIA CONTEXT:\n"
+    "Always mention India price in INR at USD x 85. "
+    "Mention EMI on Flipkart and Amazon India. "
+    "Reference: Bengaluru traffic, Mumbai commute, Delhi heat, college budgets.\n\n"
+    "ARTICLE STRUCTURE:\n"
+    "Start with H2 title with main keyword.\n"
+    "Section 1 H2: Opening Hook\n"
     "Section 2 H2: Design and Build Quality\n"
     "Section 3 H2: Display and Visual Experience\n"
     "Section 4 H2: Performance and Gaming\n"
@@ -321,32 +312,20 @@ SYSTEM_PROMPT = (
     "Section 11 H2: Who Should Buy This\n"
     "Section 12 H2: Final Verdict\n"
     "Section 13 H2: Frequently Asked Questions\n\n"
-
-    "PROS AND CONS FORMAT:\n"
-    "Write Pros as a paragraph starting: What genuinely impressed me about this device...\n"
-    "Write Cons as a paragraph starting: However I have to be honest about the downsides...\n"
-    "Do NOT use bullet points or lists anywhere.\n\n"
-
-    "FAQ FORMAT:\n"
-    "Write 5 questions and answers as flowing paragraphs.\n"
-    "Questions must be what real Indian buyers ask on Flipkart reviews.\n\n"
-
-    "SEO RULES:\n"
-    "Include the main keyword in the first H2, first paragraph, and 2-3 subheadings. "
-    "Use related keywords naturally throughout. "
-    "Minimum 2800 words. Aim for 3200 words. "
-    "Every paragraph adds unique new information.\n\n"
-
-    "FORMAT RULES:\n"
-    "Clean HTML only. No markdown. No asterisks. No bullet points anywhere. "
-    "Use h2 for main sections. Use h3 for sub-points within sections. "
-    "Every paragraph wrapped in p tags. "
-    "Use strong tags for important specs and numbers. "
-    "Do not include html, head, or body tags."
+    "PROS AND CONS:\n"
+    "Pros paragraph starts: What genuinely impressed me about this device...\n"
+    "Cons paragraph starts: However I have to be honest about the downsides...\n"
+    "No bullet points anywhere.\n\n"
+    "FAQ: 5 questions and answers as flowing paragraphs.\n\n"
+    "SEO: Include main keyword in first H2, first paragraph, and 2-3 subheadings. "
+    "Minimum 2800 words. Every paragraph adds unique new information.\n\n"
+    "FORMAT: Clean HTML only. No markdown. No asterisks. No bullet points. "
+    "h2 for sections. h3 for sub-points. p tags for paragraphs. "
+    "strong tags for specs. No html head body tags."
 )
 
 # ══════════════════════════════════════════════════════
-#  ARTICLE BUILDER
+#  PROMPT BUILDER
 # ══════════════════════════════════════════════════════
 
 def build_prompt(story):
@@ -358,125 +337,121 @@ def build_prompt(story):
         "DETAILS   : " + (story["content"][:700] if story["content"] else "Use your knowledge"),
         "SOURCE    : " + story["source"],
         "",
-        "MANDATORY REQUIREMENTS:",
-        "1. Start with H2 containing the main SEO keyword in the title",
-        "2. Write minimum 2800 words - aim for 3200",
-        "3. Include all 13 sections listed in your instructions",
-        "4. Sound like a real Indian tech journalist with genuine opinions",
-        "5. Include India price in INR with EMI options",
-        "6. Compare with 2 specific competitors at similar India price",
-        "7. Write Pros section as a paragraph (no bullets)",
-        "8. Write Cons section as a paragraph (no bullets)",
-        "9. Include 5 FAQ questions Indian buyers actually ask",
-        "10. Every section must have at least 2 paragraphs",
-        "11. Use strong tags for specs and numbers",
-        "12. No markdown, no asterisks, clean HTML only",
+        "MANDATORY:",
+        "1. H2 title with main SEO keyword",
+        "2. Minimum 2800 words",
+        "3. All 13 sections",
+        "4. Real Indian journalist voice with opinions",
+        "5. India price in INR with EMI",
+        "6. Compare 2 competitors at similar India price",
+        "7. Pros as paragraph no bullets",
+        "8. Cons as paragraph no bullets",
+        "9. 5 FAQ questions Indian buyers ask",
+        "10. Min 2 paragraphs per section",
+        "11. strong tags for specs",
+        "12. Clean HTML only no markdown",
         "",
-        "Write the complete article now:",
+        "Write the full article now:",
     ]
     return "\n".join(lines)
 
+# ══════════════════════════════════════════════════════
+#  HTML BUILDERS
+# ══════════════════════════════════════════════════════
 
 def build_author_box():
-    return (
-        '<div style="background:#f8f9fa;border:1px solid #e0e0e0;'
-        'padding:20px;margin:32px 0;border-radius:8px;">'
-        '<p style="font-size:18px;font-weight:bold;margin-bottom:8px;">'
-        'About the Author</p>'
-        '<p style="font-size:15px;color:#333;margin-bottom:12px;">'
-        + AUTHOR_BIO +
-        '</p>'
-        '<p style="margin:0;">'
-        '<strong>Follow Mallikarjun:</strong> '
-        '<a href="' + INSTAGRAM_URL + '" target="_blank" rel="noopener" '
-        'style="color:#E1306C;margin-right:12px;">Instagram</a> '
-        '<a href="' + LINKEDIN_URL + '" target="_blank" rel="noopener" '
-        'style="color:#0077B5;margin-right:12px;">LinkedIn</a> '
-        '<a href="' + WHATSAPP_URL + '" target="_blank" rel="noopener" '
-        'style="color:#25D366;">WhatsApp Channel</a>'
-        '</p>'
-        '</div>'
-    )
+    box = '<div style="background:#f8f9fa;border:1px solid #e0e0e0;padding:20px;margin:32px 0;border-radius:8px;">'
+    box += '<p style="font-size:18px;font-weight:bold;margin-bottom:8px;">About the Author</p>'
+    box += '<p style="font-size:15px;color:#333;margin-bottom:12px;">' + AUTHOR_BIO + '</p>'
+    box += '<p style="margin:0;"><strong>Follow Mallikarjun:</strong> '
+    box += '<a href="' + INSTAGRAM_URL + '" target="_blank" rel="noopener" style="color:#E1306C;margin-right:12px;">Instagram</a>'
+    box += '<a href="' + LINKEDIN_URL + '" target="_blank" rel="noopener" style="color:#0077B5;margin-right:12px;">LinkedIn</a>'
+    box += '<a href="' + WHATSAPP_URL + '" target="_blank" rel="noopener" style="color:#25D366;">WhatsApp Channel</a>'
+    box += '</p></div>'
+    return box
 
 
 def build_footer(story):
     src = story["source"]
     pub = story["published"][:10]
     url = story["url"]
-    parts = [
-        "<hr>",
-        '<p><em><strong>Source:</strong> ' + src +
-        ' | <strong>Published:</strong> ' + pub +
-        ' | <a href="' + url + '" target="_blank" rel="noopener">Read original article</a></em></p>',
-        '<div style="background:#111111;color:white;padding:20px;'
-        'border-radius:8px;margin:24px 0;text-align:center;">',
-        '<p style="font-size:18px;font-weight:bold;margin-bottom:8px;">'
-        'Stay Connected with Tech News With AI</p>',
-        '<p style="margin-bottom:16px;">Get daily tech news, reviews and updates!</p>',
-        '<p>'
-        '<a href="' + BLOG_URL + '" style="background:white;color:#1a73e8;'
-        'padding:8px 16px;border-radius:4px;text-decoration:none;margin:4px;'
-        'display:inline-block;font-weight:bold;">Visit Blog</a> '
-        '<a href="' + INSTAGRAM_URL + '" target="_blank" rel="noopener" '
-        'style="background:#E1306C;color:white;padding:8px 16px;border-radius:4px;'
-        'text-decoration:none;margin:4px;display:inline-block;font-weight:bold;">'
-        'Instagram</a> '
-        '<a href="' + LINKEDIN_URL + '" target="_blank" rel="noopener" '
-        'style="background:#0077B5;color:white;padding:8px 16px;border-radius:4px;'
-        'text-decoration:none;margin:4px;display:inline-block;font-weight:bold;">'
-        'LinkedIn</a> '
-        '<a href="' + WHATSAPP_URL + '" target="_blank" rel="noopener" '
-        'style="background:#25D366;color:white;padding:8px 16px;border-radius:4px;'
-        'text-decoration:none;margin:4px;display:inline-block;font-weight:bold;">'
-        'WhatsApp Channel</a>'
-        '</p>',
-        '</div>',
-    ]
-    return "\n".join(parts)
 
+    # Source line
+    source_line = '<hr><p><em><strong>Source:</strong> ' + src
+    source_line += ' | <strong>Published:</strong> ' + pub
+    source_line += ' | <a href="' + url + '" target="_blank" rel="noopener">Read original article</a></em></p>'
+
+    # Social banner — BLACK background
+    banner = '<div style="background:#111111;color:#ffffff;padding:24px;border-radius:8px;margin:24px 0;text-align:center;">'
+    banner += '<p style="font-size:20px;font-weight:bold;margin-bottom:8px;color:#ffffff;">Stay Connected with Tech News With AI</p>'
+    banner += '<p style="margin-bottom:20px;color:#cccccc;">Get daily tech news, reviews and updates from India!</p>'
+    banner += '<p style="margin:0;">'
+
+    # Visit Blog button — white
+    banner += '<a href="' + BLOG_URL + '" style="background:#ffffff;color:#111111;padding:10px 18px;'
+    banner += 'border-radius:5px;text-decoration:none;margin:4px;display:inline-block;font-weight:bold;">Visit Blog</a> '
+
+    # Instagram button — pink
+    banner += '<a href="' + INSTAGRAM_URL + '" target="_blank" rel="noopener" style="background:#E1306C;color:#ffffff;'
+    banner += 'padding:10px 18px;border-radius:5px;text-decoration:none;margin:4px;display:inline-block;font-weight:bold;">Instagram</a> '
+
+    # LinkedIn button — blue
+    banner += '<a href="' + LINKEDIN_URL + '" target="_blank" rel="noopener" style="background:#0077B5;color:#ffffff;'
+    banner += 'padding:10px 18px;border-radius:5px;text-decoration:none;margin:4px;display:inline-block;font-weight:bold;">LinkedIn</a> '
+
+    # WhatsApp button — green
+    banner += '<a href="' + WHATSAPP_URL + '" target="_blank" rel="noopener" style="background:#25D366;color:#ffffff;'
+    banner += 'padding:10px 18px;border-radius:5px;text-decoration:none;margin:4px;display:inline-block;font-weight:bold;">WhatsApp Channel</a>'
+
+    banner += '</p></div>'
+
+    return source_line + "\n" + banner
+
+# ══════════════════════════════════════════════════════
+#  RESPONSE CLEANER
+# ══════════════════════════════════════════════════════
 
 def clean_and_parse(raw, story):
-    # Remove markdown code fences
     raw = re.sub(r"```html\s*", "", raw)
     raw = re.sub(r"```\s*", "", raw)
     raw = raw.strip()
-
-    # Convert any leftover markdown bold to HTML
     raw = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", raw)
-
-    # Convert any leftover markdown italic to HTML
     raw = re.sub(r"\*(.+?)\*", r"<em>\1</em>", raw)
-
-    # Remove any h1 tags (blog theme handles h1)
     raw = re.sub(r"<h1[^>]*>.*?</h1>", "", raw, flags=re.IGNORECASE | re.DOTALL)
-
-    # Remove duplicate h2 if appears at very top before content
     h2_list = re.findall(r"<h2[^>]*>.*?</h2>", raw, re.IGNORECASE | re.DOTALL)
     if len(h2_list) > 1:
-        first_h2_pos = raw.lower().find("<h2")
-        second_h2_pos = raw.lower().find("<h2", first_h2_pos + 1)
-        if second_h2_pos - first_h2_pos < 200:
-            raw = raw[:first_h2_pos] + raw[second_h2_pos:]
-
-    # Get article title from first h2
+        first_pos = raw.lower().find("<h2")
+        second_pos = raw.lower().find("<h2", first_pos + 1)
+        if second_pos - first_pos < 200:
+            raw = raw[:first_pos] + raw[second_pos:]
     title = story["title"]
     m = re.search(r"<h2[^>]*>(.*?)</h2>", raw, re.IGNORECASE | re.DOTALL)
     if m:
         title = re.sub(r"<[^>]+>", "", m.group(1)).strip()
-
-    # Count words
     word_count = len(re.sub(r"<[^>]+>", "", raw).split())
     print("    Words: " + str(word_count))
-
     return title, raw
 
+# ══════════════════════════════════════════════════════
+#  META DESCRIPTION
+# ══════════════════════════════════════════════════════
+
+def generate_meta_description(title, html):
+    clean = re.sub(r"<[^>]+>", "", html)
+    clean = re.sub(r"\s+", " ", clean).strip()
+    if clean.lower().startswith(title.lower()[:20].lower()):
+        clean = clean[len(title):].strip()
+    desc = clean[:147].rsplit(" ", 1)[0] + "..."
+    return desc
+
+# ══════════════════════════════════════════════════════
+#  AI WRITER
+# ══════════════════════════════════════════════════════
 
 def write_post(story):
     prompt = build_prompt(story)
-
     raw = None
 
-    # Try Grok first if key available
     if XAI_API_KEY:
         try:
             print("  Writing with Grok (xAI)...")
@@ -492,5 +467,21 @@ def write_post(story):
                 temperature=0.75,
             )
             raw = resp.choices[0].message.content
-            print("  Grok writing done!")
-     
+            print("  Grok done!")
+        except Exception as e:
+            print("  Grok error: " + str(e) + " - using Groq...")
+
+    if raw is None:
+        print("  Writing with Groq Llama 3.3 70B...")
+        from groq import Groq
+        client = Groq(api_key=GROQ_API_KEY)
+        resp = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user",   "content": prompt},
+            ],
+            max_tokens=4096,
+            temperature=0.75,
+        )
+    
