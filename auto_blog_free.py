@@ -1,8 +1,8 @@
 """
 ╔══════════════════════════════════════════════════════════════════════╗
 ║        TECH NEWS WITH AI — AUTO BLOG SYSTEM (100% FREE)            ║
-║        Blog: technewswithai.blogspot.com                            ║
-║        AI  : Groq (FREE) — Llama 3.3 70B                           ║
+║        Blog: technewsai.me                                          ║
+║        AI  : Groq (FREE) — Llama 3.3 70B + Grok fallback           ║
 ║        POST: Blogger API v3 with API Key (No browser login!)        ║
 ╠══════════════════════════════════════════════════════════════════════╣
 ║  SETUP:                                                              ║
@@ -16,8 +16,9 @@
 #  YOUR FREE API KEYS
 # ══════════════════════════════════════════════════════════════════════
 
-GROQ_API_KEY    = "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"
-NEWS_API_KEY    = "673bca5ceab54fa8bb7ed0344c8f6d13"
+GROQ_API_KEY    = os.environ.get("GROQ_API_KEY", "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")
+NEWS_API_KEY    = os.environ.get("NEWS_API_KEY", "673bca5ceab54fa8bb7ed0344c8f6d13")
+XAI_API_KEY     = os.environ.get("XAI_API_KEY", "")   # Get free key at console.x.ai
 BLOG_ID         = "6974086222747114440"
 
 # ══════════════════════════════════════════════════════════════════════
@@ -283,7 +284,7 @@ def pick_story():
 #  MODULE 2 — AI WRITER (Groq Free)
 # ══════════════════════════════════════════════════════════════════════
 
-SYSTEM_PROMPT = """You write for the tech blog "Tech News With AI" (technewswithai.blogspot.com) by Mallikarjun R, Bengaluru, India.
+SYSTEM_PROMPT = """You write for the tech blog "Tech News With AI" (technewsai.me) by Mallikarjun R, Bengaluru, India.
 
 VOICE:
 - Passionate and enthusiastic like explaining to a smart friend
@@ -324,8 +325,6 @@ SECTIONS:
 11. FAQ - 5 most asked questions with detailed answers"""
 
 def write_post(story):
-    print("\n  Writing with Groq Llama 3.3 70B...")
-    client = Groq(api_key=GROQ_API_KEY)
     prompt = f"""Write a complete detailed blog post about this tech news.
 
 HEADLINE  : {story['title']}
@@ -342,6 +341,47 @@ SOURCE    : {story['source']}
 
 Write the full article now:"""
 
+    def build_footer(story):
+        return f"""
+<hr>
+<p><em><strong>Source:</strong> {story['source']} | <strong>Published:</strong> {story['published'][:10]} | <a href="{story['url']}" target="_blank">Read original article</a></em></p>
+<p><em>Stay updated at <a href="https://technewsai.me">Tech News With AI</a>. Follow on <a href="https://www.instagram.com/mallikarjunr_8055">Instagram</a> and join our <a href="https://whatsapp.com/channel/0029VazWwdn0wajoizN5PY3Q">WhatsApp channel</a>.</em></p>
+"""
+
+    def parse_response(raw, story):
+        raw = re.sub(r"```html\s*", "", raw)
+        raw = re.sub(r"```\s*", "", raw)
+        raw = raw.strip()
+        title = story["title"]
+        m = re.search(r"<h2[^>]*>(.*?)</h2>", raw, re.IGNORECASE | re.DOTALL)
+        if m:
+            title = re.sub(r"<[^>]+>", "", m.group(1)).strip()
+        words = len(re.sub(r"<[^>]+>", "", raw).split())
+        print(f"    Done - {words} words")
+        return title, raw + build_footer(story)
+
+    # Try Grok first (better writing quality)
+    if XAI_API_KEY:
+        try:
+            print("\n  Writing with Grok (xAI)...")
+            from openai import OpenAI as OpenAIClient
+            grok_client = OpenAIClient(api_key=XAI_API_KEY, base_url="https://api.x.ai/v1")
+            response = grok_client.chat.completions.create(
+                model="grok-3",
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user",   "content": prompt}
+                ],
+                max_tokens=4000,
+                temperature=0.8,
+            )
+            return parse_response(response.choices[0].message.content, story)
+        except Exception as e:
+            print(f"    Grok error: {e} — falling back to Groq...")
+
+    # Fallback: Groq (always free)
+    print("\n  Writing with Groq Llama 3.3 70B...")
+    client = Groq(api_key=GROQ_API_KEY)
     try:
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
@@ -352,25 +392,7 @@ Write the full article now:"""
             max_tokens=4000,
             temperature=0.8,
         )
-        raw = response.choices[0].message.content
-        raw = re.sub(r"```html\s*", "", raw)
-        raw = re.sub(r"```\s*", "", raw)
-        raw = raw.strip()
-
-        title = story["title"]
-        m = re.search(r"<h2[^>]*>(.*?)</h2>", raw, re.IGNORECASE | re.DOTALL)
-        if m:
-            title = re.sub(r"<[^>]+>", "", m.group(1)).strip()
-
-        footer = f"""
-<hr>
-<p><em><strong>Source:</strong> {story['source']} | <strong>Published:</strong> {story['published'][:10]} | <a href="{story['url']}" target="_blank">Read original article</a></em></p>
-<p><em>Stay updated at <a href="https://technewswithai.blogspot.com">Tech News With AI</a>. Follow on <a href="https://www.instagram.com/mallikarjunr_8055">Instagram</a> and join our <a href="https://whatsapp.com/channel/0029VazWwdn0wajoizN5PY3Q">WhatsApp channel</a>.</em></p>
-"""
-        words = len(re.sub(r"<[^>]+>", "", raw).split())
-        print(f"    Done - {words} words")
-        return title, raw + footer
-
+        return parse_response(response.choices[0].message.content, story)
     except Exception as e:
         print(f"    Groq error: {e}")
         raise
@@ -419,8 +441,8 @@ def post_via_email(title, html, labels):
             server.sendmail(GMAIL_ADDRESS, BLOGGER_POST_EMAIL, msg.as_string())
 
         print(f"  ✅ Posted via email!")
-        print(f"  🔗 https://technewswithai.blogspot.com")
-        return "https://technewswithai.blogspot.com"
+        print(f"  🔗 https://technewsai.me")
+        return "https://technewsai.me"
 
     except Exception as e:
         print(f"  ❌ Email error: {e}")
@@ -450,7 +472,7 @@ def main():
     print("""
 ╔══════════════════════════════════════════════════════╗
 ║    TECH NEWS WITH AI — AUTO BLOG (100% FREE)        ║
-║    technewswithai.blogspot.com                      ║
+║    technewsai.me                                    ║
 ╚══════════════════════════════════════════════════════╝""")
 
     success = 0
@@ -476,7 +498,7 @@ def main():
     print(f"""
 ╔══════════════════════════════════════════════════════╗
 ║  DONE! {success}/{ARTICLES_PER_RUN} article(s) posted!
-║  technewswithai.blogspot.com
+║  technewsai.me
 ╚══════════════════════════════════════════════════════╝""")
 
 if __name__ == "__main__":
