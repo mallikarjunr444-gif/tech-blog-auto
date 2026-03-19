@@ -370,11 +370,18 @@ CRITICAL REQUIREMENTS:
 Write the complete article now, starting with the h2 title:"""
 
     def build_footer(story):
-        return f"""
-<hr>
-<p><em><strong>Source:</strong> {story['source']} | <strong>Published:</strong> {story['published'][:10]} | <a href="{story['url']}" target="_blank">Read original article</a></em></p>
-<p><em>Stay updated at <a href="https://technewsai.me">Tech News With AI</a>. Follow on <a href="https://www.instagram.com/mallikarjunr_8055">Instagram</a> and join our <a href="https://whatsapp.com/channel/0029VazWwdn0wajoizN5PY3Q">WhatsApp channel</a>.</em></p>
-"""
+        src = story['source']
+        pub = story['published'][:10]
+        url = story['url']
+        return (
+            "<hr>"
+            "<p><em><strong>Source:</strong> " + src + " | "
+            "<strong>Published:</strong> " + pub + " | "
+            '<a href="' + url + '" target="_blank">Read original article</a></em></p>'
+            '<p><em>Stay updated at <a href="https://technewsai.me">Tech News With AI</a>. '
+            'Follow on <a href="https://www.instagram.com/mallikarjunr_8055">Instagram</a> '
+            'and join our <a href="https://whatsapp.com/channel/0029VazWwdn0wajoizN5PY3Q">WhatsApp channel</a>.</em></p>'
+        )
 
     def parse_response(raw, story):
         raw = re.sub(r"```html\s*", "", raw)
@@ -458,8 +465,4 @@ def post_via_email(title, html, labels):
     gmail_password = os.environ.get("GMAIL_APP_PASSWORD", GMAIL_APP_PASSWORD)
 
     try:
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = title
-        msg["From"]    = GMAIL_ADDRESS
-        msg["To"]      = BLOGGER_POST_EMAIL
-        msg.attach(MIMEText(html, "html"
+        msg = MIMEMu
