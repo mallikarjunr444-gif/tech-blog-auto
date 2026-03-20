@@ -1,244 +1,490 @@
-import os,sys,json,time,random,requests,datetime,re,smtplib,xml.etree.ElementTree as ET
+"""
+╔══════════════════════════════════════════════════════════════════════╗
+║        TECH NEWS WITH AI — AUTO BLOG SYSTEM (100% FREE)            ║
+║        Blog: technewswithai.blogspot.com                            ║
+║        FOCUS: HIGH QUALITY content for AdSense approval            ║
+╚══════════════════════════════════════════════════════════════════════╝
+"""
+
+# ══════════════════════════════════════════════════════════════════════
+#  YOUR FREE API KEYS
+# ══════════════════════════════════════════════════════════════════════
+
+GROQ_API_KEY       = "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"
+NEWS_API_KEY       = "673bca5ceab54fa8bb7ed0344c8f6d13"
+BLOGGER_POST_EMAIL = "mallikarjunr444.technewswithai6361@blogger.com"
+GMAIL_ADDRESS      = "mallikarjunr444@gmail.com"
+GMAIL_APP_PASSWORD = "oeirtosmlhuwntka"
+
+# ══════════════════════════════════════════════════════════════════════
+#  SETTINGS — 1 HIGH QUALITY article per day for AdSense
+# ══════════════════════════════════════════════════════════════════════
+
+ARTICLES_PER_RUN = 1      # 1 per day — quality over quantity
+POST_AS_DRAFT    = False
+
+# Official brand newsrooms
+BRAND_SOURCES = {
+    "OPPO":     "https://www.oppo.com/en/newsroom/",
+    "Honor":    "https://www.hihonor.com/global/news/",
+    "Huawei":   "https://consumer.huawei.com/en/press/news/",
+    "Samsung":  "https://news.samsung.com/global/",
+    "OnePlus":  "https://www.oneplus.com/global/newsroom",
+    "Xiaomi":   "https://blog.mi.com/en/",
+    "Realme":   "https://www.realme.com/in/info/news",
+    "Vivo":     "https://www.vivo.com/en/news",
+    "Nothing":  "https://nothing.tech/blogs/news",
+    "Motorola": "https://newsroom.motorola.com/",
+    "Apple":    "https://www.apple.com/newsroom/",
+    "Google":   "https://blog.google/products/pixel/",
+}
+
+import os, sys, json, time, random, requests, datetime, re
+import smtplib
 from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+from email.mime.text      import MIMEText
 
-GROQ_API_KEY=os.environ.get("GROQ_API_KEY","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")
-NEWS_API_KEY=os.environ.get("NEWS_API_KEY","673bca5ceab54fa8bb7ed0344c8f6d13")
-BLOG_ID="6974086222747114440"
-BLOG_URL="https://www.technewsai.me"
-BLOGGER_EMAIL="mallikarjunr444.technewswithai6361@blogger.com"
-GMAIL_ADDRESS="mallikarjunr444@gmail.com"
-GMAIL_PASS=os.environ.get("GMAIL_APP_PASSWORD","oeirtosmlhuwntka")
-ARTICLES=3
-INSTAGRAM="https://www.instagram.com/mallikarjunr_8055"
-LINKEDIN="https://in.linkedin.com/in/mallikarjun-r-a85685367"
-WHATSAPP="https://whatsapp.com/channel/0029VazWwdn0wajoizN5PY3Q"
-BIO="Mallikarjun R is a first-year Computer Science Engineering student at DSATM, Bengaluru, India. He is passionate about technology, smartphones, and AI. He runs Tech News With AI (technewsai.me) to bring the latest tech news and honest reviews to Indian readers."
-
-INTERNAL=[
-    {"title":"Samsung Galaxy A37 and A57 Review","url":"https://www.technewsai.me/2026/03/the-wait-is-over-galaxy-a37-and-a57.html","kw":["samsung","galaxy","android"]},
-    {"title":"OPPO Find N6 Review: Gold Standard of Foldables","url":"https://www.technewsai.me/2026/03/oppo-find-n6-review-gold-standard-of.html","kw":["oppo","foldable"]},
-    {"title":"ROG Strix Scar 18: Beast Gaming Laptop 2026","url":"https://www.technewsai.me/2026/03/new-rog-strix-scar-18-unleashing-beast.html","kw":["rog","gaming","laptop","asus"]},
-    {"title":"Best Battery and Performance Phones 2026","url":"https://www.technewsai.me/2026/03/get-ready-for-battery-and-performance.html","kw":["battery","performance","best phone"]},
-]
-
-TOPICS=[
-    "best smartphone under 20000 India 2026","best smartphone under 30000 India 2026",
-    "best laptop under 50000 India 2026","iPhone 16 price India review 2026",
-    "Samsung Galaxy S25 review India price","OnePlus 13 review India price specs",
-    "best gaming phone India 2026","best camera phone India 2026",
-    "MacBook Air M4 review India price","Xiaomi 15 Ultra review India specs",
-    "Poco X7 Pro review India price","Redmi Note 14 Pro review India",
-    "Vivo X200 Pro review India price","iQOO 13 review India price specs",
-    "Google Pixel 9 Pro review India","Motorola Edge 50 review India",
-    "Nothing Phone 3 review India specs","best TWS earbuds under 5000 India 2026",
-    "best smartwatch under 10000 India 2026","Dell XPS 15 review India price 2026",
-    "HP Spectre review India price 2026","ASUS Zenbook review India 2026",
-    "best Android tablet India 2026","5G phone under 15000 India 2026",
-    "best phone for students India 2026","Apple vs Samsung flagship India 2026",
-    "Realme GT 7 Pro review India","Samsung Galaxy A launch India specs 2026",
-]
-
-RSS=[
-    ("The Verge","https://www.theverge.com/rss/index.xml"),
-    ("TechCrunch","https://techcrunch.com/feed/"),
-    ("CNET","https://www.cnet.com/rss/news/"),
-    ("GSMArena","https://www.gsmarena.com/rss-news-articles.php3"),
-    ("AndroidAuthority","https://www.androidauthority.com/feed/"),
-    ("XDA Developers","https://www.xda-developers.com/feed/"),
-    ("91Mobiles","https://www.91mobiles.com/hub/feed/"),
-    ("MySmartPrice","https://www.mysmartprice.com/feed/"),
-    ("GizmoChina","https://www.gizmochina.com/feed/"),
-    ("GadgetsNow","https://www.gadgetsnow.com/rssfeedstopstories.cms"),
-]
-
-def fetch_rss(name,url,kw):
+def require(package, install):
     try:
-        r=requests.get(url,timeout=8,headers={"User-Agent":"Mozilla/5.0"})
-        if r.status_code!=200:return[]
-        root=ET.fromstring(r.content)
-        ns={"atom":"http://www.w3.org/2005/Atom"}
-        items=root.findall(".//item") or root.findall(".//atom:entry",ns)
-        arts=[]
-        for item in items[:10]:
-            t=item.find("title")
-            title=t.text if t is not None else ""
-            if not title:continue
-            if kw.lower().split()[0] not in title.lower():continue
-            d=item.find("description") or item.find("summary")
-            desc=re.sub(r"<[^>]+>","",d.text if d is not None else "")[:400]
-            l=item.find("link")
-            link=l.text if l is not None else url
-            p=item.find("pubDate") or item.find("published")
-            pub=p.text if p is not None else "2026-03-20T00:00:00Z"
-            if title and desc:
-                arts.append({"title":title.strip(),"description":desc.strip(),"content":desc.strip(),"url":link.strip(),"source":name,"published":pub})
-        return arts[:3]
-    except:return[]
+        __import__(package)
+    except ImportError:
+        print(f"Missing: {package}  Fix: pip install {install}")
+        sys.exit(1)
 
-def fetch_newsapi(q,n=3):
+require("groq", "groq")
+from groq import Groq
+
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
+    "Accept-Language": "en-US,en;q=0.5",
+}
+
+# ══════════════════════════════════════════════════════════════════════
+#  MODULE 1 — SCRAPE REAL SPECS
+# ══════════════════════════════════════════════════════════════════════
+
+def scrape_gsmarena(device_name):
+    """Get full specs from GSMArena."""
+    print(f"    Scraping GSMArena: {device_name[:50]}")
     try:
-        r=requests.get("https://newsapi.org/v2/everything",params={"q":q,"language":"en","sortBy":"publishedAt","pageSize":n,"apiKey":NEWS_API_KEY},timeout=10)
-        d=r.json()
-        if d.get("status")!="ok":return[]
-        return [{"title":a["title"],"description":a.get("description") or "","content":a.get("content") or "","url":a["url"],"source":a["source"]["name"],"published":a["publishedAt"]} for a in d.get("articles",[]) if a.get("title") and a.get("description")]
-    except:return[]
+        query = device_name.replace(" ", "+")
+        r = requests.get(
+            f"https://www.gsmarena.com/search.php3?sQuickSearch={query}",
+            headers=HEADERS, timeout=10)
 
-def fetch(q,n=3):
-    print("  Searching: "+q)
-    arts=[]
-    kw=q.split()[0]
-    feeds=RSS[:]
-    random.shuffle(feeds)
-    for name,url in feeds[:8]:
-        arts.extend(fetch_rss(name,url,kw))
-        if len(arts)>=3:break
-    if len(arts)<2:arts.extend(fetch_newsapi(q,n))
-    seen=set()
-    unique=[a for a in arts if not (a["title"] in seen or seen.add(a["title"]))]
-    print("    "+str(len(unique))+" found")
-    return unique[:n]
+        links = re.findall(r'href="([a-z0-9_]+-\d+\.php)"', r.text)
+        if not links:
+            return {}
 
-def pick():
-    topics=TOPICS[:]
+        r2 = requests.get(
+            f"https://www.gsmarena.com/{links[0]}",
+            headers=HEADERS, timeout=10)
+
+        specs = {}
+        pairs = re.findall(
+            r'<td class="ttl">.*?<a[^>]*>([^<]+)</a>.*?</td>\s*<td class="nfo">([^<]+)',
+            r2.text, re.DOTALL)
+        for k, v in pairs:
+            specs[k.strip()] = v.strip()
+
+        specs['gsmarena_url'] = f"https://www.gsmarena.com/{links[0]}"
+        print(f"      ✅ {len(specs)} specs found")
+        return specs
+    except Exception as e:
+        print(f"      GSMArena: {e}")
+        return {}
+
+
+def scrape_page_content(url):
+    """Scrape full text content from any URL."""
+    try:
+        r = requests.get(url, headers=HEADERS, timeout=10)
+        # Remove scripts and styles
+        text = re.sub(r'<script[^>]*>.*?</script>', '', r.text, flags=re.DOTALL)
+        text = re.sub(r'<style[^>]*>.*?</style>', '', text, flags=re.DOTALL)
+        # Get clean text
+        text = re.sub(r'<[^>]+>', ' ', text)
+        text = re.sub(r'\s+', ' ', text).strip()
+        return text[:3000]
+    except:
+        return ""
+
+
+def fetch_newsapi(query):
+    """Fetch from NewsAPI."""
+    try:
+        r = requests.get(
+            "https://newsapi.org/v2/everything",
+            params={"q": query, "language": "en",
+                    "sortBy": "publishedAt", "pageSize": 5,
+                    "apiKey": NEWS_API_KEY},
+            timeout=10)
+        data = r.json()
+        if data.get("status") != "ok":
+            return []
+        return [a for a in data.get("articles", [])
+                if a.get("title") and a.get("description")]
+    except:
+        return []
+
+
+def pick_story():
+    """Find latest device news with real specs."""
+    print("\n  Finding latest tech news...")
+
+    # Try brand newsrooms
+    brands = list(BRAND_SOURCES.items())
+    random.shuffle(brands)
+
+    for brand, url in brands[:5]:
+        try:
+            r = requests.get(url, headers=HEADERS, timeout=8)
+            titles = re.findall(r'<h[123][^>]*>([^<]{20,120})</h[123]>', r.text)
+            titles = [t.strip() for t in titles if
+                      any(w in t.lower() for w in
+                          ['launch','new','release','pro','series',
+                           'phone','smartphone','announce'])]
+            if titles:
+                headline = titles[0]
+                print(f"\n  Found: {headline[:60]}")
+                print(f"  Brand: {brand}")
+
+                # Get specs and article content
+                specs = scrape_gsmarena(headline)
+                article_content = scrape_page_content(url)
+
+                return {
+                    "title":    headline,
+                    "brand":    brand,
+                    "source":   f"{brand} Official",
+                    "url":      url,
+                    "specs":    specs,
+                    "content":  article_content[:2000],
+                    "published": datetime.datetime.now().isoformat(),
+                    "description": f"Latest {brand} device news"
+                }
+        except:
+            continue
+
+    # Fallback NewsAPI
+    topics = [
+        "OPPO phone launch India 2026",
+        "Honor smartphone launch specs",
+        "Samsung Galaxy launch India",
+        "OnePlus launch specifications India",
+        "iPhone launch specs 2026",
+        "Xiaomi Redmi launch India",
+        "laptop launch India 2026",
+    ]
     random.shuffle(topics)
-    for t in topics:
-        arts=fetch(t)
-        if arts:
-            s=arts[0]
-            print("  Picked: "+s["title"])
-            return s
+    for topic in topics:
+        articles = fetch_newsapi(topic)
+        if articles:
+            a = articles[0]
+            brand = topic.split()[0]
+            specs = scrape_gsmarena(a["title"])
+            # Also scrape the article URL for more content
+            extra = scrape_page_content(a["url"])
+            return {
+                "title":     a["title"],
+                "brand":     brand,
+                "source":    a["source"]["name"],
+                "url":       a["url"],
+                "specs":     specs,
+                "content":   (a.get("content","") or "") + extra,
+                "published": a["publishedAt"],
+                "description": a.get("description","")
+            }
     return None
 
-def get_links(title,desc):
-    text=(title+" "+desc).lower()
-    rel=[l for l in INTERNAL if any(k in text for k in l["kw"])]
-    if not rel:rel=random.sample(INTERNAL,min(2,len(INTERNAL)))
-    return rel[:2]
 
-def author_box():
-    h='<div style="background:#f8f9fa;border:1px solid #e0e0e0;padding:20px;margin:32px 0;border-radius:8px;">'
-    h+='<p style="font-size:18px;font-weight:bold;">About the Author</p>'
-    h+='<p style="color:#333;">'+BIO+'</p>'
-    h+='<p><strong>Follow Mallikarjun:</strong> '
-    h+='<a href="'+INSTAGRAM+'" target="_blank" style="color:#E1306C;margin-right:12px;">Instagram</a>'
-    h+='<a href="'+LINKEDIN+'" target="_blank" style="color:#0077B5;margin-right:12px;">LinkedIn</a>'
-    h+='<a href="'+WHATSAPP+'" target="_blank" style="color:#25D366;">WhatsApp</a></p></div>'
-    return h
+# ══════════════════════════════════════════════════════════════════════
+#  MODULE 2 — HIGH QUALITY AI WRITER
+# ══════════════════════════════════════════════════════════════════════
 
-def social_footer(story):
-    src=story["source"]
-    pub=story["published"][:10]
-    url=story["url"]
-    h='<hr><p><em><strong>Source:</strong> '+src+' | <strong>Published:</strong> '+pub
-    h+=' | <a href="'+url+'" target="_blank">Read original</a></em></p>'
-    h+='<div style="background:#111111;color:#fff;padding:24px;border-radius:8px;margin:24px 0;text-align:center;">'
-    h+='<p style="font-size:18px;font-weight:bold;color:#fff;">Stay Connected with Tech News With AI</p>'
-    h+='<p style="color:#ccc;">Daily tech news and reviews from India</p><p>'
-    h+='<a href="'+BLOG_URL+'" style="background:#fff;color:#111;padding:10px 16px;border-radius:5px;text-decoration:none;margin:4px;display:inline-block;font-weight:bold;">Visit Blog</a> '
-    h+='<a href="'+INSTAGRAM+'" target="_blank" style="background:#E1306C;color:#fff;padding:10px 16px;border-radius:5px;text-decoration:none;margin:4px;display:inline-block;font-weight:bold;">Instagram</a> '
-    h+='<a href="'+LINKEDIN+'" target="_blank" style="background:#0077B5;color:#fff;padding:10px 16px;border-radius:5px;text-decoration:none;margin:4px;display:inline-block;font-weight:bold;">LinkedIn</a> '
-    h+='<a href="'+WHATSAPP+'" target="_blank" style="background:#25D366;color:#fff;padding:10px 16px;border-radius:5px;text-decoration:none;margin:4px;display:inline-block;font-weight:bold;">WhatsApp</a>'
-    h+='</p></div>'
-    return h
+SYSTEM_PROMPT = """You are a professional tech journalist writing for "Tech News With AI" (technewswithai.blogspot.com) by Mallikarjun R, Bengaluru, India.
 
-PROMPT_SYS="You are Mallikarjun R, a first-year CS student from Bengaluru who runs a tech blog technewsai.me. Write as a real Indian person with opinions. EEAT: show experience, expertise, authority, trust. Use personal hooks. Mention India prices in INR (USD x 85). Reference Flipkart, Amazon India, EMI options. Compare 2 competitors. BANNED words: Furthermore, Moreover, In conclusion, It is worth noting. NO bullet points. NO markdown. NO asterisks. Clean HTML only using h2 h3 p strong tags. Min 2800 words. Include sections: Opening Hook, Design, Display, Performance, Camera, Battery, Software, India Price, Pros and Cons, Comparison, Who Should Buy, Final Verdict, FAQ."
+YOUR WRITING STYLE:
+- Write like a passionate tech expert explaining to a smart friend
+- Simple English that anyone can understand
+- Use phrases: "here is the thing", "let us break this down", "this is where it gets interesting"
+- Address readers directly: "you will love", "when you pick this up"
+- Every paragraph must be UNIQUE and add NEW information
+- Never repeat the same point twice
+- Write with DEPTH — go beyond surface level information
 
-def write(story):
-    prompt=("Write complete expert tech article for Indian readers.\n"
-            "TOPIC: "+story["title"]+"\n"
-            "SUMMARY: "+story["description"]+"\n"
-            "DETAILS: "+(story["content"][:600] if story["content"] else "Use knowledge")+"\n"
-            "SOURCE: "+story["source"]+"\n\n"
-            "RULES: H2 title with keyword. 2800+ words. 13 sections. "
-            "Indian journalist voice. INR prices with EMI. "
-            "Compare 2 competitors. Pros paragraph. Cons paragraph. "
-            "5 FAQ paragraphs. strong tags for specs. Clean HTML only.\n\n"
-            "Write full article now:")
-    print("  Writing with Groq...")
-    from groq import Groq
-    client=Groq(api_key=GROQ_API_KEY)
-    resp=client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role":"system","content":PROMPT_SYS},{"role":"user","content":prompt}],
-        max_tokens=4096,temperature=0.75)
-    raw=resp.choices[0].message.content
-    raw=re.sub(r"```html\s*","",raw)
-    raw=re.sub(r"```\s*","",raw)
-    raw=re.sub(r"\*\*(.+?)\*\*",r"<strong>\1</strong>",raw)
-    raw=re.sub(r"\*(.+?)\*",r"<em>\1</em>",raw)
-    raw=re.sub(r"<h1[^>]*>.*?</h1>","",raw,flags=re.IGNORECASE|re.DOTALL)
-    raw=raw.strip()
-    title=story["title"]
-    m=re.search(r"<h2[^>]*>(.*?)</h2>",raw,re.IGNORECASE|re.DOTALL)
-    if m:title=re.sub(r"<[^>]+>","",m.group(1)).strip()
-    words=len(re.sub(r"<[^>]+>","",raw).split())
-    print("  Words: "+str(words))
-    links=get_links(title,story["description"])
-    lhtml="<h3>Related Articles</h3><p>Also read: "
-    lhtml+=", ".join(['<a href="'+l["url"]+'">'+l["title"]+"</a>" for l in links])+".</p>"
-    final=raw+"\n"+lhtml+"\n"+author_box()+"\n"+social_footer(story)
-    return title,final
+GOOGLE ADSENSE CONTENT REQUIREMENTS:
+- MINIMUM 3000 words — longer articles get better AdSense scores
+- Write COMPLETE full articles — never leave any section empty or shallow
+- Every section must have minimum 4 detailed paragraphs
+- Each paragraph minimum 4-5 sentences
+- Use ONLY real specs provided — never invent specs
+- Explain every technical term simply when first used
+- Give real world examples in every section
+- Compare with exactly 3 competitor devices
+- Include exact India pricing with EMI breakdown
+- Add unique personal insights not found on other blogs
+- Write as if you personally tested the device
 
-def labels(title,html):
-    text=(title+" "+html[:400]).lower()
-    labs=["Tech News","India"]
-    lmap={"iphone":["iPhone","Apple"],"macbook":["MacBook","Laptop"],"samsung":["Samsung","Android"],"oneplus":["OnePlus","Android"],"realme":["Realme","Android"],"xiaomi":["Xiaomi","Android"],"poco":["Poco","Android"],"redmi":["Redmi","Android"],"vivo":["Vivo","Android"],"iqoo":["iQOO","Android"],"google":["Google"],"pixel":["Google Pixel"],"motorola":["Motorola"],"nothing":["Nothing Phone"],"oppo":["OPPO","Android"],"laptop":["Laptop"],"gaming":["Gaming"],"foldable":["Foldable"],"ai":["AI"],"earbuds":["Earbuds"],"smartwatch":["Smartwatch"]}
-    for k,v in lmap.items():
-        if k in text:
-            for t in v:
-                if t not in labs:labs.append(t)
-    labs.append(str(datetime.datetime.now().year))
-    return labs[:10]
+IMPORTANT — FULL CONTENT ON EVERY PAGE:
+- Start article with a 3 paragraph introduction BEFORE any heading
+- Every section must be COMPLETE with full paragraphs
+- Never use placeholder text or incomplete sentences
+- Each FAQ answer must be minimum 3 sentences
 
-def post(title,html,labs):
-    print("  Posting via email...")
-    pw=os.environ.get("GMAIL_APP_PASSWORD",GMAIL_PASS)
-    msg=MIMEMultipart("alternative")
-    msg["Subject"]=title
-    msg["From"]=GMAIL_ADDRESS
-    msg["To"]=BLOGGER_EMAIL
-    msg.attach(MIMEText(html,"html"))
-    with smtplib.SMTP_SSL("smtp.gmail.com",465) as s:
-        s.login(GMAIL_ADDRESS,pw)
-        s.sendmail(GMAIL_ADDRESS,BLOGGER_EMAIL,msg.as_string())
-    print("  Posted! "+BLOG_URL)
-    return BLOG_URL
+FORMAT RULES:
+- NO bullet points anywhere — always flowing paragraphs only
+- NO tables — write all specs as descriptive sentences
+- Use <h2> for main sections
+- Use <h3> for sub sections
+- Every paragraph wrapped in <p> tags
+- Clean HTML only — no markdown, no code fences
+- Add meta description as first hidden paragraph
 
-def save(title,url):
-    f="posted_articles.json"
-    log=[]
-    if os.path.exists(f):
-        with open(f) as fp:log=json.load(fp)
-    log.append({"title":title,"url":url,"posted_at":datetime.datetime.now().isoformat()})
-    with open(f,"w") as fp:json.dump(log,fp,indent=2)
-    print("  Saved ("+str(len(log))+" total)")
+MANDATORY SECTIONS (each minimum 4 paragraphs):
+1. Opening Introduction — 3 paragraphs before first h2 heading
+2. Design and Build Quality — materials, dimensions, colors, feel in hand
+3. Display Technology Explained — panel, size, resolution, refresh rate simply explained
+4. Camera System Complete Guide — every lens, real world photos, video
+5. Processor Performance and Gaming — chip, speed, gaming, multitasking, heating
+6. Battery Life and Charging — capacity, real usage, charging speed, longevity
+7. Software and AI Features — OS, unique features, AI tools, updates
+8. India Price and Value Analysis — price, EMI, variants, value for money
+9. Who Should Buy and Who Should Not — honest advice for different buyers
+10. Top 3 Alternatives — honest comparison with competitors
+11. Final Verdict — clear recommendation with specific reasons
+12. Frequently Asked Questions — 7 questions with detailed 3 sentence answers each"""
+
+
+def write_post(story):
+    print("\n  Writing HIGH QUALITY article with Groq...")
+    client = Groq(api_key=GROQ_API_KEY)
+
+    # Build comprehensive specs text
+    specs_text = ""
+    if story.get("specs"):
+        specs_items = list(story["specs"].items())[:40]
+        specs_text = "\n".join([f"  {k}: {v}" for k, v in specs_items])
+
+    prompt = f"""Write a COMPREHENSIVE, HIGH QUALITY blog article about this device.
+This article must be good enough for Google AdSense approval — minimum 2500 words.
+
+DEVICE DETAILS:
+Name    : {story['title']}
+Brand   : {story.get('brand','Unknown')}
+Source  : {story['source']}
+
+REAL SPECIFICATIONS (use these — do not invent specs):
+{specs_text if specs_text else "Specifications being compiled from official source"}
+
+ADDITIONAL CONTEXT:
+{story.get('description','')}
+{story.get('content','')[:1000]}
+
+WRITING REQUIREMENTS:
+1. Minimum 2500 words — each section needs 3-4 detailed paragraphs
+2. First h2 tag must be a catchy, SEO-friendly article title
+3. Use real specs provided — explain what each spec means for real users
+4. Include India pricing (estimate if not provided: search context clues)
+5. Compare with Samsung, iPhone, and one Indian brand
+6. Write 12 sections as instructed
+7. Make every paragraph unique — no repetition
+8. Add real world use cases and examples
+9. Sound like a human expert, not a robot
+
+Output clean HTML with h2, h3, p tags only. No html/head/body tags.
+Write the complete article now:"""
+
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user",   "content": prompt}
+            ],
+            max_tokens=7000,
+            temperature=0.75,
+        )
+        raw = response.choices[0].message.content
+        raw = re.sub(r"```html\s*", "", raw)
+        raw = re.sub(r"```\s*", "", raw)
+        raw = raw.strip()
+
+        # Extract title
+        title = story["title"]
+        m = re.search(r"<h2[^>]*>(.*?)</h2>", raw, re.IGNORECASE | re.DOTALL)
+        if m:
+            title = re.sub(r"<[^>]+>", "", m.group(1)).strip()
+
+        # Add footer
+        footer = f"""
+<hr>
+<p><em><strong>Source:</strong> {story['source']} | <strong>Date:</strong> {story['published'][:10]}</em></p>
+<p><em>For the latest tech news, phone reviews and laptop comparisons visit <a href="https://technewswithai.blogspot.com">Tech News With AI</a>. Follow us on <a href="https://www.instagram.com/mallikarjunr_8055">Instagram</a> and join our <a href="https://whatsapp.com/channel/0029VazWwdn0wajoizN5PY3Q">WhatsApp channel</a> for daily updates.</em></p>
+"""
+        words = len(re.sub(r"<[^>]+>", "", raw).split())
+        print(f"    ✅ Done — {words} words")
+
+        if words < 2000:
+            print(f"    ⚠️  Article too short ({words} words)! Extending...")
+            ext_response = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system",    "content": SYSTEM_PROMPT},
+                    {"role": "user",      "content": prompt},
+                    {"role": "assistant", "content": raw},
+                    {"role": "user",      "content": """The article needs more content for AdSense approval.
+Please add detailed content to these sections:
+1. Expand Camera section with 3 more paragraphs about photography tips
+2. Expand Performance section with gaming benchmarks explanation
+3. Expand Battery section with real world usage scenarios
+4. Add 3 more FAQ answers
+5. Expand Final Verdict with detailed reasoning
+Add minimum 1000 more words. Output only the additional HTML content."""}
+                ],
+                max_tokens=3000,
+                temperature=0.75,
+            )
+            extra = ext_response.choices[0].message.content
+            extra = re.sub(r"```html|```", "", extra).strip()
+            raw = raw + extra
+            words = len(re.sub(r"<[^>]+>", "", raw).split())
+            print(f"    ✅ Extended to {words} words")
+
+        return title, raw + footer
+
+    except Exception as e:
+        print(f"    ❌ Groq error: {e}")
+        raise
+
+
+# ══════════════════════════════════════════════════════════════════════
+#  MODULE 3 — POST VIA EMAIL
+# ══════════════════════════════════════════════════════════════════════
+
+def auto_labels(title, html):
+    text = (title + " " + html[:300]).lower()
+    labels = ["Tech News", "Specifications", "Review"]
+    MAP = {
+        "oppo":    ["OPPO","Android"],
+        "honor":   ["Honor","Android"],
+        "huawei":  ["Huawei","Android"],
+        "iphone":  ["iPhone","Apple"],
+        "samsung": ["Samsung","Android"],
+        "macbook": ["MacBook","Laptop"],
+        "oneplus": ["OnePlus","Android"],
+        "realme":  ["Realme","Android"],
+        "xiaomi":  ["Xiaomi","Android"],
+        "nothing": ["Nothing Phone"],
+        "pixel":   ["Google Pixel"],
+        "laptop":  ["Laptop"],
+        "vivo":    ["Vivo","Android"],
+        "iqoo":    ["iQOO","Android"],
+        "motorola":["Motorola"],
+        "india":   ["Price in India"],
+        "review":  ["Review"],
+        "specs":   ["Specifications"],
+    }
+    for kw, tags in MAP.items():
+        if kw in text:
+            for t in tags:
+                if t not in labels:
+                    labels.append(t)
+    labels.append(str(datetime.datetime.now().year))
+    return list(set(labels))[:10]
+
+
+def post_via_email(title, html, labels):
+    print(f"  Posting to Blogger via email...")
+    gmail_password = os.environ.get("GMAIL_APP_PASSWORD", GMAIL_APP_PASSWORD)
+    try:
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = title
+        msg["From"]    = GMAIL_ADDRESS
+        msg["To"]      = BLOGGER_POST_EMAIL
+        msg.attach(MIMEText(html, "html"))
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(GMAIL_ADDRESS, gmail_password)
+            server.sendmail(GMAIL_ADDRESS, BLOGGER_POST_EMAIL, msg.as_string())
+        print(f"  ✅ Posted!")
+        print(f"  🔗 https://technewswithai.blogspot.com")
+        return "https://technewswithai.blogspot.com"
+    except Exception as e:
+        print(f"  ❌ Email error: {e}")
+        raise
+
+
+def post_article(title, html, labels):
+    print(f"\n  Article: {title[:60]}...")
+    return post_via_email(title, html, labels)
+
+
+def save_log(title, url, words):
+    log_file = "posted_articles.json"
+    log = []
+    if os.path.exists(log_file):
+        try:
+            with open(log_file) as f:
+                log = json.load(f)
+        except:
+            log = []
+    log.append({"title": title, "url": url, "words": words,
+                "posted_at": datetime.datetime.now().isoformat()})
+    with open(log_file, "w") as f:
+        json.dump(log, f, indent=2)
+    print(f"  Log saved (total: {len(log)} posts)")
+
+
+# ══════════════════════════════════════════════════════════════════════
+#  MAIN
+# ══════════════════════════════════════════════════════════════════════
 
 def main():
-    print("="*50)
-    print("  TECH NEWS WITH AI v5.0 - "+BLOG_URL)
-    print("="*50)
-    ok=0
-    for i in range(ARTICLES):
-        try:
-            print("\n--- Article "+str(i+1)+" of "+str(ARTICLES)+" ---")
-            story=pick()
-            if not story:continue
-            title,html=write(story)
-            labs=labels(title,html)
-            url=post(title,html,labs)
-            save(title,url)
-            ok+=1
-            if i<ARTICLES-1:
-                print("  Waiting 20s...")
-                time.sleep(20)
-        except KeyboardInterrupt:break
-        except Exception as e:
-            print("  Error: "+str(e))
-    print("\n"+"="*50)
-    print("  DONE! "+str(ok)+"/"+str(ARTICLES)+" posted!")
-    print("="*50)
+    print("""
+╔══════════════════════════════════════════════════════╗
+║    TECH NEWS WITH AI — AUTO BLOG (100% FREE)        ║
+║    HIGH QUALITY — AdSense Ready                     ║
+║    technewswithai.blogspot.com                      ║
+╚══════════════════════════════════════════════════════╝""")
 
-if __name__=="__main__":
+    success = 0
+    for i in range(ARTICLES_PER_RUN):
+        try:
+            print(f"\n{'═'*54}")
+            print(f"  Article {i+1} of {ARTICLES_PER_RUN}")
+            print(f"{'═'*54}")
+
+            story = pick_story()
+            if not story:
+                print("  No story found!")
+                continue
+
+            title, html = write_post(story)
+            words  = len(re.sub(r"<[^>]+>", "", html).split())
+            labels = auto_labels(title, html)
+            url    = post_article(title, html, labels)
+            save_log(title, url, words)
+            success += 1
+
+            if i < ARTICLES_PER_RUN - 1:
+                print("  Waiting 30 seconds...")
+                time.sleep(30)
+
+        except KeyboardInterrupt:
+            print("\nStopped.")
+            break
+        except Exception as e:
+            print(f"\nFailed: {e}")
+            continue
+
+    print(f"""
+╔══════════════════════════════════════════════════════╗
+║  ✅ DONE! {success}/{ARTICLES_PER_RUN} article(s) posted!
+║  Quality articles for AdSense approval!
+║  technewswithai.blogspot.com
+╚══════════════════════════════════════════════════════╝""")
+
+
+if __name__ == "__main__":
     main()
-  
+            
