@@ -633,7 +633,7 @@ def human_rewrite(draft, story):
         'background:#f0f7ff;border-radius:12px;">'
         "<table><tr>"
         '<td style="width:85px;vertical-align:top;padding-right:15px;">'
-        '<img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh-wLca38wMPYMxl6rUWuHdG4URpnvheiobu7pae1axqNvcUCX-wvsh3G_s25wiIefihtQ-hLmQxvnU6FsqEppxpOm03g4MBZ5XzX48sfkkcI4D83jPpkdgb9XoMZPCt1fsUyp5cf0nNTYHNQB20bKMAp3RMBWaZBH4D85YRrkXAm2afcE/s1600/0a737a69-7fa3-4dd5-a4b6-534dedca97be.jfif"'
+        '<img src="https://lh3.googleusercontent.com/pw/AP1GczNbk_7GTq9-pE7KTZUn0skqYYoESZzxYYQ1uTQvvu6dDj-2AUPZyvUGs5XPOGrt5HeVnMuHzPHO8tp1OA0zuhAKF6wlOho_8Q1aVAlVTwG9CNr_jH8=s400-no"'
         ' width="75" height="75" style="border-radius:50%;border:3px solid #1a73e8;" alt="Mallikarjun R"/>'
         "</td><td style='vertical-align:top;'>"
         '<p style="margin:0;font-size:18px;font-weight:bold;color:#1a73e8;">Mallikarjun R</p>'
