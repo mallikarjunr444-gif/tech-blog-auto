@@ -1,15 +1,15 @@
 """
-╔══════════════════════════════════════════════════════════════════════╗
+╔════════════════════════════════════════════════════════════════╗
 ║   TECH NEWS WITH AI — COMPLETE AUTO BLOG SYSTEM (100% FREE)        ║
 ║   Blog: technewswithai.blogspot.com                                 ║
 ║   Covers: Phones, Laptops, Audio, Tablets, Wearables               ║
 ║   Sources: Official Sites + GSMArena + Rumor Sites + NewsAPI        ║
-╚══════════════════════════════════════════════════════════════════════╝
+╚════════════════════════════════════════════════════════════════╝
 """
 
-# ══════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 #  YOUR FREE API KEYS
-# ══════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 
 GROQ_API_KEY       = "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"
 NEWS_API_KEY       = "673bca5ceab54fa8bb7ed0344c8f6d13"
@@ -17,20 +17,18 @@ BLOGGER_POST_EMAIL = "mallikarjunr444.technewswithai6361@blogger.com"
 GMAIL_ADDRESS      = "mallikarjunr444@gmail.com"
 GMAIL_APP_PASSWORD = "oeirtosmlhuwntka"
 
-# ══════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 #  SETTINGS
-# ══════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 
 ARTICLES_PER_RUN = 1
 POST_AS_DRAFT    = False
 
-# ══════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 #  CATEGORY DEFINITIONS — Each with official sources + rumor sites
-# ══════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 
 CATEGORIES = {
-
-    # ── SMARTPHONES ─────────────────────────────────────────────────
     "smartphone": {
         "labels": ["Smartphones", "Mobile", "Tech News"],
         "official_sources": [
@@ -75,24 +73,9 @@ CATEGORIES = {
             "Google Pixel launch India 2026",
             "Motorola phone launch India 2026",
         ],
-        "writing_prompt": """Write a COMPLETE smartphone review/news article.
-Cover these sections in detail (minimum 4 paragraphs each):
-1. Opening Introduction (3 paragraphs before first heading — why this phone matters)
-2. Design and Build Quality (materials, dimensions, colors, weight, feel)
-3. Display Technology (type, size, resolution, refresh rate, brightness — explained simply)
-4. Camera System Complete Guide (every lens, aperture, features, real world use, video)
-5. Processor and Performance (chip name explained, gaming, multitasking, heating, benchmark context)
-6. Battery Life and Charging (mAh, real world hours, charging speed, wireless charging)
-7. Software and Features (Android version, UI, AI features, unique software)
-8. Connectivity and Other Features (5G bands, WiFi, Bluetooth, NFC, speakers, biometrics)
-9. India Price and Variants (all variants, EMI, launch offers, value analysis)
-10. Who Should Buy This Phone (students, professionals, gamers, photographers)
-11. Top 3 Alternatives (honest comparison with competitors)
-12. Final Verdict (clear buy/wait/skip with specific reasons)
-13. FAQ — 7 questions specific to this phone with detailed answers"""
+        "writing_prompt": """Write a COMPLETE smartphone review/news article.\nCover these sections in detail (minimum 4 paragraphs each):\n1. Opening Introduction (3 paragraphs before first heading — why this phone matters)\n2. Design and Build Quality (materials, dimensions, colors, weight, feel)\n3. Display Technology (type, size, resolution, refresh rate, brightness — explained simply)\n4. Camera System Complete Guide (every lens, aperture, features, real world use, video)\n5. Processor and Performance (chip name explained, gaming, multitasking, heating, benchmark context)\n6. Battery Life and Charging (mAh, real world hours, charging speed, wireless charging)\n7. Software and Features (Android version, UI, AI features, unique software)\n8. Connectivity and Other Features (5G bands, WiFi, Bluetooth, NFC, speakers, biometrics)\n9. India Price and Variants (all variants, EMI, launch offers, value analysis)\n10. Who Should Buy This Phone (students, professionals, gamers, photographers)\n11. Top 3 Alternatives (honest comparison with competitors)\n12. Final Verdict (clear buy/wait/skip with specific reasons)\n13. FAQ — 7 questions specific to this phone with detailed answers"""    
     },
 
-    # ── LAPTOPS ─────────────────────────────────────────────────────
     "laptop": {
         "labels": ["Laptops", "Computers", "Tech News"],
         "official_sources": [
@@ -129,25 +112,9 @@ Cover these sections in detail (minimum 4 paragraphs each):
             "gaming laptop launch India 2026",
             "best laptop students India 2026",
         ],
-        "writing_prompt": """Write a COMPLETE laptop review/news article.
-Cover these sections in detail (minimum 4 paragraphs each):
-1. Opening Introduction (3 paragraphs — who needs this laptop and why)
-2. Design and Build (materials, chassis, hinge, weight, ports, keyboard quality)
-3. Display Quality (type, size, resolution, refresh rate, color accuracy, brightness)
-4. Performance and Benchmarks (processor generation, real world tasks, multitasking)
-5. Graphics and Gaming (integrated/dedicated GPU, gaming performance, frame rates)
-6. RAM and Storage (configurations, upgrade options, SSD speeds)
-7. Battery Life (capacity, real world hours for different tasks, charging speed)
-8. Keyboard, Trackpad and Ports (typing experience, trackpad precision, port selection)
-9. Thermal Management (cooling system, fan noise, sustained performance)
-10. India Price and Variants (all configs, EMI options, student discounts)
-11. Who Should Buy This (students, professionals, content creators, gamers)
-12. Top 3 Alternatives (honest comparison with similar laptops)
-13. Final Verdict (clear buy/wait/skip recommendation)
-14. FAQ — 7 laptop specific questions with detailed answers"""
+        "writing_prompt": """Write a COMPLETE laptop review/news article.\nCover these sections in detail (minimum 4 paragraphs each):\n1. Opening Introduction (3 paragraphs — who needs this laptop and why)\n2. Design and Build (materials, chassis, hinge, weight, ports, keyboard quality)\n3. Display Quality (type, size, resolution, refresh rate, color accuracy, brightness)\n4. Performance and Benchmarks (processor generation, real world tasks, multitasking)\n5. Graphics and Gaming (integrated/dedicated GPU, gaming performance, frame rates)\n6. RAM and Storage (configurations, upgrade options, SSD speeds)\n7. Battery Life (capacity, real world hours for different tasks, charging speed)\n8. Keyboard, Trackpad and Ports (typing experience, trackpad precision, port selection)\n9. Thermal Management (cooling system, fan noise, sustained performance)\n10. India Price and Variants (all configs, EMI options, student discounts)\n11. Who Should Buy This (students, professionals, content creators, gamers)\n12. Top 3 Alternatives (honest comparison with similar laptops)\n13. Final Verdict (clear buy/wait/skip recommendation)\n14. FAQ — 7 laptop specific questions with detailed answers"""    
     },
 
-    # ── AUDIO (AirPods, Earphones, Headphones) ──────────────────────
     "audio": {
         "labels": ["Audio", "Earphones", "Headphones", "AirPods", "TWS", "Tech News"],
         "official_sources": [
@@ -158,7 +125,7 @@ Cover these sections in detail (minimum 4 paragraphs each):
             ("OnePlus Buds News",    "https://www.oneplus.com/global/newsroom"),
             ("Boat Audio News",      "https://www.boat-lifestyle.com/blogs/news"),
             ("JBL News",             "https://www.jbl.com/"),
-            ("Noise Buds News",      "https://www.gonoise.com/blogs/"),
+            ("Noise Buds News",      "https://www.gonoise.com/blogs/")
         ],
         "rumor_sources": [
             ("9to5Mac AirPods",      "https://9to5mac.com/feed/"),
@@ -167,7 +134,7 @@ Cover these sections in detail (minimum 4 paragraphs each):
             ("Engadget Audio",       "https://www.engadget.com/rss.xml"),
             ("CNET Audio",           "https://www.cnet.com/rss/news/"),
             ("91Mobiles Audio",      "https://www.91mobiles.com/hub/feed/"),
-            ("MySmartPrice Audio",   "https://www.mysmartprice.com/feed/"),
+            ("MySmartPrice Audio",   "https://www.mysmartprice.com/feed/")
         ],
         "search_topics": [
             "AirPods launch specs India 2026",
@@ -177,27 +144,11 @@ Cover these sections in detail (minimum 4 paragraphs each):
             "Boat earphones launch India 2026",
             "best TWS earbuds India 2026",
             "noise cancelling headphones launch India 2026",
-            "wireless earphones launch India 2026",
+            "wireless earphones launch India 2026"
         ],
-        "writing_prompt": """Write a COMPLETE audio product review/news article.
-Cover these sections in detail (minimum 4 paragraphs each):
-1. Opening Introduction (3 paragraphs — why these earphones matter)
-2. Design and Build Quality (form factor, materials, colors, fit, comfort for long wear)
-3. Sound Quality Deep Dive (bass, mids, highs, soundstage, explained simply for non-audiophiles)
-4. Active Noise Cancellation (ANC strength, transparency mode, wind noise handling)
-5. Call Quality and Microphones (mic clarity, noise rejection, conference call performance)
-6. Battery Life (earbuds battery, case battery, charging speed, actual usage hours)
-7. Connectivity (Bluetooth version, multipoint, latency for gaming/video, codec support)
-8. Smart Features and App (EQ customization, touch controls, voice assistant, auto-pause)
-9. Comfort and Fit (ear tip sizes, ear wing support, long session comfort, sports use)
-10. India Price and Variants (price, colors available, EMI, value comparison)
-11. Who Should Buy These (music lovers, commuters, gym users, gamers, professionals)
-12. Top 3 Alternatives (honest comparison with similar priced options)
-13. Final Verdict (clear buy/wait/skip with specific reasons)
-14. FAQ — 7 audio specific questions with detailed answers"""
+        "writing_prompt": """Write a COMPLETE audio product review/news article.\nCover these sections in detail (minimum 4 paragraphs each):\n1. Opening Introduction (3 paragraphs — why these earphones matter)\n2. Design and Build Quality (form factor, materials, colors, fit, comfort for long wear)\n3. Sound Quality Deep Dive (bass, mids, highs, soundstage, explained simply for non-audiophiles)\n4. Active Noise Cancellation (ANC strength, transparency mode, wind noise handling)\n5. Call Quality and Microphones (mic clarity, noise rejection, conference call performance)\n6. Battery Life (earbuds battery, case battery, charging speed, actual usage hours)\n7. Connectivity (Bluetooth version, multipoint, latency for gaming/video, codec support)\n8. Smart Features and App (EQ customization, touch controls, voice assistant, auto-pause)\n9. Comfort and Fit (ear tip sizes, ear wing support, long session comfort, sports use)\n10. India Price and Variants (price, colors available, EMI, value comparison)\n11. Who Should Buy These (music lovers, commuters, gym users, gamers, professionals)\n12. Top 3 Alternatives (honest comparison with similar priced options)\n13. Final Verdict (clear buy/wait/skip with specific reasons)\n14. FAQ — 7 audio specific questions with detailed answers"""   
     },
 
-    # ── TABLETS ─────────────────────────────────────────────────────
     "tablet": {
         "labels": ["Tablets", "iPad", "Tech News"],
         "official_sources": [
@@ -205,7 +156,7 @@ Cover these sections in detail (minimum 4 paragraphs each):
             ("Samsung Tab News",     "https://news.samsung.com/global/"),
             ("OnePlus Pad News",     "https://www.oneplus.com/global/newsroom"),
             ("Xiaomi Pad News",      "https://blog.mi.com/en/"),
-            ("Lenovo Tab News",      "https://news.lenovo.com/"),
+            ("Lenovo Tab News",      "https://news.lenovo.com/")
         ],
         "rumor_sources": [
             ("9to5Mac iPad",         "https://9to5mac.com/feed/"),
@@ -220,23 +171,9 @@ Cover these sections in detail (minimum 4 paragraphs each):
             "Xiaomi Pad launch India 2026",
             "best tablet India 2026",
         ],
-        "writing_prompt": """Write a COMPLETE tablet review/news article.
-Cover these sections in detail (minimum 4 paragraphs each):
-1. Opening Introduction (3 paragraphs — why this tablet matters)
-2. Design and Build (materials, weight, thinness, ports, accessories)
-3. Display Quality (size, resolution, refresh rate, color, brightness, outdoor use)
-4. Performance (chip, RAM, real world tasks, creative work, gaming)
-5. Camera System (rear and front cameras, video calling, document scanning)
-6. Battery Life (capacity, hours for different tasks, charging speed)
-7. Software and Productivity (OS, split screen, stylus support, keyboard support)
-8. India Price and Variants (storage configs, 5G vs WiFi, accessories cost)
-9. Who Should Buy This (students, artists, professionals, entertainment)
-10. Top 3 Alternatives (honest comparison)
-11. Final Verdict (clear recommendation)
-12. FAQ — 7 tablet specific questions"""
+        "writing_prompt": """Write a COMPLETE tablet review/news article.\nCover these sections in detail (minimum 4 paragraphs each):\n1. Opening Introduction (3 paragraphs — why this tablet matters)\n2. Design and Build (materials, weight, thinness, ports, accessories)\n3. Display Quality (size, resolution, refresh rate, color, brightness, outdoor use)\n4. Performance (chip, RAM, real world tasks, creative work, gaming)\n5. Camera System (rear and front cameras, video calling, document scanning)\n6. Battery Life (capacity, hours for different tasks, charging speed)\n7. Software and Productivity (OS, split screen, stylus support, keyboard support)\n8. India Price and Variants (storage configs, 5G vs WiFi, accessories cost)\n9. Who Should Buy This (students, artists, professionals, entertainment)\n10. Top 3 Alternatives (honest comparison)\n11. Final Verdict (clear recommendation)\n12. FAQ — 7 tablet specific questions"""   
     },
 
-    # ── SMARTWATCHES AND WEARABLES ───────────────────────────────────
     "wearable": {
         "labels": ["Smartwatch", "Wearables", "Fitness Band", "Tech News"],
         "official_sources": [
@@ -247,13 +184,13 @@ Cover these sections in detail (minimum 4 paragraphs each):
             ("Boat Watch News",      "https://www.boat-lifestyle.com/blogs/news"),
             ("Noise Watch News",     "https://www.gonoise.com/blogs/"),
             ("Garmin News",          "https://www.garmin.com/en-US/newsroom/"),
-            ("Fitbit News",          "https://blog.fitbit.com/"),
+            ("Fitbit News",          "https://blog.fitbit.com/")
         ],
         "rumor_sources": [
             ("9to5Mac Watch",        "https://9to5mac.com/feed/"),
             ("AndroidAuthority",     "https://www.androidauthority.com/feed/"),
             ("91Mobiles Watch",      "https://www.91mobiles.com/hub/feed/"),
-            ("The Verge Wearables",  "https://www.theverge.com/rss/index.xml"),
+            ("The Verge Wearables",  "https://www.theverge.com/rss/index.xml")
         ],
         "search_topics": [
             "Apple Watch launch specs India 2026",
@@ -262,24 +199,9 @@ Cover these sections in detail (minimum 4 paragraphs each):
             "fitness band launch India 2026",
             "best smartwatch under 5000 India 2026",
         ],
-        "writing_prompt": """Write a COMPLETE smartwatch/wearable review/news article.
-Cover these sections in detail (minimum 4 paragraphs each):
-1. Opening Introduction (3 paragraphs — why this wearable matters)
-2. Design and Build (case material, strap options, colors, weight, water resistance)
-3. Display (type, size, brightness, always-on, readability outdoors)
-4. Health and Fitness Features (heart rate, SpO2, sleep, stress, ECG, sports modes)
-5. Smart Features (notifications, calls, apps, voice assistant, NFC payments)
-6. Battery Life (days per charge, charging speed, battery saving modes)
-7. Connectivity (Bluetooth, WiFi, LTE option, GPS accuracy, phone compatibility)
-8. App Ecosystem (companion app, third party apps, data analysis)
-9. India Price and Variants (strap options, sizes, EMI, value)
-10. Who Should Buy This (fitness enthusiasts, professionals, casual users)
-11. Top 3 Alternatives (honest comparison)
-12. Final Verdict (clear recommendation)
-13. FAQ — 7 wearable specific questions"""
+        "writing_prompt": """Write a COMPLETE smartwatch/wearable review/news article.\nCover these sections in detail (minimum 4 paragraphs each):\n1. Opening Introduction (3 paragraphs — why this wearable matters)\n2. Design and Build (case material, strap options, colors, weight, water resistance)\n3. Display (type, size, brightness, always-on, readability outdoors)\n4. Health and Fitness Features (heart rate, SpO2, sleep, stress, ECG, sports modes)\n5. Smart Features (notifications, calls, apps, voice assistant, NFC payments)\n6. Battery Life (days per charge, charging speed, battery saving modes)\n7. Connectivity (Bluetooth, WiFi, LTE option, GPS accuracy, phone compatibility)\n8. App Ecosystem (companion app, third party apps, data analysis)\n9. India Price and Variants (strap options, sizes, EMI, value)\n10. Who Should Buy This (fitness enthusiasts, professionals, casual users)\n11. Top 3 Alternatives (honest comparison)\n12. Final Verdict (clear recommendation)\n13. FAQ — 7 wearable specific questions"""    
     },
 
-    # ── SMART TVs ────────────────────────────────────────────────────
     "tv": {
         "labels": ["Smart TV", "Television", "Tech News"],
         "official_sources": [
@@ -287,13 +209,13 @@ Cover these sections in detail (minimum 4 paragraphs each):
             ("LG TV News",           "https://www.lgnewsroom.com/"),
             ("Sony TV News",         "https://presscentre.sony.eu/pressreleases/"),
             ("Mi TV News",           "https://blog.mi.com/en/"),
-            ("OnePlus TV News",      "https://www.oneplus.com/global/newsroom"),
+            ("OnePlus TV News",      "https://www.oneplus.com/global/newsroom")
         ],
         "rumor_sources": [
             ("FlatpanelsHD",         "https://www.flatpanelshd.com/"),
             ("The Verge TV",         "https://www.theverge.com/rss/index.xml"),
             ("CNET TV",              "https://www.cnet.com/rss/news/"),
-            ("91Mobiles TV",         "https://www.91mobiles.com/hub/feed/"),
+            ("91Mobiles TV",         "https://www.91mobiles.com/hub/feed/")
         ],
         "search_topics": [
             "Samsung QLED TV launch India 2026",
@@ -302,26 +224,13 @@ Cover these sections in detail (minimum 4 paragraphs each):
             "smart TV launch India 2026",
             "best smart TV under 50000 India",
         ],
-        "writing_prompt": """Write a COMPLETE Smart TV review/news article.
-Cover these sections in detail (minimum 4 paragraphs each):
-1. Opening Introduction (3 paragraphs — why this TV matters)
-2. Design and Build (bezels, stand, wall mount, materials, remote)
-3. Display Technology (panel type, resolution, HDR, refresh rate, brightness)
-4. Picture Quality (color accuracy, black levels, HDR performance, gaming mode)
-5. Sound System (speaker watts, Dolby Atmos, bass, clarity)
-6. Smart Features (OS, apps, voice control, casting, smart home)
-7. Connectivity (HDMI, USB, Bluetooth, WiFi, gaming ports)
-8. India Price and Variants (sizes, models, EMI, launch offers)
-9. Who Should Buy This (movie lovers, gamers, sports fans, families)
-10. Top 3 Alternatives (honest comparison)
-11. Final Verdict (clear recommendation)
-12. FAQ — 7 TV specific questions"""
-    },
+        "writing_prompt": """Write a COMPLETE Smart TV review/news article.\nCover these sections in detail (minimum 4 paragraphs each):\n1. Opening Introduction (3 paragraphs — why this TV matters)\n2. Design and Build (bezels, stand, wall mount, materials, remote)\n3. Display Technology (panel type, resolution, HDR, refresh rate, brightness)\n4. Picture Quality (color accuracy, black levels, HDR performance, gaming mode)\n5. Sound System (speaker watts, Dolby Atmos, bass, clarity)\n6. Smart Features (OS, apps, voice control, casting, smart home)\n7. Connectivity (HDMI, USB, Bluetooth, WiFi, gaming ports)\n8. India Price and Variants (sizes, models, EMI, launch offers)\n9. Who Should Buy This (movie lovers, gamers, sports fans, families)\n10. Top 3 Alternatives (honest comparison)\n11. Final Verdict (clear recommendation)\n12. FAQ — 7 TV specific questions"""   
+    }
 }
 
-# ══════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 #  DO NOT EDIT BELOW
-# ══════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 
 import os, sys, json, time, random, requests, datetime, re
 import smtplib
@@ -343,9 +252,9 @@ HEADERS = {
     "Accept-Language": "en-US,en;q=0.5",
 }
 
-# ══════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 #  MODULE 1 — SCRAPE FROM SOURCES
-# ══════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 
 def scrape_rss(feed_name, feed_url, keyword=""):
     """Fetch articles from RSS feed."""
@@ -368,4 +277,3 @@ def scrape_rss(feed_name, feed_url, keyword=""):
             description = ""
             if desc_el is not None and desc_el.text:
                 description = re.sub(r"<[^>]+>", "", desc_el.text)[:400]
-            
