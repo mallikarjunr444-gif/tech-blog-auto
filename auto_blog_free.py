@@ -38,7 +38,7 @@
 #   - All 26 traffic tips wired into prompts and HTML structure
 # ================================================================
 
-GROQ_API_KEY       = "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"
+GROQ_API_KEY       = "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"
 NEWS_API_KEY       = "673bca5ceab54fa8bb7ed0344c8f6d13"
 BLOGGER_POST_EMAIL = "mallikarjunr444.technewswithai6361@blogger.com"
 GMAIL_ADDRESS      = "mallikarjunr444@gmail.com"
@@ -779,7 +779,7 @@ def generate_dynamic_topics(cat, log, used_combined, count=8):
         )
 
         r = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="llama-3.1-8b-instant",  # fast+cheap for topic generation
             messages=[{"role": "user", "content": prompt}],
             max_tokens=1500,
             temperature=0.75,
@@ -988,7 +988,7 @@ def generate_seo_title(story, is_search):
             f"Output ONLY the title text. No quotes. No explanation."
         )
         r = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="llama-3.1-8b-instant",  # fast+cheap for short title task
             messages=[{"role": "user", "content": prompt}],
             max_tokens=80, temperature=0.8,
         )
@@ -1872,7 +1872,7 @@ def groq_draft(story, is_search):
     r = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=8000, temperature=0.7,
+        max_tokens=6000, temperature=0.7,
     )
     return r.choices[0].message.content
 
@@ -2012,7 +2012,7 @@ def human_rewrite(draft, story):
     r = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=8000, temperature=0.88,
+        max_tokens=5000, temperature=0.88,
     )
     return r.choices[0].message.content
 
@@ -2198,7 +2198,7 @@ def main():
     except Exception as e:
         print("Article 2 failed: " + str(e))
 
-    # Article 3 — Different dynamic search topic
+    # Article 3 — 2nd Google Search Topic
     try:
         s3 = pick_search_story(log, used_in_run)
         if s3:
