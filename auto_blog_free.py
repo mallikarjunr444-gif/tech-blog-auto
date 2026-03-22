@@ -38,7 +38,7 @@
 #   - All 26 traffic tips wired into prompts and HTML structure
 # ================================================================
 
-GROQ_API_KEY       = "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"
+GROQ_API_KEY       = "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"
 NEWS_API_KEY       = "673bca5ceab54fa8bb7ed0344c8f6d13"
 BLOGGER_POST_EMAIL = "mallikarjunr444.technewswithai6361@blogger.com"
 GMAIL_ADDRESS      = "mallikarjunr444@gmail.com"
