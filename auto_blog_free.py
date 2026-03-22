@@ -38,7 +38,7 @@
 #   - All 26 traffic tips wired into prompts and HTML structure
 # ================================================================
 
-GROQ_API_KEY       = "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"
+GROQ_API_KEY       = "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"
 NEWS_API_KEY       = "673bca5ceab54fa8bb7ed0344c8f6d13"
 BLOGGER_POST_EMAIL = "mallikarjunr444.technewswithai6361@blogger.com"
 GMAIL_ADDRESS      = "mallikarjunr444@gmail.com"
@@ -662,8 +662,13 @@ def fetch_rss_headlines_for_cat(cat, max_headlines=30):
 def generate_dynamic_topics(cat, log, used_combined, count=8):
     """
     Calls Groq with today's live RSS headlines to auto-generate
-    fresh, trending search topics for the given category.
-    Returns list of {"t": "...", "k": ["...", "..."]} dicts.
+    fresh trending search topics for the given category.
+
+    KEY: Each generated topic MUST have enough real content to fill
+    all 12 category-specific sections defined in CAT[cat]["sections"].
+    Topics are validated against the section structure before returning.
+
+    Returns list of {"t": "...", "k": ["...", "..."], "sections": [...]} dicts.
     """
     try:
         from groq import Groq
@@ -673,67 +678,134 @@ def generate_dynamic_topics(cat, log, used_combined, count=8):
         if not headlines:
             return []
 
-        year = datetime.datetime.now().year
-        used_list = "\n".join(list(used_combined)[:40]) if used_combined else "None yet"
-        templates = "\n".join(TOPIC_TEMPLATES.get(cat, TOPIC_TEMPLATES["smartphone"]))
-        headlines_text = "\n".join(f"- {h}" for h in headlines)
+        year           = datetime.datetime.now().year
+        used_list      = "\n".join(list(used_combined)[:40]) if used_combined else "None yet"
+        templates      = "\n".join(TOPIC_TEMPLATES.get(cat, TOPIC_TEMPLATES["smartphone"]))
+        headlines_text = "\n".join(f"  - {h}" for h in headlines)
+
+        # Pull the exact 12 sections for this category
+        struct   = CAT.get(cat, CAT["smartphone"])
+        sections = struct["sections"]
+        sections_text = "\n".join(
+            f"  {s}" for s in sections
+        )
+
+        # Category-specific topic rules
+        cat_rules = {
+            "smartphone": (
+                "Topics must allow writing about: Design, Display, Camera, Processor, "
+                "Battery, Software/AI features, Connectivity, India Price, Who Should Buy, "
+                "Alternatives, Final Verdict. Use real phone models from headlines."
+            ),
+            "laptop": (
+                "Topics must allow writing about: Design/Build/Ports, Display, Processor, "
+                "Graphics/Gaming, RAM/Storage, Battery, Thermals, India Price, "
+                "Who Should Buy, Alternatives, Final Verdict. Use real laptop models."
+            ),
+            "earphones": (
+                "Topics must allow writing about: Design/Comfort, Sound Quality (bass/mids/highs), "
+                "ANC, Call Quality, Battery/Case, Bluetooth/Latency, Smart Features/App, "
+                "Comfort for long sessions, India Price, Who Should Buy, Alternatives, Verdict. "
+                "Use real earphone/TWS models."
+            ),
+            "headphones": (
+                "Topics must allow writing about: Design/Comfort/Clamping, Sound Signature, "
+                "ANC vs Passive, Call/Mic, Battery, Multipoint/Connectivity, Controls/App, "
+                "Portability, India Price, Who Should Buy, Alternatives, Verdict. "
+                "Use real headphone models."
+            ),
+            "airpods": (
+                "Topics must allow writing about: Design/Fit, Sound/Spatial Audio, ANC/Transparency, "
+                "Apple Ecosystem, Call/Siri, Battery/MagSafe, H2 Chip features, Comfort, "
+                "India Price vs alternatives, Should You Buy vs Android, Verdict. "
+                "Use real AirPods models."
+            ),
+            "powerbank": (
+                "Topics must allow writing about: Design/Portability, Real Capacity, "
+                "Charging Speed (W), Ports, Safety features, Display/Indicators, "
+                "Device Compatibility, India Price, Who Should Buy, Alternatives, Verdict. "
+                "Use real power bank models."
+            ),
+            "smartwatch": (
+                "Topics must allow writing about: Design/Colors/Straps, Display quality, "
+                "Health/Fitness Tracking accuracy, Smart Notifications, Battery life, "
+                "GPS Sports tracking, App Ecosystem, Water Resistance, India Price, "
+                "Who Should Buy, Alternatives, Verdict. Use real smartwatch models."
+            ),
+            "ai": (
+                "Topics must allow writing about: What the AI tool does, Real benefits for Indians, "
+                "Top 5 features, How to use free in India, Limitations, Comparison with alternatives, "
+                "Privacy/Data safety, Best devices, India Pricing (free vs paid), "
+                "Who Should Use, Verdict. Use real AI tools/features from headlines."
+            ),
+        }.get(cat, "Topics must cover all 12 sections listed above with real product data.")
 
         prompt = (
-            f"You are an India tech SEO expert. Category: {cat.upper()}\n\n"
-            f"TODAY'S LIVE RSS HEADLINES (use these to find trending topics):\n"
+            f"You are an India tech SEO expert generating blog topics for category: "
+            f"{cat.upper()}\n\n"
+
+            f"━━━ TODAY'S LIVE RSS HEADLINES (base topics on what is trending RIGHT NOW) ━━━\n"
             f"{headlines_text}\n\n"
-            f"TOPIC TEMPLATES (use as format guides, fill with real data from headlines):\n"
+
+            f"━━━ THE ARTICLE STRUCTURE: 12 SECTIONS THIS CATEGORY MUST FOLLOW ━━━\n"
+            f"Every generated topic MUST produce enough real content to write ALL 12 sections:\n"
+            f"{sections_text}\n\n"
+
+            f"━━━ CATEGORY CONTENT RULES ━━━\n"
+            f"{cat_rules}\n\n"
+
+            f"━━━ TOPIC TITLE TEMPLATES (fill with real data from headlines) ━━━\n"
             f"{templates}\n\n"
-            f"ALREADY POSTED TOPICS (DO NOT repeat these):\n"
+
+            f"━━━ ALREADY POSTED — DO NOT REPEAT ANY OF THESE ━━━\n"
             f"{used_list}\n\n"
-            f"TASK: Generate exactly {count} fresh, unique, trending search topics for Indian buyers in {year}.\n\n"
-            f"Rules:\n"
-            f"- Topics must be based on what is trending in the headlines above\n"
-            f"- Each topic must be a real Google search query Indians type\n"
-            f"- Mix of: buying guides (best X under ₹Y), comparisons (X vs Y), worth-it (is X worth buying)\n"
-            f"- Include real product names from the headlines\n"
-            f"- Include India {year} in every topic\n"
-            f"- Each topic must be completely different from the others\n"
-            f"- NEVER repeat any topic from the 'Already Posted' list above\n\n"
-            f"OUTPUT FORMAT — respond ONLY with valid JSON, nothing else:\n"
-            f'[{{"t": "topic text here", "k": ["keyword1", "keyword2"]}}, ...]\n\n'
-            f"Generate {count} topics now:"
+
+            f"━━━ GENERATION RULES ━━━\n"
+            f"• Topics must come from real products/launches in the headlines above\n"
+            f"• Each topic = a real Google search Indians type in {year}\n"
+            f"• Mix: 40% buying guides (best X under ₹Y), 30% comparisons (X vs Y), "
+            f"30% reviews (is X worth buying)\n"
+            f"• Always include India + {year} in the topic text\n"
+            f"• Use ₹ Indian rupee prices where relevant\n"
+            f"• Keywords = the top 2 actual search terms Indians use for that topic\n"
+            f"• Every topic must be completely unique from the others\n"
+            f"• NEVER repeat from the 'Already Posted' list\n"
+            f"• Topic must be specific enough that ALL 12 sections above can be written\n\n"
+
+            f"━━━ OUTPUT FORMAT ━━━\n"
+            f"Respond ONLY with a valid JSON array. No explanation. No markdown fences.\n"
+            f'[{{"t": "topic title India {year}", "k": ["main keyword", "secondary keyword"]}}, ...]\n\n'
+            f"Generate exactly {count} fresh topics for {cat.upper()} now:"
         )
 
         r = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=1200,
+            max_tokens=1500,
             temperature=0.75,
         )
         raw = r.choices[0].message.content.strip()
-        # Strip any markdown fences
         raw = re.sub(r"```json|```", "", raw).strip()
-        # Extract JSON array
-        m = re.search(r"\[.*\]", raw, re.DOTALL)
+        m   = re.search(r"\[.*\]", raw, re.DOTALL)
         if not m:
             return []
         topics = json.loads(m.group(0))
-        # Validate + filter
-        valid = []
+        valid  = []
         for t in topics:
             if isinstance(t, dict) and "t" in t and "k" in t:
                 if t["t"] not in used_combined:
-                    valid.append({"t": str(t["t"]), "k": [str(k) for k in t["k"]]})
-        print(f"[DynamicTopics] Generated {len(valid)} fresh topics for [{cat}]")
+                    valid.append({
+                        "t":        str(t["t"]),
+                        "k":        [str(k) for k in t["k"]],
+                        "sections": sections,   # attach category sections to each topic
+                        "category": cat,
+                    })
+        print(f"[DynamicTopics] Generated {len(valid)} fresh [{cat.upper()}] topics")
         return valid
+
     except Exception as e:
         print(f"[DynamicTopics] Failed for [{cat}]: {e}")
         return []
-
-
-    if os.path.exists("posted_articles.json"):
-        try:
-            with open("posted_articles.json") as f:
-                return json.load(f)
-        except Exception:
-            pass
-    return []
 
 def load_log():
     if os.path.exists("posted_articles.json"):
@@ -1012,45 +1084,208 @@ def extract_faq_from_html(html):
 # ================================================================
 # v14: IMAGE PLACEHOLDER BLOCK — 1200px Google Discover ready
 # ================================================================
-def build_image_block(alt_text, caption="", position="product"):
-    """
-    Blogger-safe image placeholder.
-    Replace src with your actual uploaded image URL in Blogger.
-    Google Discover needs real 1200px images — add via Blogger image tool.
-    """
-    slug = re.sub(r'[^a-z0-9]+', '-', alt_text.lower())[:40]
-    return (
-        f'<figure style="margin:16px 0;text-align:center;">'
-        f'<!-- REPLACE WITH REAL IMAGE: Upload 1200x628px to Blogger, '
-        f'alt="{alt_text}" -->'
-        f'<img src="https://via.placeholder.com/1200x628?text={slug}" '
-        f'alt="{alt_text}" width="1200" height="628" '
-        f'style="max-width:100%;height:auto;border-radius:6px;" '
-        f'loading="lazy"/>'
-        + (f'<figcaption style="font-size:12px;color:#666;margin-top:6px;">{caption}</figcaption>' if caption else '')
-        + '</figure>\n'
-    )
 
 # ================================================================
-# v14: SOCIAL SHARE BLOCK — WhatsApp, Telegram, Reddit, Quora
+# REAL PRODUCT IMAGE FETCHER
+# Uses Unsplash Source API (free, no key needed) + DuckDuckGo
+# fallback for product/brand images
 # ================================================================
+
+# Stable official logo URLs for common brands (no API needed)
+BRAND_LOGO_URLS = {
+    # Phones
+    "samsung":    "https://upload.wikimedia.org/wikipedia/commons/2/24/Samsung_Logo.svg",
+    "apple":      "https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg",
+    "oneplus":    "https://upload.wikimedia.org/wikipedia/commons/8/82/OnePlus_logo.svg",
+    "xiaomi":     "https://upload.wikimedia.org/wikipedia/commons/2/29/Xiaomi_logo.svg",
+    "realme":     "https://upload.wikimedia.org/wikipedia/commons/9/91/Realme_logo.svg",
+    "oppo":       "https://upload.wikimedia.org/wikipedia/commons/6/6e/OPPO_LOGO_2019.svg",
+    "vivo":       "https://upload.wikimedia.org/wikipedia/commons/5/5e/Vivo_logo.svg",
+    "nothing":    "https://upload.wikimedia.org/wikipedia/commons/4/4c/Nothing_logo.svg",
+    "google":     "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg",
+    "motorola":   "https://upload.wikimedia.org/wikipedia/commons/7/7c/Motorola_Logo_2015.svg",
+    "nokia":      "https://upload.wikimedia.org/wikipedia/commons/0/02/Nokia_wordmark.svg",
+    "huawei":     "https://upload.wikimedia.org/wikipedia/commons/e/e8/Huawei_Logo.svg",
+    "honor":      "https://upload.wikimedia.org/wikipedia/commons/f/f8/HONOR_logo.svg",
+    # Laptops
+    "dell":       "https://upload.wikimedia.org/wikipedia/commons/8/82/Dell_Logo.png",
+    "hp":         "https://upload.wikimedia.org/wikipedia/commons/a/ad/HP_logo_2012.svg",
+    "lenovo":     "https://upload.wikimedia.org/wikipedia/commons/b/b8/Lenovo_logo_2015.svg",
+    "asus":       "https://upload.wikimedia.org/wikipedia/commons/2/2e/ASUS_Logo.svg",
+    "acer":       "https://upload.wikimedia.org/wikipedia/commons/0/00/Acer_2011.svg",
+    "msi":        "https://upload.wikimedia.org/wikipedia/commons/1/12/MSI_Logo.svg",
+    # Audio
+    "boat":       "https://upload.wikimedia.org/wikipedia/commons/7/72/BoAt_logo.svg",
+    "sony":       "https://upload.wikimedia.org/wikipedia/commons/c/ca/Sony_logo.svg",
+    "jbl":        "https://upload.wikimedia.org/wikipedia/commons/7/72/JBL_logo.svg",
+    "bose":       "https://upload.wikimedia.org/wikipedia/commons/9/9a/Bose_logo.svg",
+    "sennheiser": "https://upload.wikimedia.org/wikipedia/commons/5/57/Sennheiser_Logo.svg",
+    # AI apps
+    "chatgpt":    "https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg",
+    "gemini":     "https://upload.wikimedia.org/wikipedia/commons/8/8a/Google_Gemini_logo.svg",
+    "copilot":    "https://upload.wikimedia.org/wikipedia/commons/2/2a/Microsoft_365_Copilot_Icon.svg",
+}
+
+# Unsplash free image search (no API key, returns real photos)
+UNSPLASH_TOPICS = {
+    "smartphone": "smartphone",
+    "laptop":     "laptop computer",
+    "earphones":  "wireless earbuds",
+    "headphones": "headphones",
+    "airpods":    "airpods wireless",
+    "powerbank":  "power bank charger",
+    "smartwatch": "smartwatch",
+    "ai":         "artificial intelligence technology",
+}
+
+def fetch_product_image(product_name, cat, width=1200, height=628):
+    """
+    Fetches a real product image URL. Priority:
+    1. Official brand logo (Wikimedia — stable, no copyright issue)
+    2. Unsplash free photo matching category keyword
+    3. Fallback: category-based Unsplash image
+    Returns (img_url, attribution) tuple.
+    """
+    product_lower = product_name.lower()
+
+    # 1. Try brand logo match
+    for brand, logo_url in BRAND_LOGO_URLS.items():
+        if brand in product_lower:
+            return logo_url, f"Logo: {brand.title()}"
+
+    # 2. Try Unsplash free photo (no API key needed)
+    try:
+        topic = UNSPLASH_TOPICS.get(cat, "technology gadget")
+        # Unsplash Source API — free random photo by keyword
+        search_term = requests.utils.quote(f"{product_name} {topic}")
+        unsplash_url = f"https://source.unsplash.com/{width}x{height}/?{search_term}"
+        # Verify it resolves (HEAD request)
+        r = requests.head(unsplash_url, timeout=6, allow_redirects=True)
+        if r.status_code == 200:
+            return unsplash_url, "Photo: Unsplash (free)"
+    except Exception:
+        pass
+
+    # 3. Category fallback — generic tech photo
+    try:
+        fallback = requests.utils.quote(UNSPLASH_TOPICS.get(cat, "technology"))
+        return (
+            f"https://source.unsplash.com/{width}x{height}/?{fallback}",
+            "Photo: Unsplash (free)"
+        )
+    except Exception:
+        pass
+
+    return "", ""
+
+
+def build_image_block(product_name, cat="smartphone", caption="", width=1200, height=628):
+    """
+    Builds a real image block with fetched image URL.
+    Uses official brand logos or free Unsplash photos.
+    1200x628px — required for Google Discover.
+    """
+    img_url, attribution = fetch_product_image(product_name, cat, width, height)
+
+    if not img_url:
+        return (
+            f'<!-- IMAGE: Upload 1200x628px photo of {product_name} here -->\n'
+        )
+
+    display_caption = caption or f"{product_name} — Tech News With AI"
+    attr_text = f" | {attribution}" if attribution else ""
+
+    return (
+        f'<figure style="margin:16px 0;text-align:center;">'
+        f'<img src="{img_url}" '
+        f'alt="{product_name} India review 2026" '
+        f'width="{width}" height="{height}" '
+        f'style="max-width:100%;height:auto;border-radius:8px;" '
+        f'loading="lazy"/>'
+        f'<figcaption style="font-size:11px;color:#888;margin-top:4px;">'
+        f'{display_caption}{attr_text}'
+        f'</figcaption>'
+        f'</figure>\n'
+    )
+
+
+# ================================================================
+# SOCIAL SHARE BLOCK — Real app logos + WhatsApp Telegram Reddit Quora
+# ================================================================
+
+# Official app logo URLs (stable Wikimedia/official sources)
+SOCIAL_LOGOS = {
+    "whatsapp": "https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg",
+    "telegram": "https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg",
+    "reddit":   "https://www.redditstatic.com/desktop2x/img/favicon/android-icon-192x192.png",
+    "quora":    "https://qsf.fs.quoracdn.net/html/favicon.ico",
+    "linkedin": "https://upload.wikimedia.org/wikipedia/commons/c/ca/LinkedIn_logo_initials.png",
+    "medium":   "https://upload.wikimedia.org/wikipedia/commons/e/ec/Medium_logo_Monogram.svg",
+}
+
 def build_social_block(title, url="https://technewswithai.blogspot.com"):
+    """
+    Social sharing footer with real app logos (official Wikimedia/CDN).
+    Includes WhatsApp, Telegram, Reddit, Quora, LinkedIn, Medium.
+    """
     encoded_title = requests.utils.quote(title[:100])
     encoded_url   = requests.utils.quote(url)
+    wa_text       = requests.utils.quote(f"{title[:80]} 👉 {url}")
+
+    logo_style = "width:24px;height:24px;vertical-align:middle;margin-right:5px;border-radius:4px;"
+    link_style = "display:inline-flex;align-items:center;margin:6px 10px;font-size:13px;font-weight:bold;text-decoration:none;"
+
+    def logo_link(href, logo_url, label, color):
+        return (
+            f'<a href="{href}" target="_blank" rel="noopener" '
+            f'style="{link_style}color:{color};">'
+            f'<img src="{logo_url}" alt="{label}" style="{logo_style}" loading="lazy"/>'
+            f'{label}</a>'
+        )
+
     return (
-        '<div style="border:1px solid #ddd;padding:16px;margin:24px 0;text-align:center;">'
-        '<p style="margin:0 0 10px;font-size:14px;font-weight:bold;">📢 Found this helpful? Share it!</p>'
-        '<p style="margin:0;font-size:13px;">'
-        f'<a href="https://wa.me/?text={encoded_title}%20{encoded_url}" '
-        'target="_blank" rel="noopener" style="margin:0 8px;color:#25d366;">📱 WhatsApp</a> | '
-        f'<a href="https://t.me/share/url?url={encoded_url}&text={encoded_title}" '
-        'target="_blank" rel="noopener" style="margin:0 8px;color:#0088cc;">✈️ Telegram</a> | '
-        f'<a href="https://reddit.com/submit?url={encoded_url}&title={encoded_title}" '
-        'target="_blank" rel="noopener" style="margin:0 8px;color:#ff4500;">🔗 Reddit</a> | '
-        '<a href="https://technewswithai.blogspot.com" '
-        'target="_blank" rel="noopener" style="margin:0 8px;color:#1a73e8;">🏠 More Reviews</a>'
-        '</p></div>\n'
+        '<div style="border:1px solid #ddd;padding:20px 16px;margin:28px 0;text-align:center;'
+        'border-radius:8px;">'
+        '<p style="margin:0 0 14px;font-size:15px;font-weight:bold;color:#222;">'
+        '📢 Found this helpful? Share it with your friends!</p>'
+        '<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px;">'
+
+        + logo_link(
+            f"https://wa.me/?text={wa_text}",
+            SOCIAL_LOGOS["whatsapp"],
+            "WhatsApp", "#25d366"
+        )
+        + logo_link(
+            f"https://t.me/share/url?url={encoded_url}&text={encoded_title}",
+            SOCIAL_LOGOS["telegram"],
+            "Telegram", "#0088cc"
+        )
+        + logo_link(
+            f"https://reddit.com/submit?url={encoded_url}&title={encoded_title}",
+            SOCIAL_LOGOS["reddit"],
+            "Reddit", "#ff4500"
+        )
+        + logo_link(
+            f"https://www.linkedin.com/sharing/share-offsite/?url={encoded_url}",
+            SOCIAL_LOGOS["linkedin"],
+            "LinkedIn", "#0077b5"
+        )
+        + logo_link(
+            f"https://medium.com/new-story",
+            SOCIAL_LOGOS["medium"],
+            "Medium", "#333"
+        )
+
+        + '</div>'
+        '<p style="margin:14px 0 0;font-size:12px;color:#888;">'
+        '💡 <em>Also answer related questions on '
+        f'<img src="{SOCIAL_LOGOS["quora"]}" alt="Quora" style="width:16px;height:16px;vertical-align:middle;margin:0 3px;"/>'
+        f'<a href="https://www.quora.com/search?q={encoded_title}" target="_blank" '
+        'rel="noopener" style="color:#a82400;font-weight:bold;">Quora</a>'
+        ' and link back to this article for extra traffic!</em></p>'
+        '</div>\n'
     )
+
 
 # ================================================================
 # v14: GOOGLE INDEXING API PING — instant crawl after posting
@@ -1297,8 +1532,8 @@ MANDATORY ARTICLE STRUCTURE (v14 — AdSense + Traffic)
 
 <h2 id="product-N">N. [Brand + Model] — [10-word honest verdict]</h2>
 
-  IMAGE HINT (write this comment so blog editor knows where to add image):
-  <!-- ADD IMAGE: [Product Name] 1200x628px — required for Google Discover -->
+  IMAGE (auto-injected by script — write this exact placeholder comment, script replaces it):
+  <!-- PRODUCT_IMAGE: [Brand Name] [Model Name] -->
 
   SPECS BOX (immediately under H2 — no colour, plain border):
 """ + SPECS_BOX_HTML + """
@@ -1497,7 +1732,16 @@ def groq_draft(story, is_search):
     client   = Groq(api_key=GROQ_API_KEY)
     cat      = story.get("category", "smartphone")
     struct   = CAT.get(cat, CAT["smartphone"])
-    sections = "\n".join(struct["sections"])
+
+    # Build the section-to-H2 instruction — each section becomes a mandatory H2
+    sections_list = struct["sections"]
+    sections_as_h2 = "\n".join(
+        f'  <h2 id="section-{i+1}">{s.split("—")[0].strip()}</h2>  '
+        f'← H2 {i+1} of 12 | sub-topic: {s.split("—")[1].strip() if "—" in s else s}'
+        for i, s in enumerate(sections_list)
+    )
+
+    cat_label  = cat.upper()
     link_rules = build_internal_link_instructions(cat)
 
     # Build longtail keywords from live context
@@ -1506,17 +1750,25 @@ def groq_draft(story, is_search):
     longtail_kw = build_longtail_keywords(cat, ctx_text, topic_text)
     kw_list     = "\n".join(f"  • {k}" for k in longtail_kw)
 
-    # Inject longtail into WRITING_RULES dynamically
     rules_with_kw = WRITING_RULES.replace(
         "[LONGTAIL_KEYWORDS_PLACEHOLDER]", kw_list
     )
 
-    # Use pre-generated SEO title if present
     seo_title = story.get("seo_title", "")
     title_instruction = (
         f'USE THIS EXACT H1 TITLE (already SEO-optimised):\n<h1>{seo_title}</h1>\n\n'
         if seo_title else
-        "Generate H1 title: number hook + primary keyword + India + year. Max 65 chars.\n\n"
+        f"Generate H1 title: number hook + primary keyword + India + year. Max 65 chars.\n\n"
+    )
+
+    # Category-specific H2 section block shown prominently
+    section_block = (
+        f"━━━ CATEGORY: {cat_label} — MANDATORY 12 H2 SECTIONS ━━━\n"
+        f"Write ALL 12 sections below IN ORDER as H2 headings.\n"
+        f"Do NOT skip, reorder, or merge any section.\n"
+        f"Under each H2, write H3 question-based subheadings.\n\n"
+        f"{sections_as_h2}\n"
+        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
     )
 
     if is_search:
@@ -1558,10 +1810,10 @@ def groq_draft(story, is_search):
             "ARTICLE TYPE: " + mode + "\n\n"
             "REAL DATA FROM RSS AND REVIEW SOURCES:\n"
             + (ctx or "Use your latest India market 2026 knowledge.") + "\n\n"
+            + section_block
             + BUYING_GUIDE_STRUCTURE + "\n\n"
             + rules_with_kw + "\n\n"
             + link_rules + "\n\n"
-            "WRITE THESE 12 SECTIONS:\n" + sections + "\n\n"
             "SEO CHECKLIST:\n"
             "✓ H1 is the pre-generated title above (use it exactly)\n"
             "✓ Primary keyword in first 100 words\n"
@@ -1595,14 +1847,12 @@ def groq_draft(story, is_search):
             "4. Specs box for this device:\n"
             + SPECS_BOX_HTML + "\n"
             "5. Pros & Cons table — plain border, no colour:\n"
-            + PROS_CONS_HTML + "\n"
-            "6. Write 12 sections using H2/H3 hierarchy.\n"
-            "   H2 = main topic. H3 = question-based subheading (improves SEO).\n\n"
+            + PROS_CONS_HTML + "\n\n"
+
+            + section_block
 
             + rules_with_kw + "\n\n"
             + link_rules + "\n\n"
-
-            "WRITE THESE 12 SECTIONS:\n" + sections + "\n\n"
             "SEO CHECKLIST:\n"
             "✓ H1 is the pre-generated title (use exactly)\n"
             "✓ Primary keyword in first 100 words\n"
@@ -1830,13 +2080,24 @@ def run_article(story, is_search, label, atype, log):
     cat  = story.get("category","general")
     blog_url = "https://technewswithai.blogspot.com"
 
-    # Step 3 — Inject hero image block (Google Discover: 1200px)
-    hero_img = build_image_block(
-        alt_text=title,
-        caption="Image: " + title + " | technewswithai.blogspot.com",
-        position="hero"
+    # Step 3b — Replace PRODUCT_IMAGE placeholder comments with real images
+    def replace_product_image(m):
+        product_name = m.group(1).strip()
+        return build_image_block(product_name, cat)
+    final = re.sub(
+        r'<!--\s*PRODUCT_IMAGE:\s*([^-]+?)\s*-->',
+        replace_product_image,
+        final,
+        flags=re.IGNORECASE
     )
-    # Insert hero image after H1 (before first <p>)
+
+    # Step 3 — Inject hero image (real brand logo or Unsplash photo)
+    hero_img = build_image_block(
+        product_name=title,
+        cat=cat,
+        caption=title + " | technewswithai.blogspot.com",
+    )
+    # Insert hero image after H1
     final = re.sub(
         r'(<h1[^>]*>.*?</h1>)',
         r'\1\n' + hero_img,
