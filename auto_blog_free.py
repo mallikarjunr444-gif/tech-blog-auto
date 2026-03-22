@@ -38,11 +38,13 @@
 #   - All 26 traffic tips wired into prompts and HTML structure
 # ================================================================
 
-GROQ_API_KEY       = "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"
-NEWS_API_KEY       = "673bca5ceab54fa8bb7ed0344c8f6d13"
+import os  # must be first — keys below read from environment
+
+GROQ_API_KEY       = os.environ.get("GROQ_API_KEY", "")
+NEWS_API_KEY       = os.environ.get("NEWS_API_KEY", "673bca5ceab54fa8bb7ed0344c8f6d13")
 BLOGGER_POST_EMAIL = "mallikarjunr444.technewswithai6361@blogger.com"
 GMAIL_ADDRESS      = "mallikarjunr444@gmail.com"
-GMAIL_APP_PASSWORD = "oeirtosmlhuwntka"
+GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "oeirtosmlhuwntka")
 
 # ================================================================
 # ALL OFFICIAL + REVIEW RSS FEEDS (60+ sources)
@@ -492,7 +494,7 @@ ROTATION_DAYS = {
     "smartwatch": 10,
 }
 
-import os, sys, json, time, random, requests, datetime, re
+import sys, json, time, random, requests, datetime, re
 import smtplib
 import xml.etree.ElementTree as ET
 from email.mime.multipart import MIMEMultipart
