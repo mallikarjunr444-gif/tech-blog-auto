@@ -2,7 +2,7 @@
 # technewswithai.blogspot.com - Mallikarjun R, Bengaluru
 # ================================================================
 # SCHEDULE:
-#   Daily   → 2 Smartphone/Laptop news + 3 Google search topics
+#   Daily   → 1 Smartphone/Laptop news + 2 Google search topics
 #   Weekly  → Earphones Headphones AirPods PowerBank Smartwatch
 #             (each once every 3 weeks rotation)
 # ================================================================
@@ -824,7 +824,7 @@ def main():
         print("Article 3 failed: " + str(e))
 
     print("\n================================================")
-    print("DONE! " + str(success) + "/5 articles posted!")
+    print("DONE! " + str(success) + "/3 articles posted!")
     print("Visit: https://technewswithai.blogspot.com")
     print("================================================")
 
