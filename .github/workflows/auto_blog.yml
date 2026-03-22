@@ -2,32 +2,35 @@ name: Auto Blog
 
 on:
   schedule:
-    - cron: '0 4 * * *'   # daily 9:30 AM IST (4:00 UTC)
-  workflow_dispatch:       # manual trigger button
+    - cron: '0 4 * * *'     # Daily 9:30 AM IST (4:00 UTC)
+  workflow_dispatch:          # Manual trigger from GitHub Actions tab
 
 jobs:
   post-blog:
     runs-on: ubuntu-latest
-    timeout-minutes: 15    # kill if stuck
+    timeout-minutes: 20       # Kill if stuck (Groq 4000-word draft takes ~12 min)
 
     steps:
-      # ── 1. Checkout repo ────────────────────────────────────────
+
+      # ── 1. Checkout your repo ──────────────────────────────────
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ── 2. Python setup ─────────────────────────────────────────
+      # ── 2. Python 3.11 ────────────────────────────────────────
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      # ── 3. Install dependencies ──────────────────────────────────
+      # ── 3. Install only what the script needs ─────────────────
       - name: Install packages
-        run: pip install groq requests
+        run: |
+          pip install groq requests
 
-      # ── 4. Restore posted_articles.json from cache ──────────────
-      #    This keeps memory of all past topics across runs
-      - name: Restore post log cache
+      # ── 4. Restore posted_articles.json from cache ────────────
+      #    Keeps memory of all past topics/posts across daily runs.
+      #    Without this, topics repeat every day.
+      - name: Restore post log
         uses: actions/cache@v4
         with:
           path: posted_articles.json
@@ -35,7 +38,7 @@ jobs:
           restore-keys: |
             posted-log-
 
-      # ── 5. Run the script ────────────────────────────────────────
+      # ── 5. Run the auto blog script ───────────────────────────
       - name: Run Auto Blog
         env:
           GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
@@ -44,19 +47,21 @@ jobs:
         run: |
           python auto_blog_free.py 2>&1 | tee run_output.txt
 
-      # ── 6. Check posting actually happened ───────────────────────
+      # ── 6. Check at least 1 post was sent ─────────────────────
       - name: Verify posts
         run: |
+          echo "=== Full Output ==="
+          cat run_output.txt
+          echo "==================="
           if grep -q "Posted!" run_output.txt; then
             echo "✅ Blog posted successfully!"
             grep "Posted!" run_output.txt
           else
-            echo "❌ ERROR: No post detected!"
-            cat run_output.txt
+            echo "❌ ERROR: No post detected — check logs above"
             exit 1
           fi
 
-      # ── 7. Save updated log back to cache ────────────────────────
+      # ── 7. Save updated log back to cache ─────────────────────
       - name: Save post log
         if: always()
         uses: actions/cache@v4
