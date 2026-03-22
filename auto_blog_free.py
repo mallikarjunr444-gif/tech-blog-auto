@@ -735,6 +735,15 @@ def generate_dynamic_topics(cat, log, used_combined, count=8):
             pass
     return []
 
+def load_log():
+    if os.path.exists("posted_articles.json"):
+        try:
+            with open("posted_articles.json") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return []
+
 def days_since_cat(log, cat):
     for entry in reversed(log):
         if entry.get("category") == cat:
