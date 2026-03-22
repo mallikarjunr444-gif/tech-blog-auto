@@ -1,30 +1,41 @@
-# TECH NEWS WITH AI - AUTO BLOG v13.0 ADVANCED FINAL
+# TECH NEWS WITH AI - AUTO BLOG v14.0 ADVANCED FINAL
 # technewswithai.blogspot.com - Mallikarjun R, Bengaluru
 # ================================================================
 # SCHEDULE:
 #   Daily   → 1 Smartphone/Laptop news + 2 Google search topics
 #   Weekly  → Earphones Headphones AirPods PowerBank Smartwatch
-#             (each once every rotation schedule)
 # ================================================================
 # PROCESS:
 #   Step 1: Fetch from 65+ official RSS feeds
-#   Step 2: AUTO-TOPIC ENGINE generates live topics from RSS+Trends
-#   Step 3: Groq writes 4000+ word SEO-optimised draft
-#   Step 4: Groq rewrites as human (Mallikarjun R voice)
-#   Step 5: Post to Blogger via email
+#   Step 2: AUTO-GENERATE live search topics from RSS headlines (Groq)
+#   Step 3: Groq generates clickbait-honest SEO title with number
+#   Step 4: Groq writes 4000+ word draft (bullets + tables)
+#   Step 5: Groq rewrites as Mallikarjun R (human voice)
+#   Step 6: Inject FAQ schema, image blocks, social share, footer
+#   Step 7: Ping Google Indexing API + post to Blogger via email
 # ================================================================
-# v13 CHANGES (AUTO TOPIC + 4000-WORD + ADVANCED ENGAGEMENT):
-#   - AUTO-TOPIC ENGINE: Google Trends India RSS + RSS product
-#     extraction + dynamic "vs" and "review" topic generation
-#   - 6-hour topic cache (auto_topics_cache.json) — no stale topics
-#   - Regex product extractor for all 7 categories
-#   - Price-bracket topics auto-generated for every run
-#   - 4000+ word target (was 3000)
-#   - max_tokens bumped to 8000 (draft) and 8000 (rewrite)
-#   - Engagement: storytelling hooks, data callouts, cliffhangers,
-#     reader polls, "Did you know?" boxes, engagement CTAs
-#   - Bullet-first structure enforced across all sections
-#   - Internal brand links auto-injected per category
+# v14 NEW FEATURES (ADSENSE + TRAFFIC UPGRADE):
+#
+#   ADSENSE APPROVAL:
+#   - Original content guarantee enforced in every prompt
+#   - No thin content — min 4000 words, every section rich
+#   - Proper HTML structure (no broken tags, no markdown)
+#   - Mobile-friendly: short paragraphs, <p> max 3 sentences
+#   - Fast-load: no inline heavy CSS, clean Blogger-safe HTML
+#   - AdSense-ready ad slot comments injected between sections
+#
+#   SEO & TRAFFIC:
+#   - Groq generates CTR-optimised clickbait-honest title (with numbers)
+#   - Long-tail keywords auto-injected from RSS trends per category
+#   - JSON-LD FAQ Schema markup in every post (Google ranking boost)
+#   - Image placeholder blocks (1200px Google Discover-ready + alt text)
+#   - Social share block: WhatsApp, Telegram, Reddit, Quora links
+#   - Google Indexing API ping after every post (instant crawl request)
+#   - Old blog update suggester: flags posts >30 days for refresh
+#
+#   ENGAGEMENT:
+#   - Trending AI/tech angle injected into topics daily
+#   - All 26 traffic tips wired into prompts and HTML structure
 # ================================================================
 
 GROQ_API_KEY       = "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"
@@ -583,7 +594,139 @@ def get_rss_context(keywords):
             break
     return "\n".join(ctx[:8])
 
-def load_log():
+# ================================================================
+# DYNAMIC SEARCH TOPIC GENERATOR
+# Reads today's live RSS headlines → Groq auto-generates fresh
+# trending search topics for any category — updates every run
+# ================================================================
+
+# Topic templates Groq can use as inspiration (not hardcoded output)
+TOPIC_TEMPLATES = {
+    "smartphone": [
+        "best phone under ₹[PRICE] India [YEAR]",
+        "[Brand] [Model] vs [Brand2] [Model2] India [YEAR]",
+        "is [Brand] [Model] worth buying India [YEAR]",
+        "best [feature] phone India [YEAR]",
+        "best 5G phone under ₹[PRICE] India [YEAR]",
+    ],
+    "laptop": [
+        "best laptop under ₹[PRICE] India [YEAR]",
+        "[Brand] [Model] vs [Brand2] [Model2] India [YEAR]",
+        "best laptop for [use case] India [YEAR]",
+        "is [Brand] [Model] worth buying India [YEAR]",
+    ],
+    "earphones": [
+        "best earphones under ₹[PRICE] India [YEAR]",
+        "best TWS earbuds under ₹[PRICE] India [YEAR]",
+        "[Brand] vs [Brand2] earphones India [YEAR]",
+        "best ANC earphones under ₹[PRICE] India [YEAR]",
+    ],
+    "headphones": [
+        "best headphones under ₹[PRICE] India [YEAR]",
+        "[Brand] [Model] review India [YEAR]",
+        "best ANC headphones India [YEAR]",
+    ],
+    "airpods": [
+        "AirPods [Model] review India [YEAR]",
+        "AirPods vs [Brand] earbuds India [YEAR]",
+        "are AirPods worth buying India [YEAR]",
+    ],
+    "powerbank": [
+        "best power bank under ₹[PRICE] India [YEAR]",
+        "best [mAh] power bank India [YEAR]",
+        "[Brand] vs [Brand2] power bank India [YEAR]",
+    ],
+    "smartwatch": [
+        "best smartwatch under ₹[PRICE] India [YEAR]",
+        "[Brand] [Model] smartwatch review India [YEAR]",
+        "best smartwatch for [use case] India [YEAR]",
+    ],
+}
+
+def fetch_rss_headlines_for_cat(cat, max_headlines=30):
+    """Fetch fresh RSS headlines relevant to a category."""
+    detect_kws = CAT.get(cat, CAT["smartphone"])["detect"]
+    headlines  = []
+    feeds = ALL_RSS[:]
+    random.shuffle(feeds)
+    for name, url in feeds:
+        for a in fetch_rss(name, url):
+            if any(kw in a["title"].lower() for kw in detect_kws):
+                headlines.append(a["title"])
+            if len(headlines) >= max_headlines:
+                break
+        if len(headlines) >= max_headlines:
+            break
+    return headlines
+
+def generate_dynamic_topics(cat, log, used_combined, count=8):
+    """
+    Calls Groq with today's live RSS headlines to auto-generate
+    fresh, trending search topics for the given category.
+    Returns list of {"t": "...", "k": ["...", "..."]} dicts.
+    """
+    try:
+        from groq import Groq
+        client = Groq(api_key=GROQ_API_KEY)
+
+        headlines = fetch_rss_headlines_for_cat(cat, max_headlines=25)
+        if not headlines:
+            return []
+
+        year = datetime.datetime.now().year
+        used_list = "\n".join(list(used_combined)[:40]) if used_combined else "None yet"
+        templates = "\n".join(TOPIC_TEMPLATES.get(cat, TOPIC_TEMPLATES["smartphone"]))
+        headlines_text = "\n".join(f"- {h}" for h in headlines)
+
+        prompt = (
+            f"You are an India tech SEO expert. Category: {cat.upper()}\n\n"
+            f"TODAY'S LIVE RSS HEADLINES (use these to find trending topics):\n"
+            f"{headlines_text}\n\n"
+            f"TOPIC TEMPLATES (use as format guides, fill with real data from headlines):\n"
+            f"{templates}\n\n"
+            f"ALREADY POSTED TOPICS (DO NOT repeat these):\n"
+            f"{used_list}\n\n"
+            f"TASK: Generate exactly {count} fresh, unique, trending search topics for Indian buyers in {year}.\n\n"
+            f"Rules:\n"
+            f"- Topics must be based on what is trending in the headlines above\n"
+            f"- Each topic must be a real Google search query Indians type\n"
+            f"- Mix of: buying guides (best X under ₹Y), comparisons (X vs Y), worth-it (is X worth buying)\n"
+            f"- Include real product names from the headlines\n"
+            f"- Include India {year} in every topic\n"
+            f"- Each topic must be completely different from the others\n"
+            f"- NEVER repeat any topic from the 'Already Posted' list above\n\n"
+            f"OUTPUT FORMAT — respond ONLY with valid JSON, nothing else:\n"
+            f'[{{"t": "topic text here", "k": ["keyword1", "keyword2"]}}, ...]\n\n'
+            f"Generate {count} topics now:"
+        )
+
+        r = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=1200,
+            temperature=0.75,
+        )
+        raw = r.choices[0].message.content.strip()
+        # Strip any markdown fences
+        raw = re.sub(r"```json|```", "", raw).strip()
+        # Extract JSON array
+        m = re.search(r"\[.*\]", raw, re.DOTALL)
+        if not m:
+            return []
+        topics = json.loads(m.group(0))
+        # Validate + filter
+        valid = []
+        for t in topics:
+            if isinstance(t, dict) and "t" in t and "k" in t:
+                if t["t"] not in used_combined:
+                    valid.append({"t": str(t["t"]), "k": [str(k) for k in t["k"]]})
+        print(f"[DynamicTopics] Generated {len(valid)} fresh topics for [{cat}]")
+        return valid
+    except Exception as e:
+        print(f"[DynamicTopics] Failed for [{cat}]: {e}")
+        return []
+
+
     if os.path.exists("posted_articles.json"):
         try:
             with open("posted_articles.json") as f:
@@ -645,492 +788,71 @@ def pick_news_story(log):
                 return a
     return None
 
-# ================================================================
-# AUTO TOPIC ENGINE — Google Trends + RSS Product Extraction
-# ================================================================
-
-GOOGLE_TRENDS_IN  = "https://trends.google.com/trends/trendingsearches/daily/rss?geo=IN"
-AUTO_TOPICS_CACHE = "auto_topics_cache.json"
-CACHE_TTL_HOURS   = 6   # refresh every 6 hours
-
-# ── Extra live trend sources (RSS-parseable, no auth needed) ──────
-EXTRA_TREND_FEEDS = [
-    ("Bing SmartphoneIN",   "https://www.bing.com/news/search?q=best+smartphone+india+2026&format=RSS"),
-    ("Bing LaptopIN",       "https://www.bing.com/news/search?q=best+laptop+india+2026&format=RSS"),
-    ("Bing EarphonesIN",    "https://www.bing.com/news/search?q=best+earphones+india+2026&format=RSS"),
-    ("Bing SmartwatchIN",   "https://www.bing.com/news/search?q=best+smartwatch+india+2026&format=RSS"),
-    ("Bing PowerbankIN",    "https://www.bing.com/news/search?q=best+power+bank+india+2026&format=RSS"),
-    ("Bing HeadphonesIN",   "https://www.bing.com/news/search?q=best+headphones+india+2026&format=RSS"),
-    ("Bing PhoneLaunch",    "https://www.bing.com/news/search?q=phone+launch+india&format=RSS"),
-    ("Bing LaptopLaunch",   "https://www.bing.com/news/search?q=laptop+launch+india&format=RSS"),
-    ("Reddit IndiaTech",    "https://www.reddit.com/r/IndiaTech.rss?limit=20"),
-    ("Reddit Android",      "https://www.reddit.com/r/Android.rss?limit=10"),
-    ("Reddit Apple",        "https://www.reddit.com/r/apple.rss?limit=10"),
-    ("Reddit Earphones",    "https://www.reddit.com/r/headphones+inearfidelity.rss?limit=10"),
-    ("DDG BestPhoneIN",     "https://duckduckgo.com/?q=best+phone+india+2026&ia=news&format=rss"),
-    ("DDG BestLaptopIN",    "https://duckduckgo.com/?q=best+laptop+india+2026&ia=news&format=rss"),
-]
-
-NEWSAPI_TREND_QUERIES = [
-    "best smartphone india 2026", "best laptop india 2026", "best earphones india 2026",
-    "best smartwatch india 2026", "best power bank india 2026", "best headphones india 2026",
-    "phone launch india", "laptop launch india", "earbuds launch india",
-    "5G phone india", "budget phone india", "gaming phone india",
-]
-
-# ── Regex patterns to extract product model names from RSS text ───
-BRAND_PATTERNS = {
-    "smartphone": [
-        r"(Samsung Galaxy [A-Z][0-9A-Za-z\+\s]{2,20})",
-        r"(iPhone\s?[0-9]{1,2}\s?(?:Pro|Plus|Max|Mini)?)",
-        r"(OnePlus\s?(?:Nord\s?)?[0-9]{1,2}\s?(?:Pro|Ultra|R|T)?)",
-        r"(Redmi Note\s?[0-9]{1,2}\s?(?:Pro|Plus|Turbo)?)",
-        r"(Poco\s?[A-Z][0-9]{1,2}\s?(?:Pro|GT|Ultra)?)",
-        r"(Realme\s?[0-9]{1,2}\s?(?:Pro|Plus|Ultra)?)",
-        r"(Nothing Phone\s?\(?[0-9a-z]+\)?)",
-        r"(Google Pixel\s?[0-9][a-z]?(?:\s?Pro)?)",
-        r"(Motorola (?:Edge|Razr|Moto G|Moto E)\s?[0-9A-Za-z\s]{2,15})",
-        r"(iQOO\s?(?:Neo\s?|Z\s?|)[0-9]{1,2}\s?(?:Pro|Ultra|GT)?)",
-        r"(Vivo\s?[VTX][0-9]{1,2}\s?(?:Pro|GT|Plus)?)",
-        r"(OPPO\s?(?:Reno|Find|A)\s?[0-9A-Za-z\s]{2,12})",
-        r"(Infinix\s?(?:Note|Hot|Zero)\s?[0-9A-Za-z\s]{2,10})",
-    ],
-    "laptop": [
-        r"(MacBook\s?(?:Air|Pro)\s?(?:M[0-9])?)",
-        r"(Dell\s?(?:XPS|Inspiron|Alienware|Vostro)\s?[0-9A-Za-z\s]{2,12})",
-        r"(HP\s?(?:Pavilion|Envy|Spectre|Victus|Omen)\s?[0-9A-Za-z\s]{2,12})",
-        r"(Lenovo\s?(?:IdeaPad|ThinkPad|Legion|LOQ)\s?[0-9A-Za-z\s]{2,12})",
-        r"(ASUS\s?(?:ROG|TUF|ZenBook|VivoBook)\s?[0-9A-Za-z\s]{2,12})",
-        r"(Acer\s?(?:Nitro|Aspire|Predator|Swift)\s?[0-9A-Za-z\s]{2,12})",
-        r"(MSI\s?(?:Katana|Stealth|Titan|Raider)\s?[0-9A-Za-z\s]{2,12})",
-    ],
-    "earphones": [
-        r"(boAt\s?Airdopes\s?[0-9A-Za-z\s]{2,12})",
-        r"(Nothing Ear\s?(?:\([0-9a-z]+\)|[0-9a-z]*))",
-        r"(OnePlus\s?Buds\s?[A-Za-z0-9\s]{0,10})",
-        r"(Sony\s?WF[- ][0-9A-Z\-]{3,12})",
-        r"(Samsung Galaxy Buds\s?[0-9A-Za-z\+\s]{0,10})",
-        r"(Noise Buds\s?[A-Za-z0-9\s]{2,12})",
-        r"(Realme Buds\s?[A-Za-z0-9\s]{2,12})",
-        r"(JBL\s?(?:Tune|Live|Free|Reflect)\s?[0-9A-Za-z\s]{2,12})",
-    ],
-    "headphones": [
-        r"(Sony\s?WH[- ][0-9A-Z\-]{4,12})",
-        r"(Bose\s?(?:QC|QuietComfort|NC)\s?[0-9A-Za-z\s]{2,12})",
-        r"(boAt\s?Rockerz\s?[0-9A-Za-z\s]{2,12})",
-        r"(JBL\s?Tune\s?[0-9A-Za-z\s]{2,12})",
-        r"(Sennheiser\s?[A-Z]{2}[0-9]{2,4})",
-    ],
-    "smartwatch": [
-        r"(Apple Watch\s?(?:Series\s?[0-9]+|Ultra|SE)\s?[0-9A-Za-z\s]{0,10})",
-        r"(Samsung Galaxy Watch\s?[0-9A-Za-z\s]{0,12})",
-        r"(Amazfit\s?(?:GTR|GTS|T-Rex|Bip|Falcon)\s?[0-9A-Za-z\s]{0,12})",
-        r"(Garmin\s?(?:Venu|Vivoactive|Forerunner|Fenix)\s?[0-9A-Za-z\s]{0,12})",
-        r"(boAt\s?Watch\s?[A-Za-z0-9\s]{2,12})",
-        r"(Noise\s?(?:ColorFit|Evolve)\s?[A-Za-z0-9\s]{2,12})",
-    ],
-    "powerbank": [
-        r"(Anker\s?(?:PowerCore|Prime)\s?[0-9A-Za-z\s]{0,12})",
-        r"((?:MI|Xiaomi)\s?(?:Power Bank|Powerbank)\s?[0-9A-Za-z\s]{0,12})",
-        r"(boAt\s?(?:Energy|Power)\s?[A-Za-z0-9\s]{0,12})",
-        r"(Realme\s?(?:Power Bank|Powerbank)\s?[0-9A-Za-z\s]{0,12})",
-        r"(Ambrane\s?[A-Za-z0-9\s]{2,12})",
-    ],
-    "airpods": [
-        r"(AirPods\s?(?:Pro\s?[0-9]?|Max|[0-9]+)?)",
-    ],
-}
-
-# ── Topic generators: product name → review/worth-buying topics ───
-TOPIC_GENS = {
-    "smartphone": [
-        lambda m, y: f"{m} full review India {y}",
-        lambda m, y: f"is {m} worth buying India {y}",
-        lambda m, y: f"{m} price specs India {y}",
-    ],
-    "laptop": [
-        lambda m, y: f"{m} review India {y}",
-        lambda m, y: f"is {m} worth buying India {y}",
-    ],
-    "earphones": [
-        lambda m, y: f"{m} review India {y}",
-        lambda m, y: f"is {m} worth buying India {y}",
-    ],
-    "headphones": [
-        lambda m, y: f"{m} review India {y}",
-    ],
-    "smartwatch": [
-        lambda m, y: f"{m} review India {y}",
-        lambda m, y: f"is {m} worth buying India {y}",
-    ],
-    "powerbank": [
-        lambda m, y: f"{m} review India {y}",
-    ],
-    "airpods": [
-        lambda m, y: f"{m} review India {y}",
-        lambda m, y: f"is {m} worth buying India {y}",
-    ],
-}
-
-VS_TEMPLATES = [
-    "{a} vs {b} India {y}",
-    "{a} vs {b} which is better India {y}",
-    "{a} vs {b} full comparison India {y}",
-]
-
-# ── Auto price-bracket topics (generated fresh each run) ─────────
-PRICE_TOPICS_TMPL = {
-    "smartphone": [
-        ("best 5G phone under {p} India {y}", ["5G phone", "India"]),
-        ("best phone under {p} India {y}",    ["phone", "India"]),
-        ("best camera phone under {p} India {y}", ["camera phone", "India"]),
-        ("best gaming phone under {p} India {y}", ["gaming phone", "India"]),
-    ],
-    "laptop": [
-        ("best laptop under {p} India {y}",         ["laptop", "India"]),
-        ("best gaming laptop under {p} India {y}",  ["gaming laptop", "India"]),
-        ("best laptop for students under {p} India {y}", ["student laptop", "India"]),
-    ],
-    "earphones": [
-        ("best earphones under {p} India {y}",      ["earphones", "India"]),
-        ("best TWS earbuds under {p} India {y}",    ["TWS earbuds", "India"]),
-        ("best ANC earphones under {p} India {y}",  ["ANC earphones", "India"]),
-    ],
-    "headphones": [
-        ("best headphones under {p} India {y}",     ["headphones", "India"]),
-        ("best ANC headphones under {p} India {y}", ["ANC headphones", "India"]),
-    ],
-    "smartwatch": [
-        ("best smartwatch under {p} India {y}",     ["smartwatch", "India"]),
-        ("best smartwatch with calling under {p} India {y}", ["calling smartwatch", "India"]),
-    ],
-    "powerbank": [
-        ("best power bank under {p} India {y}",     ["power bank", "India"]),
-        ("best fast charging power bank under {p} India {y}", ["fast charging", "India"]),
-    ],
-    "airpods": [],
-}
-
-PRICE_BRACKETS = {
-    "smartphone":  ["₹8000",  "₹10000", "₹12000", "₹15000", "₹20000",
-                    "₹25000", "₹30000", "₹40000", "₹50000"],
-    "laptop":      ["₹30000", "₹40000", "₹50000", "₹60000", "₹70000", "₹80000"],
-    "earphones":   ["₹500",   "₹1000",  "₹1500",  "₹2000",  "₹3000",  "₹5000"],
-    "headphones":  ["₹2000",  "₹3000",  "₹5000",  "₹10000"],
-    "smartwatch":  ["₹2000",  "₹3000",  "₹5000",  "₹10000"],
-    "powerbank":   ["₹1000",  "₹1500",  "₹2000"],
-    "airpods":     [],
-}
-
-# ─────────────────────────────────────────────────────────────────
-def load_auto_cache():
-    if os.path.exists(AUTO_TOPICS_CACHE):
-        try:
-            with open(AUTO_TOPICS_CACHE) as f:
-                return json.load(f)
-        except Exception:
-            pass
-    return {"topics": [], "generated_at": ""}
-
-def save_auto_cache(data):
-    try:
-        with open(AUTO_TOPICS_CACHE, "w") as f:
-            json.dump(data, f, indent=2)
-    except Exception:
-        pass
-
-def fetch_google_trends_india():
-    """Fetch today's trending search topics from Google Trends India."""
-    trends = []
-    try:
-        r = requests.get(GOOGLE_TRENDS_IN, headers=HEADERS, timeout=10)
-        root = ET.fromstring(r.content)
-        for item in root.findall(".//item"):
-            t = item.find("title")
-            if t is not None and t.text:
-                trends.append(t.text.strip())
-    except Exception as ex:
-        print("[Trends] Failed: " + str(ex))
-    return trends[:40]
-
-def extract_products_from_rss(cat):
-    """
-    Scan RSS feeds and extract real product model names for the category.
-    Returns list of unique (product_name, source) tuples.
-    """
-    patterns = BRAND_PATTERNS.get(cat, [])
-    if not patterns:
-        return []
-    feeds = ALL_RSS[:]
-    random.shuffle(feeds)
-    found = {}  # product → source
-    for fname, furl in feeds[:30]:
-        arts = fetch_rss(fname, furl)
-        for a in arts:
-            text = a["title"] + " " + a.get("description", "")
-            for pat in patterns:
-                for m in re.findall(pat, text, re.IGNORECASE):
-                    m = m.strip()
-                    if len(m) > 6 and m not in found:
-                        found[m] = fname
-        if len(found) >= 20:
-            break
-    return list(found.items())[:15]
-
-def generate_dynamic_topics():
-    """
-    Auto-topic engine — runs on every call, refreshes cache every 6 hrs.
-    Priority order of generated topics:
-      1. Google Trends India (highest engagement potential)
-      2. RSS product review topics
-      3. RSS product vs topics
-      4. Price-bracket buying guides
-    """
-    cache = load_auto_cache()
-    refresh = True
-    if cache.get("generated_at") and cache.get("topics"):
-        try:
-            age = datetime.datetime.now() - datetime.datetime.fromisoformat(cache["generated_at"])
-            if age.total_seconds() < CACHE_TTL_HOURS * 3600:
-                refresh = False
-        except Exception:
-            pass
-
-    if not refresh:
-        print("[AutoTopics] Cache valid (" + str(len(cache["topics"])) + " topics). Skipping refresh.")
-        return cache.get("topics", [])
-
-    print("[AutoTopics] Refreshing topics from Google Trends + RSS...")
-    year = str(datetime.datetime.now().year)
-    new_topics = []
-
-    # 1 ── Google Trends India → map to category
-    trends = fetch_google_trends_india()
-    print("[AutoTopics] Google Trends fetched: " + str(len(trends)) + " items")
-    for trend in trends:
-        tl = trend.lower()
-        for cat, cdata in CAT.items():
-            if any(kw in tl for kw in cdata["detect"]):
-                kws = [w for w in re.findall(r"[a-z0-9]+", tl) if len(w) > 3][:2]
-                new_topics.append({
-                    "t": trend + " India " + year,
-                    "k": kws or [cat],
-                    "cat": cat,
-                    "source": "google_trends",
-                    "priority": 1,
-                })
-                break
-
-    # 2 ── RSS product extraction → review + worth-buying topics
-    for cat in CAT.keys():
-        products = extract_products_from_rss(cat)
-        gens = TOPIC_GENS.get(cat, [])
-        print("[AutoTopics] " + cat + ": extracted " + str(len(products)) + " products from RSS")
-        for prod, src in products:
-            for gen in gens:
-                new_topics.append({
-                    "t": gen(prod, year),
-                    "k": [prod.split()[0].lower(), "India"],
-                    "cat": cat,
-                    "source": "rss_review",
-                    "priority": 2,
-                })
-
-        # 3 ── Pair products → vs topics
-        if len(products) >= 2:
-            pairs = [(products[i][0], products[j][0])
-                     for i in range(min(4, len(products)))
-                     for j in range(i + 1, min(5, len(products)))]
-            for a, b in pairs[:5]:
-                tmpl = random.choice(VS_TEMPLATES)
-                new_topics.append({
-                    "t": tmpl.format(a=a, b=b, y=year),
-                    "k": [a.split()[0].lower(), b.split()[0].lower()],
-                    "cat": cat,
-                    "source": "rss_vs",
-                    "priority": 2,
-                })
-
-    # 4 ── Price-bracket buying guides
-    for cat, templates in PRICE_TOPICS_TMPL.items():
-        for price in PRICE_BRACKETS.get(cat, []):
-            for tmpl, kws in templates:
-                new_topics.append({
-                    "t": tmpl.format(p=price, y=year),
-                    "k": kws,
-                    "cat": cat,
-                    "source": "price_bracket",
-                    "priority": 3,
-                })
-
-    # 5 ── Extra trend feeds (Bing, Reddit, DDG RSS)
-    print("[AutoTopics] Mining extra trend RSS feeds...")
-    for fname, furl in EXTRA_TREND_FEEDS:
-        try:
-            r2 = requests.get(furl, headers=HEADERS, timeout=8)
-            if r2.status_code == 200:
-                root2 = ET.fromstring(r2.content)
-                for item2 in root2.findall(".//item")[:6]:
-                    t2 = item2.find("title")
-                    if t2 is not None and t2.text:
-                        raw = re.sub(r"<[^>]+>", "", t2.text).strip()
-                        tl2 = raw.lower()
-                        for cat2, cdata2 in CAT.items():
-                            if any(kw in tl2 for kw in cdata2["detect"]):
-                                kws2 = [w for w in re.findall(r"[a-z0-9]+", tl2) if len(w) > 3][:2]
-                                clean = re.sub(r"\s+", " ", raw).strip()
-                                if "india" not in clean.lower():
-                                    clean += " India"
-                                if year not in clean:
-                                    clean += " " + year
-                                new_topics.append({
-                                    "t": clean[:120],
-                                    "k": kws2 or [cat2],
-                                    "cat": cat2,
-                                    "source": "extra_rss",
-                                    "priority": 1,
-                                })
-                                break
-        except Exception:
-            pass
-
-    # 6 ── NewsAPI trending headline mining
-    print("[AutoTopics] Mining NewsAPI for trending headlines...")
-    for nq in NEWSAPI_TREND_QUERIES:
-        try:
-            r3 = requests.get("https://newsapi.org/v2/everything",
-                params={"q": nq, "language": "en", "sortBy": "publishedAt",
-                        "pageSize": 5, "apiKey": NEWS_API_KEY}, timeout=10)
-            d3 = r3.json()
-            if d3.get("status") == "ok":
-                for art in d3.get("articles", [])[:5]:
-                    raw3 = (art.get("title") or "").strip()
-                    tl3  = raw3.lower()
-                    for cat3, cdata3 in CAT.items():
-                        if any(kw in tl3 for kw in cdata3["detect"]):
-                            kws3 = [w for w in re.findall(r"[a-z0-9]+", tl3) if len(w) > 3][:2]
-                            clean3 = re.sub(r"\s+", " ", raw3).strip()
-                            if "india" not in clean3.lower():
-                                clean3 += " India"
-                            if year not in clean3:
-                                clean3 += " " + year
-                            new_topics.append({
-                                "t": clean3[:120],
-                                "k": kws3 or [cat3],
-                                "cat": cat3,
-                                "source": "newsapi_trend",
-                                "priority": 1,
-                            })
-                            break
-        except Exception:
-            pass
-
-    # 7 ── pytrends related queries (optional — needs pip install pytrends)
-    try:
-        from pytrends.request import TrendReq
-        pt = TrendReq(hl="en-IN", tz=330, timeout=(10, 30))
-        for kw_group in ["best smartphone india", "best earphones india", "best laptop india"]:
-            try:
-                pt.build_payload([kw_group], timeframe="now 7-d", geo="IN")
-                rel = pt.related_queries()
-                df  = rel.get(kw_group, {}).get("rising")
-                if df is not None and not df.empty:
-                    for q_row in df["query"].tolist()[:5]:
-                        q_tl = q_row.lower()
-                        for cat4, cdata4 in CAT.items():
-                            if any(kw in q_tl for kw in cdata4["detect"]):
-                                new_topics.append({
-                                    "t": q_row.strip() + " India " + year,
-                                    "k": [w for w in q_tl.split() if len(w) > 3][:2],
-                                    "cat": cat4,
-                                    "source": "pytrends",
-                                    "priority": 1,
-                                })
-                                break
-                time.sleep(1)
-            except Exception:
-                pass
-        print("[AutoTopics] pytrends done")
-    except ImportError:
-        print("[AutoTopics] pytrends not installed — skipping (pip install pytrends)")
-
-    # Deduplicate within generated pool
-    seen, deduped = set(), []
-    for t in new_topics:
-        key = t["t"].lower().strip()
-        if key not in seen:
-            seen.add(key)
-            deduped.append(t)
-
-    cache = {"topics": deduped, "generated_at": datetime.datetime.now().isoformat()}
-    save_auto_cache(cache)
-    print("[AutoTopics] Done — " + str(len(deduped)) + " unique topics cached.")
-    return deduped
-
-
 def pick_search_story(log, used_in_run):
-    print("\n[Search] Auto-picking topic from RSS + Trends engine...")
+    print("\n[Search] Building hybrid topic pool (dynamic RSS + static backup)...")
 
-    used_titles  = {e.get("title","").lower().strip()        for e in log}
-    used_topics  = {e.get("search_topic","").lower().strip() for e in log}
-    combined_used = used_titles | used_topics | {t.lower().strip() for t in used_in_run}
+    used_titles  = {e.get("title","")        for e in log}
+    used_topics  = {e.get("search_topic","") for e in log}
+    combined_used = used_titles | used_topics | used_in_run
 
-    # --- Live auto-generated topics ---
-    live_topics = generate_dynamic_topics()
+    priority_cats    = ["smartphone", "laptop"]
+    secondary_cats   = [c for c in CAT if c not in priority_cats]
 
-    # --- Static fallback pool ---
-    static_topics = []
-    for pcat in ["smartphone", "laptop"]:
+    all_options = []   # list of (cat, {"t":..., "k":[...]}, source)
+
+    # ── 1. DYNAMIC topics from live RSS (priority categories first) ──
+    for pcat in priority_cats:
+        dynamic = generate_dynamic_topics(pcat, log, combined_used, count=6)
+        for t in dynamic:
+            all_options.append((pcat, t, "dynamic"))
+
+    # ── 2. STATIC hardcoded backup (priority categories) ──
+    for pcat in priority_cats:
         for t in CAT[pcat]["search_topics"]:
-            static_topics.append({"t": t["t"], "k": t["k"], "cat": pcat,
-                                   "source": "static", "priority": 4})
-    for cat, data in CAT.items():
-        if cat in ("smartphone", "laptop"):
-            continue
+            if t["t"] not in combined_used:
+                all_options.append((pcat, t, "static"))
+
+    # ── 3. DYNAMIC topics for rotation categories (if due) ──
+    for cat in secondary_cats:
         if not should_post_cat(log, cat):
             continue
-        for t in data.get("search_topics", []):
-            static_topics.append({"t": t["t"], "k": t["k"], "cat": cat,
-                                   "source": "static", "priority": 4})
+        dynamic = generate_dynamic_topics(cat, log, combined_used, count=4)
+        for t in dynamic:
+            all_options.append((cat, t, "dynamic"))
+        # Static backup for these too
+        for t in CAT[cat].get("search_topics", []):
+            if t["t"] not in combined_used:
+                all_options.append((cat, t, "static"))
 
-    # Merge and filter: live first, then static
-    all_options = []
-    seen_keys   = set()
-    for t in live_topics + static_topics:
-        key = t["t"].lower().strip()
-        if key in combined_used or key in seen_keys:
-            continue
-        cat = t.get("cat", "smartphone")
-        if cat not in ("smartphone", "laptop") and not should_post_cat(log, cat):
-            continue
-        seen_keys.add(key)
-        all_options.append(t)
-
-    # Last resort: only run-dedup (allow cross-run repeats from static)
+    # ── 4. Fallback: relax dedup (allow static repeats from past runs) ──
     if not all_options:
-        print("[Search] All unique topics used — falling back to run-dedup only.")
-        run_used_keys = {t.lower().strip() for t in used_in_run}
-        for t in static_topics:
-            key = t["t"].lower().strip()
-            if key not in run_used_keys:
-                all_options.append(t)
+        print("[Search] Pool empty — running emergency dynamic generation...")
+        for pcat in priority_cats:
+            dynamic = generate_dynamic_topics(pcat, log, used_in_run, count=8)
+            for t in dynamic:
+                all_options.append((pcat, t, "dynamic-fallback"))
+        for pcat in priority_cats:
+            for t in CAT[pcat]["search_topics"]:
+                if t["t"] not in used_in_run:
+                    all_options.append((pcat, t, "static-fallback"))
 
     if not all_options:
+        print("[Search] No topics available.")
         return None
 
-    # Sort by priority (1=Trends, 2=RSS, 3=Price, 4=Static), then shuffle within tier
-    all_options.sort(key=lambda x: x.get("priority", 4))
-    top_priority  = all_options[0].get("priority", 4)
-    top_tier      = [t for t in all_options if t.get("priority", 4) == top_priority]
-    random.shuffle(top_tier)
-    chosen = top_tier[0]
+    # Prioritise dynamic topics over static (fresher = higher rank)
+    dynamic_opts = [(c, t, s) for c, t, s in all_options if "dynamic" in s]
+    static_opts  = [(c, t, s) for c, t, s in all_options if "static"  in s]
+    random.shuffle(dynamic_opts)
+    random.shuffle(static_opts)
+    ordered = dynamic_opts + static_opts
 
-    topic      = chosen["t"]
-    chosen_cat = chosen.get("cat", "smartphone")
-    used_in_run.add(topic.lower().strip())
-    print("Topic [" + chosen_cat + "] (" + chosen.get("source","?") + "): " + topic)
+    chosen_cat, chosen_t, src = ordered[0]
+    topic = chosen_t["t"]
+    used_in_run.add(topic)
+    print(f"Topic [{chosen_cat}] ({src}): {topic}")
 
-    ctx   = get_rss_context(chosen.get("k", [topic.split()[0]]))
+    ctx   = get_rss_context(chosen_t["k"])
     arts  = fetch_newsapi(topic)
     extra = arts[0].get("description","") if arts else ""
 
@@ -1138,13 +860,14 @@ def pick_search_story(log, used_in_run):
         "title":        topic,
         "description":  extra,
         "url":          "https://technewswithai.blogspot.com",
-        "source":       "Tech News With AI — " + chosen.get("source","auto"),
+        "source":       "Tech News With AI Research",
         "published":    datetime.datetime.now().isoformat(),
         "specs":        "",
         "search_topic": topic,
-        "keywords":     chosen.get("k", [topic.split()[0]]),
+        "keywords":     chosen_t["k"],
         "rss_context":  ctx,
         "category":     chosen_cat,
+        "topic_source": src,
     }
 
 def fix_bold(text):
@@ -1155,8 +878,246 @@ def fix_bold(text):
     return text.strip()
 
 # ================================================================
-# STEP 1: GROQ TECHNICAL DRAFT  (v12 — Full SEO upgrade)
+# v14: TITLE GENERATOR — clickbait-honest, numbered, SEO-optimised
 # ================================================================
+def generate_seo_title(story, is_search):
+    """Groq generates a CTR-optimised H1 title with number hook."""
+    try:
+        client = Groq(api_key=GROQ_API_KEY)
+        cat    = story.get("category", "smartphone")
+        topic  = story.get("search_topic") or story.get("title", "")
+        year   = datetime.datetime.now().year
+
+        prompt = (
+            f"You are an India SEO expert. Generate ONE perfect blog title.\n\n"
+            f"Topic: {topic}\n"
+            f"Category: {cat.upper()}\n"
+            f"Year: {year}\n\n"
+            f"TITLE RULES:\n"
+            f"- Must contain a NUMBER: Top 5, Top 10, Best 7, etc.\n"
+            f"- Must be clickbait-honest: make it exciting BUT accurate\n"
+            f"- Must include primary keyword and India {year}\n"
+            f"- Must be under 65 characters (fits Google title tag)\n"
+            f"- Use power words: Best, Tested, Ranked, Honest, Worth It, Buying Guide\n"
+            f"- Format options (pick the best fit):\n"
+            f"  'Top 5 Best [Product] Under ₹[Price] India {year} — Tested & Ranked'\n"
+            f"  '[Product A] vs [Product B] India {year}: Which One Wins?'\n"
+            f"  'Is [Product] Worth Buying India {year}? Honest Review'\n"
+            f"  'Best [Feature] [Category] India {year}: Top 7 Picks Tested'\n\n"
+            f"Output ONLY the title text. No quotes. No explanation."
+        )
+        r = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=80, temperature=0.8,
+        )
+        title = r.choices[0].message.content.strip().strip('"').strip("'")
+        print(f"[Title] {title}")
+        return title
+    except Exception as e:
+        print(f"[Title] Generator failed: {e}")
+        return story.get("title", "Tech Review India " + str(datetime.datetime.now().year))
+
+# ================================================================
+# v14: LONG-TAIL KEYWORD BUILDER — from live RSS trends
+# ================================================================
+LONGTAIL_SEEDS = {
+    "smartphone":  ["best phone", "budget smartphone", "5G phone India", "camera phone", "gaming phone"],
+    "laptop":      ["best laptop", "student laptop", "gaming laptop India", "thin light laptop"],
+    "earphones":   ["best earphones", "TWS earbuds", "ANC earphones", "budget earbuds India"],
+    "headphones":  ["best headphones", "ANC headphones", "WFH headphones", "wireless headphones India"],
+    "airpods":     ["AirPods review", "AirPods worth buying", "best AirPods alternative India"],
+    "powerbank":   ["best power bank", "fast charging powerbank", "20000mAh powerbank India"],
+    "smartwatch":  ["best smartwatch", "fitness band India", "calling smartwatch", "smartwatch under"],
+}
+
+def build_longtail_keywords(cat, ctx_text, topic):
+    """Extract long-tail keywords from RSS context + topic + seed list."""
+    seeds = LONGTAIL_SEEDS.get(cat, LONGTAIL_SEEDS["smartphone"])
+    year  = str(datetime.datetime.now().year)
+    kws   = []
+    # Seed-based
+    for s in seeds:
+        kws.append(s + " India " + year)
+    # Pull brand names from ctx_text
+    brands = re.findall(r'\b(Samsung|Apple|OnePlus|Xiaomi|Realme|OPPO|Vivo|Nothing|'
+                        r'boAt|Noise|Sony|JBL|Bose|Dell|HP|Lenovo|ASUS|Acer|'
+                        r'Garmin|Amazfit|Anker|Motorola|Google|Pixel|Redmi|Poco)\b',
+                        ctx_text, re.IGNORECASE)
+    seen = set()
+    for b in brands:
+        if b.lower() not in seen:
+            seen.add(b.lower())
+            kws.append(b + " review India " + year)
+    # From topic
+    if "under" in topic.lower():
+        price = re.search(r'[\d,]+', topic.replace(",",""))
+        if price:
+            kws.append("best buy under ₹" + price.group() + " India " + year)
+    return list(dict.fromkeys(kws))[:12]   # unique, max 12
+
+# ================================================================
+# v14: FAQ SCHEMA BUILDER — JSON-LD for Google ranking boost
+# ================================================================
+def build_faq_schema(faqs):
+    """
+    faqs = [{"q": "...", "a": "..."}, ...]
+    Returns JSON-LD <script> block for FAQ rich results.
+    """
+    items = []
+    for f in faqs:
+        items.append({
+            "@type": "Question",
+            "name": f["q"],
+            "acceptedAnswer": {"@type": "Answer", "text": f["a"]}
+        })
+    schema = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": items
+    }
+    return (
+        '\n<script type="application/ld+json">\n'
+        + json.dumps(schema, ensure_ascii=False, indent=2)
+        + '\n</script>\n'
+    )
+
+def extract_faq_from_html(html):
+    """Pull Q&A pairs from the article's FAQ section to build schema."""
+    faqs = []
+    # Find H3 questions in FAQ section
+    faq_section = re.search(
+        r'id=["\']faq["\'].*?(?=<h2|</article|$)', html, re.DOTALL | re.IGNORECASE)
+    if not faq_section:
+        return []
+    block = faq_section.group(0)
+    questions = re.findall(r'<h3[^>]*>(.*?)</h3>', block, re.DOTALL | re.IGNORECASE)
+    answers   = re.findall(r'</h3>\s*<p[^>]*>(.*?)</p>', block, re.DOTALL | re.IGNORECASE)
+    for i, q in enumerate(questions[:6]):
+        q_text = re.sub(r'<[^>]+>', '', q).strip()
+        a_text = re.sub(r'<[^>]+>', '', answers[i]).strip() if i < len(answers) else ""
+        if q_text and a_text:
+            faqs.append({"q": q_text, "a": a_text[:200]})
+    return faqs
+
+# ================================================================
+# v14: IMAGE PLACEHOLDER BLOCK — 1200px Google Discover ready
+# ================================================================
+def build_image_block(alt_text, caption="", position="product"):
+    """
+    Blogger-safe image placeholder.
+    Replace src with your actual uploaded image URL in Blogger.
+    Google Discover needs real 1200px images — add via Blogger image tool.
+    """
+    slug = re.sub(r'[^a-z0-9]+', '-', alt_text.lower())[:40]
+    return (
+        f'<figure style="margin:16px 0;text-align:center;">'
+        f'<!-- REPLACE WITH REAL IMAGE: Upload 1200x628px to Blogger, '
+        f'alt="{alt_text}" -->'
+        f'<img src="https://via.placeholder.com/1200x628?text={slug}" '
+        f'alt="{alt_text}" width="1200" height="628" '
+        f'style="max-width:100%;height:auto;border-radius:6px;" '
+        f'loading="lazy"/>'
+        + (f'<figcaption style="font-size:12px;color:#666;margin-top:6px;">{caption}</figcaption>' if caption else '')
+        + '</figure>\n'
+    )
+
+# ================================================================
+# v14: SOCIAL SHARE BLOCK — WhatsApp, Telegram, Reddit, Quora
+# ================================================================
+def build_social_block(title, url="https://technewswithai.blogspot.com"):
+    encoded_title = requests.utils.quote(title[:100])
+    encoded_url   = requests.utils.quote(url)
+    return (
+        '<div style="border:1px solid #ddd;padding:16px;margin:24px 0;text-align:center;">'
+        '<p style="margin:0 0 10px;font-size:14px;font-weight:bold;">📢 Found this helpful? Share it!</p>'
+        '<p style="margin:0;font-size:13px;">'
+        f'<a href="https://wa.me/?text={encoded_title}%20{encoded_url}" '
+        'target="_blank" rel="noopener" style="margin:0 8px;color:#25d366;">📱 WhatsApp</a> | '
+        f'<a href="https://t.me/share/url?url={encoded_url}&text={encoded_title}" '
+        'target="_blank" rel="noopener" style="margin:0 8px;color:#0088cc;">✈️ Telegram</a> | '
+        f'<a href="https://reddit.com/submit?url={encoded_url}&title={encoded_title}" '
+        'target="_blank" rel="noopener" style="margin:0 8px;color:#ff4500;">🔗 Reddit</a> | '
+        '<a href="https://technewswithai.blogspot.com" '
+        'target="_blank" rel="noopener" style="margin:0 8px;color:#1a73e8;">🏠 More Reviews</a>'
+        '</p></div>\n'
+    )
+
+# ================================================================
+# v14: GOOGLE INDEXING API PING — instant crawl after posting
+# ================================================================
+def ping_google_index(url):
+    """
+    Sends a URL to Google Indexing API for instant crawl.
+    Requires service account JSON key at GOOGLE_SA_KEY_FILE path.
+    If key not found, prints reminder instead (non-fatal).
+    """
+    key_file = os.environ.get("GOOGLE_SA_KEY_FILE", "google_service_account.json")
+    if not os.path.exists(key_file):
+        print("[GoogleIndex] Key file not found — skipping ping.")
+        print(f"[GoogleIndex] To enable: add '{key_file}' service account JSON.")
+        return
+    try:
+        import google.oauth2.service_account as sa
+        import google.auth.transport.requests as ga_req
+        credentials = sa.Credentials.from_service_account_file(
+            key_file,
+            scopes=["https://www.googleapis.com/auth/indexing"]
+        )
+        credentials.refresh(ga_req.Request())
+        headers = {"Authorization": "Bearer " + credentials.token,
+                   "Content-Type": "application/json"}
+        body = {"url": url, "type": "URL_UPDATED"}
+        r = requests.post(
+            "https://indexing.googleapis.com/v3/urlNotifications:publish",
+            headers=headers, json=body, timeout=10
+        )
+        if r.status_code == 200:
+            print(f"[GoogleIndex] ✅ Pinged: {url}")
+        else:
+            print(f"[GoogleIndex] Response {r.status_code}: {r.text[:120]}")
+    except ImportError:
+        print("[GoogleIndex] Run: pip install google-auth --break-system-packages")
+    except Exception as e:
+        print(f"[GoogleIndex] Failed: {e}")
+
+# ================================================================
+# v14: OLD BLOG UPDATER — flags posts >30 days old for refresh
+# ================================================================
+def suggest_old_updates(log, days_threshold=30):
+    """Prints a list of old posts that should be refreshed for SEO."""
+    now = datetime.datetime.now()
+    old = []
+    for entry in log:
+        try:
+            posted = datetime.datetime.fromisoformat(entry["posted_at"])
+            age    = (now - posted).days
+            if age >= days_threshold:
+                old.append((age, entry.get("title","?")[:60], entry.get("url","")))
+        except Exception:
+            pass
+    if old:
+        old.sort(reverse=True)
+        print("\n⚠️  OLD POSTS TO UPDATE (update = SEO boost):")
+        for age, title, url in old[:5]:
+            print(f"  [{age}d old] {title}")
+        print("  → Add 2026 data, refresh prices, resubmit to Google Search Console")
+    else:
+        print("[Updates] All posts are fresh (< 30 days).")
+
+# ================================================================
+# v14: ADSENSE AD SLOT INJECTOR
+# Inserts AdSense-ready comment slots between article sections.
+# Replace comment with your real ca-pub + slot IDs from AdSense.
+# ================================================================
+AD_SLOT_HTML = (
+    '\n<!-- ADSENSE AD SLOT — Replace with your real ad code from AdSense dashboard -->\n'
+    '<!-- <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"'
+    ' data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins>'
+    '<script>(adsbygoogle = window.adsbygoogle || []).push({});</script> -->\n\n'
+)
+
+
 
 # ── Internal link map: brand/category → your blog label URL ──────
 INTERNAL_LINKS = {
@@ -1288,170 +1249,238 @@ SPECS_BOX_HTML = """<div style="border:1px solid #ddd;padding:14px;margin:10px 0
 
 # ── Buying guide structure rules ──────────────────────────────────
 BUYING_GUIDE_STRUCTURE = """
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-MANDATORY ARTICLE STRUCTURE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MANDATORY ARTICLE STRUCTURE (v14 — AdSense + Traffic)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-[A] H1 TITLE — SEO FORMAT:
-    Best [Product] Under ₹[Price] in India ([Year]): Top 5 Picks Tested
+[A] H1 TITLE — CLICKBAIT-BUT-HONEST FORMAT:
+    • Use "Top 5" or "Top 10" for lists
+    • Use "vs" for comparisons
+    • Use "Worth Buying?" for reviews
+    • Include: India + year + price + benefit
+    Examples:
+      "Top 5 Earphones Under ₹2000 in India (2026): ANC Tested, Battery Ranked"
+      "Stop Buying the Wrong Phone! Best 5G Picks Under ₹15000 India 2026"
+      "I Tested 7 Laptops Under ₹40000. Only 3 Are Worth It — India 2026"
 
-[B] HOOK INTRO (2 lines only, problem + solution):
-    Line 1: State the exact problem Indian buyers face.
-    Line 2: Tell them this article solves it. Include primary keyword.
-    → Primary keyword MUST appear in first 100 words.
+[B] HOOK INTRO (2 sentences MAX — MOBILE FRIENDLY):
+    Sentence 1: State the exact pain point Indians face right now.
+    Sentence 2: Promise this article solves it with a number (Top 5, 2 weeks tested).
+    → Primary keyword in first 100 words — no exceptions.
+    → SHORT paragraph. Max 3 lines. Indian readers use mobile phones.
 
 [C] TABLE OF CONTENTS (plain border, no colours):
 """ + TOC_HTML + """
 
-[D] QUICK COMPARISON TABLE (id="comparison-table", real specs, no colour headers):
-    Columns vary by category:
-    • Earphones/Headphones: Model | Driver | ANC | Battery | Codec | Price
-    • Smartphones: Model | Chip | RAM | Camera | Battery | Price
-    • Laptops: Model | CPU | RAM | Storage | Display | Price
-    • Smartwatch: Model | Display | Battery | GPS | SpO2 | Price
-    • Power Bank: Model | Capacity | Max Watt | Ports | Weight | Price
+[D] QUICK COMPARISON TABLE (id="comparison-table"):
+    • Plain border only — no colour on headers
+    • All specs must be real — never invent numbers
+    • Add a "Rating" column (e.g., 8.5/10) for easy scanning
+    Columns by category:
+    • Earphones/Headphones: Model | Driver | ANC | Battery | Codec | Rating | Price
+    • Smartphones: Model | Chip | RAM | Camera | Battery | Rating | Price
+    • Laptops: Model | CPU | RAM | SSD | Display | Rating | Price
+    • Smartwatch: Model | Display | Battery | GPS | Health | Rating | Price
+    • Power Bank: Model | mAh | Max W | Ports | Weight | Rating | Price
+    • AI topic: Tool | Free Plan | Best For | India Available | Rating
 
-[E] PER-PRODUCT SECTION (repeat EXACTLY for all 5 products — same H3 order):
+[E] PER-PRODUCT SECTION (repeat for all 5 products — SAME H3 order every time):
 
 <h2 id="product-N">N. [Brand + Model] — [10-word honest verdict]</h2>
 
-  SPECS BOX (immediately under H2):
+  IMAGE HINT (write this comment so blog editor knows where to add image):
+  <!-- ADD IMAGE: [Product Name] 1200x628px — required for Google Discover -->
+
+  SPECS BOX (immediately under H2 — no colour, plain border):
 """ + SPECS_BOX_HTML + """
 
-  <h3>Is the Design Worth It?</h3>
-  → 3-5 bullet points. Max 12 words per bullet.
-  → Real-life line: "comfortable during my 45-min Bengaluru metro commute"
+  <h3>Is the Design and Build Worth It?</h3>
+  → 3-5 bullets. Max 12 words each. MOBILE READABLE.
+  → One real-life India line per H3.
 
   <h3>How Does It Actually [Perform / Sound / Feel]?</h3>
-  → Use specific words: deep bass, clear vocals, 42dB ANC, 28ms latency
-  → NEVER use: good, nice, amazing, great, excellent
-  → Add numbers: battery hours, dB, ms, Hz, MP, W
+  → Specific words: deep bass, clear vocals, 42dB ANC, 28ms latency
+  → Add numbers: hours, dB, ms, Hz, MP, W
+  → Long-tail keyword naturally in one bullet (e.g., "best ANC earphones under ₹2000 India")
 
-  <h3>Battery — Does It Last Your Day?</h3>
-  → Real-life test line: "lasted through IPL match + 2 hr college lecture"
-  → State hours precisely: "32 hrs total (6 hrs earbuds + 4 charges from case)"
+  <h3>Battery Life — Does It Survive Your Full Day?</h3>
+  → Exact hours: "32 hrs (6 earbuds + 4 case charges)"
+  → India real-life: "lasted full IPL match + 2 hr college lecture"
 
   <h3>Pros & Cons</h3>
 """ + PROS_CONS_HTML + """
 
-  <p><strong>🎯 Best For:</strong> [specific target user — e.g., "gym users who sweat heavily"]</p>
-  <p><strong>💬 Mini Verdict:</strong> [1 honest sentence. Better than X. Cheaper than Y.]</p>
-  <p>📌 <em>Check the latest price on
-  <a href="https://technewswithai.blogspot.com/search/label/[Category]" target="_blank">Tech News With AI</a>.</em></p>
+  <p><strong>🎯 Best For:</strong> [very specific user — "students on 1.5 hr metro commute"]</p>
+  <p><strong>🏅 Verdict Label:</strong> [Top Pick / Value Pick / Budget Champion / Premium Pick]</p>
+  <p><strong>💬 Mini Verdict:</strong> [1 sentence. Include comparison: "Better than X. Cheaper than Y by ₹NNN."]</p>
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[F] ADVANCED ENGAGEMENT ELEMENTS (add throughout article):
+  Expert Tip callout:
+  <div style="border-left:3px solid #333;padding:10px 14px;margin:12px 0;background:#f9f9f9;">
+  <strong>💡 Expert Tip:</strong> [India-specific buying advice: timing, variant, cashback]
+  </div>
 
-  ① CURIOSITY HOOK after every H2 product section opener:
-     "Here is what surprised me about this one."
-     "This is where it gets better than the competition."
-     "Most people miss this detail — I almost did too."
+  Should You Buy box:
+  <div style="border:1px solid #ddd;padding:12px 16px;margin:14px 0;">
+  <strong>🤔 Should You Buy This?</strong><br/>
+  ✅ Buy if: [case 1] | [case 2]<br/>
+  ❌ Skip if: [reason 1] | [reason 2]
+  </div>
 
-  ② READER ADDRESS (ask the reader directly — 1 per section):
-     "If you are a student on a tight budget, this matters."
-     "If you commute every day, you will love this."
-     "Be honest — how often has your phone died at 2pm?"
+  <p>📌 <em>Read more reviews on <a href="https://technewswithai.blogspot.com/search/label/[Category]" target="_blank">Tech News With AI</a>.</em></p>
 
-  ③ SOCIAL PROOF TRIGGER (creates trust — 1 per article):
-     "Thousands of Indians have already switched to this."
-     "This model sold out in 2 days on Flipkart last sale."
-
-  ④ SCARCITY / URGENCY LINE (add near price sections):
-     "Prices tend to spike after big launches — check current price."
-     "Stock was limited during last Flipkart sale — worth bookmarking."
-
-  ⑤ COMPARISON ANCHOR (makes value clear):
-     "Competitors at the same price give you less battery."
-     "You would pay ₹2000 more for the same ANC from Sony."
-
-  ⑥ PATTERN INTERRUPT between long sections (every 3rd H2):
-     Add a bold callout box (HTML div, plain border):
-     <div style="border:1px solid #ddd;padding:12px;margin:16px 0;">
-     <strong>💡 Quick Tip:</strong> [1 actionable sentence]
-     </div>
-
-  ⑦ NUMBERED TAKEAWAY before final verdict:
-     <h3>Top 3 Things to Remember Before You Buy</h3>
-     <ol><li>...</li><li>...</li><li>...</li></ol>
-
-[G] TRANSITION LINES between every product section:
-    Use smooth bridges. Examples:
-    "Now let us look at a better option if you want ANC."
-    "If budget is tight, the next pick is made for you."
-    "So far so good — but this next one changes things."
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[F] TRANSITION LINES between every product:
+    "Now if that price is still tight, the next one will surprise you."
+    "Different category of value — keep reading, this one is interesting."
+    "That was the safe pick. Now here is the one for real enthusiasts."
 
 [G] FINAL VERDICT (id="final-verdict"):
-<h2 id="final-verdict">🏆 Final Verdict — Which One Should You Buy?</h2>
+<h2 id="final-verdict">🏆 Final Verdict — The Clear Winner in India 2026</h2>
 """ + VERDICT_TABLE_HTML + """
-    → Declare a clear winner. State WHY in one sentence.
-    → Add CTA: "Read more [category] reviews on
-       <a href="https://technewswithai.blogspot.com/search/label/[Category]" target="_blank">Tech News With AI</a>."
+    → Declare ONE winner clearly. One sentence why.
+    → Add "Value Pick" (best for budget) and "Top Pick" (best overall).
+    → CTA: "Explore all [Category] reviews →
+       <a href="https://technewswithai.blogspot.com/search/label/[Category]" target="_blank">Tech News With AI</a>"
 
-[H] FAQ (id="faq") — 3 questions minimum, question-based H3 subheadings:
-<h3>Which is the best [product] under ₹[price] in India 2026?</h3>
-<h3>Is [Product Name] worth buying in 2026?</h3>
-<h3>What is the difference between [X] and [Y]?</h3>
+[H] FAQ (id="faq") — 5 question-based H3 subheadings (Google rich results):
+    • First question = exact search query (mandatory)
+    • Mix of: which/what/how/is/are questions
+    • Keep answers under 60 words each (Google snippet optimal)
+    • Each answer must be complete and standalone
+    Examples:
+    <h3>Which is the best [product] under ₹[price] in India 2026?</h3>
+    <h3>Is [Product Name] worth buying in India 2026?</h3>
+    <h3>What is the difference between [X] and [Y]?</h3>
+    <h3>How long does [Product] battery last in real use?</h3>
+    <h3>Where is the best place to buy [Product] in India?</h3>
+
+[I] LONG-TAIL KEYWORD PLACEMENT (SEO):
+    Place these naturally in the text — not forced:
+    • In first 100 words (primary keyword)
+    • In at least 2 H2 headings (secondary keywords)
+    • In 1 H3 per product (long-tail variant)
+    • In conclusion/verdict section
+    Examples of long-tail patterns:
+    "best [product] under ₹[price] for [use case] in India [year]"
+    "which [product] is best for [use case] India [year]"
+    "[product1] vs [product2] which is better India [year]"
 """
+
 
 # ── Writing rules injected into every prompt ─────────────────────
 WRITING_RULES = """
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-WRITING & SEO RULES (apply to EVERY section)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-WORD COUNT: Minimum 4000 words. More depth = better Google ranking.
-SENTENCE LENGTH: Max 15 words per sentence. Short. Punchy. Clear.
-FORMAT: Bullet points — NOT long paragraphs. Paragraphs max 3 lines.
-SPECIFICITY: Never write "good sound". Write "deep bass with 10mm driver, clear vocals above 2kHz".
-DATA: Always include numbers — hours, dB, ms latency, Hz refresh, MP camera, W charging, mAh, g weight.
-COMPARISON: Use "better than X", "cheaper than Y by ₹NNN", "unlike Z which lacks ANC".
-REAL LIFE: One Indian usage line per H3:
-  → "survived my 1.5 hr Bengaluru metro ride with zero discomfort"
-  → "handled PUBG Mobile for 3 hrs without thermal throttle"
-  → "battery lasted through full IPL match + Hotstar binge after"
-  → "never slipped during 40-min morning run"
-CLIFFHANGER: End each product section with a 1-line teaser:
-  → "But wait — the next pick does all this for ₹500 less."
-  → "If that impressed you, the next one will genuinely surprise you."
-STRUCTURE: H2 = product or major topic. H3 = question-based subheading. Never skip.
-UNIQUE: Every product 100% unique text. Zero repeated sentences across article.
-CATEGORY ACCURACY (STRICT):
-  → Earphones/Headphones: ANC dB, codec (AAC/aptX/LDAC), driver mm, IP rating, latency ms
-  → Smartphones: display type (AMOLED/IPS), processor name, RAM GB, camera MP, battery mAh, fast charge W
-  → Laptops: CPU name+gen, RAM GB, SSD GB+type, display nits, battery Wh, weight kg
-  → Smartwatch: display type+size, battery days, built-in GPS, SpO2/ECG, ATM rating
-  → Power Bank: mAh real capacity, input W, output W, port count, weight g, PD/QC support
-BOLD: <strong> on price, battery hours, ANC level, model names, key specs.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WRITING, SEO & ENGAGEMENT RULES — APPLY TO EVERY SECTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-━━ ENGAGEMENT ELEMENTS (MANDATORY — ADD IN EVERY ARTICLE) ━━
+TARGET: 4000+ words total. Every section must be rich and full.
 
-① DID YOU KNOW BOX (add once, after section 3):
-<div style="border:1px solid #ddd;padding:14px 16px;margin:16px 0;">
-<strong>💡 Did You Know?</strong><br/>
-[Surprising India-specific stat — e.g., "India became the 2nd largest TWS earbuds market in Asia in 2026."]
+─── STRUCTURE ───────────────────────────────────────
+• H2 = product or main section header
+• H3 = question-based feature subheading (improves SEO ranking)
+• Bullet points for all feature lists — NOT long paragraphs
+• Every H3: 1 opening sentence + 4-6 bullets + 1 closing line
+• Bold: <strong>price</strong>, <strong>battery hrs</strong>, key spec values
+
+─── SENTENCE RULES ──────────────────────────────────
+• Max 15 words per sentence. Mix short (5 words) with medium (12-15 words).
+• NEVER two consecutive sentences of the same length.
+
+─── ENGAGEMENT TECHNIQUES ───────────────────────────
+① HOOK every H2 with a curiosity gap:
+   "Here is what the spec sheet does NOT tell you."
+   "I tested this for 2 weeks. The result surprised me."
+   "This one thing makes it stand out from every competitor."
+
+② CLIFFHANGER after intro of each product:
+   "But there is one big problem. Keep reading."
+   "Before you add it to cart — read section 4 first."
+   "Sounds perfect, right? Wait until you see the battery test."
+
+③ TRANSITION BRIDGE between every product:
+   "Now if that price is still too high, the next pick will surprise you."
+   "Different budget, completely different experience — here we go."
+   "This next one is polarising. Some love it. Some hate it. Here is why."
+
+④ EXPERT TIP CALLOUT inside each product section (use this exact HTML):
+<div style="border-left:3px solid #333;padding:10px 14px;margin:12px 0;background:#f9f9f9;">
+<strong>💡 Expert Tip:</strong> [Specific actionable India tip for this product — price timing, variant choice, where to buy]
 </div>
 
-② QUICK POLL (add once, right after the comparison table):
-<div style="border:1px solid #ddd;padding:14px 16px;margin:16px 0;">
-<strong>📊 Quick Poll — Tell Us!</strong><br/>
-Which matters most to you when buying [category]?<br/>
-• 🔋 Battery life &nbsp;|&nbsp; 🔊 Sound / Performance &nbsp;|&nbsp; 💰 Price &nbsp;|&nbsp; 🎨 Design<br/>
-<em>Drop your answer in the comments below 👇</em>
+⑤ SHOULD YOU BUY BOX at end of each product (use this exact HTML):
+<div style="border:1px solid #ddd;padding:12px 16px;margin:14px 0;">
+<strong>🤔 Should You Buy This?</strong><br/>
+✅ Buy if: [specific use case 1] | [specific use case 2]<br/>
+❌ Skip if: [specific reason 1] | [specific reason 2]
 </div>
 
-③ DATA CALLOUT BOX (1 per product — highlight the single most impressive spec):
-<div style="border-left:3px solid #333;padding:10px 14px;margin:10px 0;background:#fafafa;">
-<strong>[Key stat — e.g., "42dB ANC depth"]</strong> — [1 line: why this matters for Indian users]
-</div>
+─── DATA & SPECIFICITY ──────────────────────────────
+• NEVER: good, nice, amazing, great, excellent, decent, solid
+• ALWAYS use specifics: deep bass, punchy mids, 42dB ANC, 28ms latency, 120Hz AMOLED
+• Every section: minimum 2 real numbers (hours, dB, ms, Hz, MP, W, g, mAh)
+• Comparison line in every product: "beats X in battery", "₹NNN cheaper than Z"
 
-④ ENGAGEMENT CTA (after every 2nd product):
-<p>👉 <em>Finding this useful? Share with a friend who is confused about which [category] to buy!</em></p>
+─── REAL-LIFE INDIA USAGE ───────────────────────────
+One real-life India scenario per H3. Rotate through:
+• "through my 1.5 hr Bengaluru metro commute without any discomfort"
+• "during PUBG Mobile session at 90fps — no thermal throttle for 2 hrs"
+• "battery lasted full IPL match + 2 hr Hotstar binge, still 20% left"
+• "worked perfectly on hostel WiFi at 2 Mbps — zero stutter on Spotify"
+• "survived 40-min morning run, IP54 handled the sweat without issue"
+• "powered through 3 engineering exam prep days on a single charge"
+• "6-hr offline lecture recording with zero heating on this laptop"
+• "crystal clear call quality even in Bengaluru traffic noise"
 
-⑤ COMMENT HOOK (just before author bio, end of article):
-<p style="font-size:15px;"><strong>💬 Which one would YOU pick?</strong> Drop your choice in the comments — I read every single one!</p>
+─── CATEGORY ACCURACY ───────────────────────────────
+NEVER mix categories. Only use specs that belong to this device:
+• Earphones:   ANC dB | codec (AAC/aptX/LDAC) | driver mm | IP rating | latency ms
+• Headphones:  clamping force | earcup depth | ANC dB | fold design | wired backup port
+• Smartphones: SoC name | display type+Hz | camera sensor size | battery mAh | charge W
+• Laptops:     CPU name+gen | RAM GB | SSD GB+type | nits brightness | Wh battery | kg weight
+• Smartwatch:  display size+type | battery days | GPS type | SpO2/ECG | ATM rating
+• Power Bank:  real mAh output | input W | output W | PD/QC version | port count | g weight
 
-NEVER: markdown bold, "good/nice/amazing/great/excellent", "In conclusion", "To summarize",
-       two consecutive sections starting same way, generic sentences applicable to any product.
-MINIMUM: 4000 words total.
+─── ABSOLUTE NEVER ──────────────────────────────────
+• NO **markdown bold** — ONLY <strong>HTML</strong> tags
+• NO: "In conclusion", "To summarize", "It is worth noting", "Overall"
+• NO two consecutive sections starting the same way
+• NO repeated sentence anywhere in the article
+• NO wrong-category specs (AMOLED in earphone article = instant disqualification)
+• NO links to any external website — ONLY technewswithai.blogspot.com label pages
+
+─── MINIMUM REQUIREMENTS (CHECKLIST) ────────────────
+✓ 4000+ words
+✓ Hook intro: problem line 1, solution line 2
+✓ Primary keyword in first 100 words
+✓ Comparison table at top (real specs, no colour headers)
+✓ Specs box per product
+✓ Pros/Cons table per product
+✓ Expert Tip callout per product
+✓ Should You Buy box per product
+✓ Transition bridge between every product
+✓ Best For line per product
+✓ Mini Verdict per product (comparison word included)
+✓ CTA per product (links to your blog label)
+✓ Final Verdict table (plain border)
+✓ FAQ with 5+ questions (first = exact search query)
+
+─── ADSENSE APPROVAL REQUIREMENTS ──────────────────
+• ORIGINAL content only — never copy from any source
+• Every sentence must add NEW information — no filler
+• <p> tags: max 3 sentences each (mobile-friendly)
+• No broken HTML — all tags must be properly closed
+• No thin sections — every H3 must have 4+ bullet points
+• Write like a real person, not a tool — AdSense rejects AI-sounding content
+• DO NOT repeat the same idea in different words anywhere
+
+─── GOOGLE DISCOVER OPTIMIZATION ────────────────────
+• First image must be 1200px wide (placeholder block is already added by code)
+• Use descriptive, emotional language in first 100 words
+• Include trending angle: AI features, India price, value-for-money
+
+─── LONG-TAIL KEYWORDS (inject naturally, not stuffed) ──
+These must appear organically in the article text:
+[LONGTAIL_KEYWORDS_PLACEHOLDER]
 """
 
 
@@ -1461,6 +1490,25 @@ def groq_draft(story, is_search):
     struct   = CAT.get(cat, CAT["smartphone"])
     sections = "\n".join(struct["sections"])
     link_rules = build_internal_link_instructions(cat)
+
+    # Build longtail keywords from live context
+    ctx_text    = story.get("rss_context", "")
+    topic_text  = story.get("search_topic") or story.get("title", "")
+    longtail_kw = build_longtail_keywords(cat, ctx_text, topic_text)
+    kw_list     = "\n".join(f"  • {k}" for k in longtail_kw)
+
+    # Inject longtail into WRITING_RULES dynamically
+    rules_with_kw = WRITING_RULES.replace(
+        "[LONGTAIL_KEYWORDS_PLACEHOLDER]", kw_list
+    )
+
+    # Use pre-generated SEO title if present
+    seo_title = story.get("seo_title", "")
+    title_instruction = (
+        f'USE THIS EXACT H1 TITLE (already SEO-optimised):\n<h1>{seo_title}</h1>\n\n'
+        if seo_title else
+        "Generate H1 title: number hook + primary keyword + India + year. Max 65 chars.\n\n"
+    )
 
     if is_search:
         topic = story["search_topic"]
@@ -1496,29 +1544,34 @@ def groq_draft(story, is_search):
             )
 
         prompt = (
+            title_instruction +
             "Write a comprehensive SEO-optimised guide for Indians searching: '" + topic + "'\n\n"
             "ARTICLE TYPE: " + mode + "\n\n"
             "REAL DATA FROM RSS AND REVIEW SOURCES:\n"
             + (ctx or "Use your latest India market 2026 knowledge.") + "\n\n"
             + BUYING_GUIDE_STRUCTURE + "\n\n"
-            + WRITING_RULES + "\n\n"
+            + rules_with_kw + "\n\n"
             + link_rules + "\n\n"
             "WRITE THESE 12 SECTIONS:\n" + sections + "\n\n"
             "SEO CHECKLIST:\n"
-            "✓ H1 contains exact search query\n"
+            "✓ H1 is the pre-generated title above (use it exactly)\n"
             "✓ Primary keyword in first 100 words\n"
             "✓ Keyword in at least 3 H2 headings\n"
             "✓ Question-based H3 subheadings (improves SEO)\n"
+            "✓ Long-tail keywords woven in naturally (not stuffed)\n"
             "✓ Real ₹ prices — Flipkart/Amazon India\n"
             "✓ Real product names — never invent specs\n"
             "✓ h1 h2 h3 p ul li table — HTML only, NEVER markdown\n"
+            "✓ <p> tags: max 3 sentences (mobile-friendly)\n"
             "✓ <strong> for specs, prices, key data\n"
             "✓ Brand names hyperlinked to your blog label pages only\n"
             "✓ FAQ section: first question = exact search query\n"
+            "✓ ORIGINAL content — no copy, no thin filler\n"
             "Write now:"
         )
     else:
         prompt = (
+            title_instruction +
             "Write a detailed SEO-optimised article about: " + story["title"] + "\n"
             "CATEGORY: " + cat.upper() + "\n"
             "SOURCE: " + story["source"] + "\n"
@@ -1526,7 +1579,7 @@ def groq_draft(story, is_search):
             "DESCRIPTION: " + story.get("description", "") + "\n\n"
 
             "MANDATORY STRUCTURE:\n"
-            "1. H1 — device name + India + 2026 + benefit keyword\n"
+            "1. Use the pre-generated H1 title above (exactly as given)\n"
             "2. Hook intro — 2 lines: problem + solution. Primary keyword in first 100 words.\n"
             "3. Table of Contents — plain border, no colour:\n"
             + TOC_HTML + "\n"
@@ -1537,21 +1590,24 @@ def groq_draft(story, is_search):
             "6. Write 12 sections using H2/H3 hierarchy.\n"
             "   H2 = main topic. H3 = question-based subheading (improves SEO).\n\n"
 
-            + WRITING_RULES + "\n\n"
+            + rules_with_kw + "\n\n"
             + link_rules + "\n\n"
 
             "WRITE THESE 12 SECTIONS:\n" + sections + "\n\n"
             "SEO CHECKLIST:\n"
-            "✓ H1 has device name + India + 2026\n"
+            "✓ H1 is the pre-generated title (use exactly)\n"
             "✓ Primary keyword in first 100 words\n"
+            "✓ Long-tail keywords woven in naturally\n"
             "✓ Question-based H3 subheadings\n"
             "✓ Real ₹ prices\n"
             "✓ <strong> for key specs\n"
+            "✓ <p> max 3 sentences (mobile-friendly)\n"
             "✓ Brand names hyperlinked to your blog label pages only\n"
             "✓ Bullet points — not long paragraphs\n"
             "✓ Real-life India usage line in every section\n"
             "✓ FAQ with 7 questions Indians actually search\n"
             "✓ Strong final verdict with clear winner + CTA\n"
+            "✓ ORIGINAL content — no copy, no thin filler\n"
             "Write now:"
         )
     r = client.chat.completions.create(
@@ -1604,33 +1660,45 @@ def human_rewrite(draft, story):
 
         "━━━ MUST PRESERVE (DO NOT TOUCH) ━━━\n"
         "• All HTML tables — comparison, pros/cons, verdict, specs boxes\n"
+        "• Expert Tip callout divs and Should You Buy boxes\n"
         "• Table of Contents and all anchor links\n"
         "• All H1, H2, H3 headings\n"
         "• All internal links to technewswithai.blogspot.com\n"
-        "• 'Best For' lines, 'Mini Verdict' lines, CTA lines\n\n"
+        "• Best For lines, Mini Verdict lines, CTA lines\n\n"
 
         "━━━ FOR EVERY SECTION, DO ALL OF THESE ━━━\n\n"
-        "① PERSONAL HOOK — start with your real experience:\n"
+        "① PERSONAL HOOK — start H2 with a curiosity gap:\n"
+        "   'Here is what the spec sheet does NOT tell you about this one.'\n"
+        "   'I tested this for 2 weeks straight. The result genuinely surprised me.'\n"
+        "   'Before you add to cart — read this section first.'\n\n"
+        "② CLIFFHANGER after first line of every product:\n"
+        "   'But there is one big problem with it. Keep reading.'\n"
+        "   'Sounds perfect — until you see the battery numbers.'\n\n"
+        "③ PERSONAL EXPERIENCE (category-specific):\n"
         "   Earphones: 'I wore these for my entire Bengaluru metro ride — here is what I noticed.'\n"
         "   Phone:     'I have been testing phones at this price for the last 3 months.'\n"
-        "   Laptop:    'After a full week of coding and Netflix on this machine —'\n"
-        "   Powerbank: 'My phone died mid-exam call. That is why I tested every power bank here.'\n"
+        "   Laptop:    'After a full week of coding sessions and Netflix on this machine —'\n"
+        "   Powerbank: 'My phone died mid-exam call. That is why I tested every model here.'\n"
         "   Watch:     'I wore this for 2 weeks straight — morning runs, office, gym, sleep.'\n\n"
-        "② INDIA REAL-LIFE LINE — make every spec mean something:\n"
-        "   ❌ Bad:  '5000mAh battery'\n"
-        "   ✅ Good: '<strong>5000mAh</strong> = full IPL match + 6 hrs college + evening commute'\n"
-        "   ❌ Bad:  '30hr battery'\n"
-        "   ✅ Good: '<strong>30 hrs total</strong> = 5 days of my office commute without charging'\n\n"
-        "③ HONEST REACTION (1 line per section):\n"
+        "④ INDIA REAL-LIFE LINE — make every spec mean something:\n"
+        "   Bad:  '5000mAh battery'\n"
+        "   Good: '<strong>5000mAh</strong> = full IPL match + 6 hrs college + evening commute'\n"
+        "   Bad:  '30hr battery'\n"
+        "   Good: '<strong>30 hrs total</strong> = 5 days of office commute without charging'\n\n"
+        "⑤ HONEST REACTION (1 punchy line per section):\n"
         "   'Genuinely surprised me for this price.'\n"
         "   'Honestly? I expected better from this brand.'\n"
-        "   'This is where it gets interesting.'\n\n"
-        "④ INDIA ADVICE (specific, actionable):\n"
-        "   'Grab this during Flipkart Big Billion Days — extra ₹500 off bank discount.'\n"
+        "   'This is where it gets really interesting.'\n\n"
+        "⑥ TRANSITION BRIDGE between every product:\n"
+        "   'Now if that price is still too high, the next pick will surprise you.'\n"
+        "   'Different budget, completely different experience — here we go.'\n"
+        "   'This next one is polarising. Some love it. Some hate it. Here is why.'\n\n"
+        "⑦ INDIA ADVICE (specific, actionable):\n"
+        "   'Grab this during Flipkart Big Billion Days — extra ₹500 off with bank card.'\n"
         "   '8GB variant is worth ₹1500 more. Trust me on this one.'\n\n"
-        "⑤ ONE LIKE + ONE DISLIKE (honest, product-specific):\n"
-        "   '✅ Love: deep bass response on the 10mm driver.'\n"
-        "   '❌ Dislike: call quality drops in wind above 20 kmph.'\n\n"
+        "⑧ ONE LIKE + ONE DISLIKE (honest, product-specific):\n"
+        "   'Love: deep bass response on the 10mm driver.'\n"
+        "   'Dislike: call quality drops in heavy wind above 20 kmph.'\n\n"
 
         "━━━ WRITING STYLE ━━━\n"
         "• Sentences: max 15 words. Short. Punchy.\n"
@@ -1665,12 +1733,15 @@ def human_rewrite(draft, story):
         "• NEVER write generic sentences that could apply to any product\n\n"
 
         "━━━ FINAL CHECKS ━━━\n"
-        "✓ Minimum 4000 words\n"
-        "✓ Hook intro — problem + solution in first 2 lines\n"
+        "✓ 4000+ words\n"
+        "✓ Hook intro — problem line 1, solution line 2\n"
         "✓ Primary keyword in first 100 words\n"
-        "✓ All 5 products have: specs box + pros/cons + best for + mini verdict + CTA\n"
-        "✓ Strong final verdict with clear winner\n"
-        "✓ Author bio added at the very end\n\n"
+        "✓ Curiosity gap hook on every H2\n"
+        "✓ Cliffhanger after first line of every product\n"
+        "✓ Transition bridge between every product section\n"
+        "✓ All 5 products: specs box + pros/cons + expert tip + should-you-buy + best for + mini verdict + CTA\n"
+        "✓ Strong final verdict with clear winner declared\n"
+        "✓ Author bio at the very end\n\n"
 
         "ADD AUTHOR BIO as absolute last element:\n"
         + author_bio + "\n\n"
@@ -1722,49 +1793,116 @@ def run_article(story, is_search, label, atype, log):
     print(label + " [" + story.get("category","?").upper() + "]")
     print("="*55)
 
-    print("Step 1: Technical draft...")
+    # Step 0 — Generate SEO title
+    print("Step 0: Generating SEO title...")
+    seo_title = generate_seo_title(story, is_search)
+    story["seo_title"] = seo_title
+
+    # Step 1 — Technical draft
+    print("Step 1: Technical draft (4000+ words)...")
     draft = groq_draft(story, is_search)
     w1    = len(re.sub(r"<[^>]+>","",draft).split())
     print("Draft: " + str(w1) + " words")
 
+    # Step 2 — Human rewrite
     print("Step 2: Human rewrite as Mallikarjun R...")
     human = human_rewrite(draft, story)
     final = fix_bold(human)
 
-    title = story["title"]
-    m = re.search(r"<h[12][^>]*>(.*?)</h[12]>", final, re.IGNORECASE|re.DOTALL)
+    # Extract clean title (prefer H1 from output, else use seo_title)
+    title = seo_title
+    m = re.search(r"<h1[^>]*>(.*?)</h1>", final, re.IGNORECASE|re.DOTALL)
     if m:
         title = re.sub(r"<[^>]+>","",m.group(1)).strip()
 
     words = len(re.sub(r"<[^>]+>","",final).split())
     print("Final: " + str(words) + " words | " + title[:55])
 
-    footer = (
-        "<hr/><p style='font-size:12px;color:#888;text-align:center;padding:10px;'>"
-        "<em>Source: " + story["source"] +
-        " | <a href='" + story["url"] + "' target='_blank' rel='noopener'>Original</a>"
-        " | <a href='https://technewswithai.blogspot.com'>Tech News With AI</a></em></p>"
+    cat  = story.get("category","general")
+    blog_url = "https://technewswithai.blogspot.com"
+
+    # Step 3 — Inject hero image block (Google Discover: 1200px)
+    hero_img = build_image_block(
+        alt_text=title,
+        caption="Image: " + title + " | technewswithai.blogspot.com",
+        position="hero"
     )
-    url = post_email(title, final + footer)
-    save_log(log, title, url, words, atype, story.get("category","general"),
-             story.get("search_topic",""))
+    # Insert hero image after H1 (before first <p>)
+    final = re.sub(
+        r'(<h1[^>]*>.*?</h1>)',
+        r'\1\n' + hero_img,
+        final, count=1, flags=re.DOTALL|re.IGNORECASE
+    )
+
+    # Step 4 — Inject AdSense ad slots between H2 sections (every 2nd)
+    h2_count = [0]
+    def inject_ad(match):
+        h2_count[0] += 1
+        if h2_count[0] % 2 == 0:
+            return AD_SLOT_HTML + match.group(0)
+        return match.group(0)
+    final = re.sub(r'<h2[^>]*>', inject_ad, final, flags=re.IGNORECASE)
+
+    # Step 5 — Inject FAQ JSON-LD schema
+    faqs = extract_faq_from_html(final)
+    if not faqs:
+        # Fallback: build from topic
+        topic_q = story.get("search_topic") or title
+        faqs = [
+            {"q": "Which is the " + topic_q + "?",
+             "a": "Read the full guide above for our top-ranked picks tested in India " + str(datetime.datetime.now().year) + "."},
+            {"q": "Is this worth buying in India " + str(datetime.datetime.now().year) + "?",
+             "a": "Yes, based on our real-world tests and India pricing analysis in this article."},
+        ]
+    schema_block = build_faq_schema(faqs)
+
+    # Step 6 — Social share block
+    social_block = build_social_block(title, blog_url)
+
+    # Step 7 — Footer
+    footer = (
+        "<hr/>"
+        + social_block
+        + "<p style='font-size:12px;color:#888;text-align:center;padding:10px;'>"
+        "<em>Published by Mallikarjun R | "
+        "<a href='" + blog_url + "' target='_blank'>Tech News With AI</a>"
+        " | technewswithai.blogspot.com</em></p>"
+    )
+
+    # Assemble final HTML: schema first, then article, then footer
+    full_html = schema_block + final + footer
+
+    # Step 8 — Post to Blogger
+    url = post_email(title, full_html)
+
+    # Step 9 — Save log
+    save_log(log, title, url, words, atype, cat, story.get("search_topic",""))
+
+    # Step 10 — Ping Google Indexing API
+    ping_google_index(url)
+
     return True
+
 
 # ================================================================
 # MAIN
 # ================================================================
 def main():
-    print("================================================")
-    print(" TECH NEWS WITH AI - AUTO BLOG v13.0 ADVANCED")
-    print(" Daily: 1 News + 2 Auto-generated Search Topics")
-    print(" Topics: Google Trends + RSS extraction + Price brackets")
-    print(" Content: 4000+ words, Engagement elements, Bullet-first")
+    print("=======================================================")
+    print(" TECH NEWS WITH AI - AUTO BLOG v14.0 ADVANCED")
+    print(" Daily: 1 News + 2 Dynamic Search Topics")
+    print(" Topics: Live RSS → Groq auto-generates trending topics")
+    print(" Content: 4000+ words | Schema | Images | Social Share")
+    print(" AdSense: Original content | Mobile-friendly | Hooks")
     print(" technewswithai.blogspot.com")
-    print("================================================")
+    print("=======================================================")
 
     log         = load_log()
     used_in_run = set()
     success     = 0
+
+    # Suggest old posts to update (SEO refresh)
+    suggest_old_updates(log, days_threshold=30)
 
     # Article 1 — Latest RSS News (phone/laptop priority)
     try:
@@ -1773,36 +1911,43 @@ def main():
             run_article(s1, False, "ARTICLE 1: LATEST NEWS", "news", log)
             log = load_log()
             success += 1
-            print("Waiting 30s...")
-            time.sleep(30)
+            print("Waiting 35s...")
+            time.sleep(35)
     except Exception as e:
         print("Article 1 failed: " + str(e))
 
-    # Article 2 — Google Search Topic
+    # Article 2 — Dynamic search topic
     try:
         s2 = pick_search_story(log, used_in_run)
         if s2:
-            run_article(s2, True, "ARTICLE 2: GOOGLE SEARCH", "search", log)
+            run_article(s2, True, "ARTICLE 2: SEARCH TOPIC", "search", log)
             log = load_log()
             success += 1
-            print("Waiting 30s...")
-            time.sleep(30)
+            print("Waiting 35s...")
+            time.sleep(35)
     except Exception as e:
         print("Article 2 failed: " + str(e))
 
-    # Article 3 — Google Search Topic (different topic guaranteed)
+    # Article 3 — Different dynamic search topic
     try:
         s3 = pick_search_story(log, used_in_run)
         if s3:
-            run_article(s3, True, "ARTICLE 3: GOOGLE SEARCH", "search", log)
+            run_article(s3, True, "ARTICLE 3: SEARCH TOPIC", "search", log)
             success += 1
     except Exception as e:
         print("Article 3 failed: " + str(e))
 
-    print("\n================================================")
+    print("\n=======================================================")
     print("DONE! " + str(success) + "/3 articles posted!")
+    print("Next steps:")
+    print("  → Submit sitemap in Google Search Console")
+    print("  → Share articles on WhatsApp & Telegram channels")
+    print("  → Post answers on Quora with your blog links")
+    print("  → Republish summaries on Medium + LinkedIn")
+    print("  → Replace image placeholders in Blogger with 1200px images")
     print("Visit: https://technewswithai.blogspot.com")
-    print("================================================")
+    print("=======================================================")
+
 
 if __name__ == "__main__":
     main()
