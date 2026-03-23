@@ -262,18 +262,18 @@ CAT = {
             {"t": "best laptop with 16GB RAM India 2026",          "k": ["16GB RAM laptop", "India"]},
         ],
         "sections": [
-            "1. Why This Laptop Deserves Your Attention in 2026",
-            "2. Design Build Quality Ports and Keyboard — chassis hinge weight port selection typing",
-            "3. Display Color Accuracy Brightness — panel resolution refresh rate outdoor use",
-            "4. Processor Performance Real World Speed — chip generation daily tasks multitasking",
-            "5. Graphics Gaming and Creative Work — GPU frame rates video editing rendering",
-            "6. RAM Storage and Upgrade Options — configs SSD speed future upgrade path",
-            "7. Battery Life for Different Use Cases — coding streaming gaming standby real hours",
-            "8. Thermal Management Fan Noise Sustained Performance — cooling throttling noise",
-            "9. India Price All Variants EMI — Flipkart Amazon student discounts bank offers",
-            "10. Who Should Buy This Laptop — students developers creators gamers professionals",
-            "11. Top 3 Alternatives with India Prices — honest comparison by use case",
-            "12. My Final Verdict and FAQ — clear recommendation + 7 questions Indians search",
+            "1. Why This Laptop Matters to Indian Buyers in 2026 — market position target audience value",
+            "2. {Product} Design and Build Quality — chassis materials hinge weight port layout keyboard trackpad",
+            "3. {Product} Display Features — panel type resolution refresh rate brightness nits color gamut outdoor",
+            "4. {Product} Performance and Processor — CPU generation benchmark real-world tasks multitasking heat",
+            "5. {Product} Graphics and Gaming — GPU frame rates video editing 3D rendering creative work",
+            "6. {Product} RAM and Storage Options — variants SSD speed upgrade path real-world load times",
+            "7. {Product} Battery Life and Charging — real hours by use case fast charge USB-C wattage",
+            "8. {Product} Thermal Management — cooling system fan noise sustained performance throttling",
+            "9. {Product} Price in India and Where to Buy — all variants INR Flipkart Amazon No Cost EMI bank offers",
+            "10. Who Should Buy the {Product} and Who Should Avoid — students developers creators gamers professionals",
+            "11. Top 3 Alternatives to {Product} with India Prices — honest named comparison by use case",
+            "12. Final Verdict on {Product} and FAQ — clear recommendation plus 5 questions Indians actually search",
         ]
     },
 
@@ -315,18 +315,18 @@ CAT = {
             {"t": "best earphones for calls India 2026",           "k": ["earphones calls", "India"]},
         ],
         "sections": [
-            "1. Why These Earphones Are Worth Talking About in India",
-            "2. Design Comfort and Build Quality — form factor materials fit tip sizes",
-            "3. Sound Quality Deep Dive — bass mids highs soundstage balanced vs bass-heavy",
-            "4. Active Noise Cancellation Test — ANC strength transparency mode real environments",
-            "5. Call Quality and Microphone — clarity noise rejection wind conference real test",
-            "6. Battery Life and Charging Case — earbuds hours case charges total speed",
-            "7. Bluetooth Connectivity and Latency — version multipoint gaming video lag codec",
-            "8. Smart Features and App — EQ auto-pause voice assistant touch controls",
-            "9. Comfort for Long Sessions — gym commute office all day experience",
-            "10. India Price Variants and Value — colors EMI Flipkart Amazon best buy",
-            "11. Who Should Buy and Who Should Not — music lovers commuters gym users",
-            "12. Top 3 Alternatives My Final Verdict and FAQ — comparison + 7 questions",
+            "1. Why This Earphone Matters to Indian Buyers in 2026 — market position who it targets pricing value",
+            "2. {Product} Design and Build Quality — form factor materials fit IP rating controls comfort",
+            "3. {Product} Sound Quality — bass mids highs soundstage driver size tuning signature",
+            "4. {Product} ANC and Transparency Mode — ANC strength dB real environments transparency quality",
+            "5. {Product} Microphone and Call Quality — voice clarity noise rejection wind call experience",
+            "6. {Product} Battery Life and Charging Case — earbuds hours case charges fast charge wireless",
+            "7. {Product} Connectivity and Codec Support — Bluetooth version multipoint LDAC AAC SBC latency ms",
+            "8. {Product} App and Smart Features — companion app EQ gestures auto-pause voice assistant",
+            "9. {Product} Comfort for Long Sessions — gym commute office all-day wear experience",
+            "10. {Product} Price in India and Where to Buy — all variants INR Flipkart Amazon EMI deals",
+            "11. Who Should Buy the {Product} and Who Should Avoid — music lovers commuters gym casual users",
+            "12. Top 3 Alternatives to {Product} and Final Verdict — honest named comparison plus FAQ",
         ]
     },
 
@@ -354,18 +354,18 @@ CAT = {
             {"t": "best wired headphones under 2000 India 2026",   "k": ["wired headphones", "India"]},
         ],
         "sections": [
-            "1. Why These Headphones Are Getting Attention in India",
-            "2. Design Build Comfort — padding clamp force foldability weight materials",
-            "3. Sound Signature Deep Dive — bass mids highs soundstage tuning style",
-            "4. ANC vs Passive Isolation — real world environments performance comparison",
-            "5. Call Quality Microphone WFH — clarity noise rejection online meetings",
-            "6. Battery Life and Charging — hours ANC on off quick charge wired backup",
-            "7. Multipoint and Connectivity — two devices wired mode Bluetooth version",
-            "8. Smart Controls and App — touch buttons EQ app voice assistant",
-            "9. Portability and Travel — folding case airline adapter commute",
-            "10. India Price Variants and Value — EMI Flipkart Amazon deals",
-            "11. Who Should Buy — audiophiles WFH workers travellers students",
-            "12. Top 3 Alternatives My Final Verdict and FAQ — comparison + 7 questions",
+            "1. Why This Headphone Matters to Indian Buyers in 2026 — market position who it targets value",
+            "2. {Product} Design and Build Quality — padding clamp force foldability weight materials finish",
+            "3. {Product} Sound Signature — bass mids highs soundstage tuning style driver size",
+            "4. {Product} ANC and Passive Isolation — ANC strength real environments passive seal comparison",
+            "5. {Product} Microphone and Call Quality — clarity noise rejection wind online meetings WFH",
+            "6. {Product} Battery Life and Charging — hours ANC on off quick charge wired backup USB-C",
+            "7. {Product} Connectivity and Multipoint — two devices simultaneously wired mode Bluetooth version",
+            "8. {Product} App and Smart Controls — touch buttons EQ companion app voice assistant",
+            "9. {Product} Portability and Travel — folding case airline adapter commute use",
+            "10. {Product} Price in India and Where to Buy — all variants INR Flipkart Amazon EMI bank offers",
+            "11. Who Should Buy the {Product} and Who Should Avoid — audiophiles WFH workers travellers students",
+            "12. Top 3 Alternatives to {Product} and Final Verdict — honest named comparison plus FAQ",
         ]
     },
 
@@ -386,18 +386,18 @@ CAT = {
             {"t": "best AirPods alternative India 2026",           "k": ["AirPods alternative", "India"]},
         ],
         "sections": [
-            "1. Are These AirPods Worth Buying in India in 2026",
-            "2. Design Fit and Color Options — form factor comfort ear tip sizes",
-            "3. Sound Quality and Apple Spatial Audio — real listening experience",
-            "4. ANC and Transparency Mode — comparison with Sony Bose Samsung",
-            "5. Apple Ecosystem Integration — iPhone iPad Mac seamless switching",
-            "6. Call Quality and Siri — mic clarity wind noise India Siri accuracy",
-            "7. Battery Life Case and Charging — hours MagSafe wireless quick charge",
-            "8. H2 Chip Smart Features — adaptive audio conversation awareness",
-            "9. Comfort for Indian Ears Long Sessions — gym commute daily wear",
-            "10. India Price Is It Worth It — vs Noise boAt Sony OnePlus comparison",
-            "11. Should You Buy AirPods or Android Alternative — honest India advice",
-            "12. My Final Verdict and FAQ — buy or skip + 7 questions Indians ask",
+            "1. Why These AirPods Matter to Indian Buyers in 2026 — positioning vs Android alternatives value",
+            "2. {Product} Design and Fit — form factor ear tip sizes comfort colors IP rating",
+            "3. {Product} Sound Quality and Spatial Audio — real listening experience bass mids highs",
+            "4. {Product} ANC and Transparency Mode — ANC depth vs Sony Bose Samsung real comparison",
+            "5. {Product} Apple Ecosystem Integration — iPhone iPad Mac seamless switching H2 chip",
+            "6. {Product} Microphone and Call Quality — clarity wind noise Siri India accuracy",
+            "7. {Product} Battery Life and Charging Case — hours MagSafe wireless quick charge total",
+            "8. {Product} Smart Features — adaptive audio conversation awareness auto-switch controls",
+            "9. {Product} Comfort for Indian Users — long sessions gym commute daily all-day wear",
+            "10. {Product} Price in India and Is It Worth It — vs Noise boAt Sony OnePlus EMI comparison",
+            "11. Should You Buy the {Product} or an Android Alternative — honest India advice",
+            "12. Final Verdict on {Product} and FAQ — buy or skip recommendation plus 5 questions Indians ask",
         ]
     },
 
@@ -425,18 +425,17 @@ CAT = {
             {"t": "best slim power bank India 2026",               "k": ["slim power bank", "India"]},
         ],
         "sections": [
-            "1. Why You Actually Need This Power Bank in India",
-            "2. Design Build and Portability — size weight pocket fit finish",
-            "3. Capacity Real World Charging — mAh devices charged how many times",
-            "4. Charging Speed Input Output — wattage PD QC protocols real test",
-            "5. Number of Ports Cable Support — USB-A USB-C simultaneous charging",
-            "6. Safety Features Temperature Control — overcharge protection auto cut",
-            "7. Display and Indicators — LED dots percentage display status",
-            "8. Device Compatibility — phone laptop tablet earbuds watch",
-            "9. India Price Variants Best Buy — EMI Flipkart Amazon value variant",
-            "10. Who Should Buy — travellers students professionals commuters",
-            "11. Top 3 Alternatives with India Prices — Anker MI Realme boAt compared",
-            "12. My Final Verdict and FAQ — recommendation + 7 questions about power banks",
+            "1. Why This Power Bank Matters to Indian Buyers in 2026 — use case positioning value for money",
+            "2. {Product} Design and Build Quality — size weight pocket fit finish materials port layout",
+            "3. {Product} Real Capacity and Charging Performance — actual mAh output devices charged real test",
+            "4. {Product} Charging Speed — input watt output watt PD QC PPS protocol real charging time",
+            "5. {Product} Ports and Device Compatibility — USB-A USB-C simultaneous phone laptop tablet earbuds",
+            "6. {Product} Safety Features — overcharge protection temperature control auto cut-off certifications",
+            "7. {Product} Display and Indicators — LED dots percentage screen charge status info",
+            "8. {Product} Price in India and Where to Buy — all variants INR Flipkart Amazon EMI value variant",
+            "9. Who Should Buy the {Product} and Who Should Avoid — travellers students professionals commuters",
+            "10. Top 3 Alternatives to {Product} with India Prices — Anker MI Realme boAt honest comparison",
+            "11. Final Verdict on {Product} and FAQ — recommendation plus 5 questions Indians search about power banks",
         ]
     },
 
@@ -467,18 +466,18 @@ CAT = {
             {"t": "best smartwatch for fitness India 2026",        "k": ["fitness smartwatch", "India"]},
         ],
         "sections": [
-            "1. Why This Smartwatch Is Getting Attention in India 2026",
-            "2. Design Build Colors Strap Options — case material size weight",
-            "3. Display Quality Always On Outdoor — type size brightness resolution",
-            "4. Health Fitness Tracking Accuracy — heart rate SpO2 sleep stress ECG",
-            "5. Smart Notifications Calls Daily Use — reply notifications quick actions",
-            "6. Battery Life and Charging — days per charge AOD on off quick charge",
-            "7. GPS Sports Tracking Accuracy — built-in GPS route auto detect sports",
-            "8. App Ecosystem Compatibility — Android iPhone app quality third party",
-            "9. Water Resistance and Durability — ATM rating swim shower dust",
-            "10. India Price Variants and Value — sizes colors EMI Flipkart Amazon",
-            "11. Who Should Buy — fitness lovers professionals casual users students",
-            "12. Top 3 Alternatives My Final Verdict and FAQ — comparison + 7 questions",
+            "1. Why This Smartwatch Matters to Indian Buyers in 2026 — positioning target users value",
+            "2. {Product} Design and Build Quality — case material size weight strap options colors",
+            "3. {Product} Display Quality — type size brightness resolution always-on outdoor visibility",
+            "4. {Product} Health and Fitness Tracking — heart rate SpO2 sleep stress ECG accuracy real test",
+            "5. {Product} Smart Notifications and Daily Use — call reply notifications quick actions",
+            "6. {Product} Battery Life and Charging — days per charge AOD on off quick charge time",
+            "7. {Product} GPS and Sports Tracking — built-in GPS route accuracy auto sport detection",
+            "8. {Product} App Ecosystem and Compatibility — Android iPhone app quality third party support",
+            "9. {Product} Water Resistance and Durability — ATM rating swim shower dust resistance",
+            "10. {Product} Price in India and Where to Buy — all sizes colors INR Flipkart Amazon EMI",
+            "11. Who Should Buy the {Product} and Who Should Avoid — fitness lovers professionals casual students",
+            "12. Top 3 Alternatives to {Product} and Final Verdict — honest comparison plus FAQ",
         ]
     },
 }
@@ -1737,9 +1736,10 @@ def groq_draft(story, is_search):
 
     # Build the section-to-H2 instruction — each section becomes a mandatory H2
     sections_list = struct["sections"]
+    # Strip leading "N. " numbering for cleaner H2 text; keep the full description as guide
     sections_as_h2 = "\n".join(
-        f'  <h2 id="section-{i+1}">{s.split("—")[0].strip()}</h2>  '
-        f'← H2 {i+1} of 12 | sub-topic: {s.split("—")[1].strip() if "—" in s else s}'
+        f'  <h2 id="section-{i+1}">{re.sub(r"^\\d+\\.\\s*", "", s.split("—")[0]).strip()}</h2>  '
+        f'← H2 {i+1} of {len(sections_list)} | details: {s.split("—")[1].strip() if "—" in s else s}'
         for i, s in enumerate(sections_list)
     )
 
@@ -1765,9 +1765,12 @@ def groq_draft(story, is_search):
 
     # Category-specific H2 section block shown prominently
     section_block = (
-        f"━━━ CATEGORY: {cat_label} — MANDATORY 12 H2 SECTIONS ━━━\n"
-        f"Write ALL 12 sections below IN ORDER as H2 headings.\n"
+        f"━━━ CATEGORY: {cat_label} — MANDATORY {len(sections_list)} H2 SECTIONS ━━━\n"
+        f"Write ALL sections below IN ORDER as H2 headings.\n"
         f"Do NOT skip, reorder, or merge any section.\n"
+        f"CRITICAL: Use the EXACT H2 text shown below. Replace {{Product}} with the real product name.\n"
+        f"Do NOT use clickbait or dramatic hooks as H2 text. H2 must be clean and descriptive.\n"
+        f"Personal hooks and commentary go in the first <p> paragraph UNDER the H2, never inside it.\n"
         f"Under each H2, write H3 question-based subheadings.\n\n"
         f"{sections_as_h2}\n"
         f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
@@ -1923,12 +1926,19 @@ def human_rewrite(draft, story):
         "• All HTML tables — comparison, pros/cons, verdict, specs boxes\n"
         "• Expert Tip callout divs and Should You Buy boxes\n"
         "• Table of Contents and all anchor links\n"
-        "• All H1, H2, H3 headings\n"
+        "• ALL H1, H2, H3 HEADINGS — copy them EXACTLY as they are. NEVER rewrite heading text.\n"
         "• All internal links to technewswithai.blogspot.com\n"
         "• Best For lines, Mini Verdict lines, CTA lines\n\n"
 
+        "━━━ CRITICAL HEADING RULE ━━━\n"
+        "The H2 and H3 heading text is FIXED and SEO-optimised. You must copy it exactly.\n"
+        "Personal hooks, curiosity gaps, and cliffhangers go in the FIRST <p> tag AFTER the heading.\n"
+        "NEVER put a hook sentence inside an H2 or H3 tag. NEVER change heading text.\n"
+        "Correct: <h2>Lenovo ThinkPad E15 Battery Life and Charging</h2><p>Here is what surprised me...</p>\n"
+        "Wrong:   <h2>I tested this for 2 weeks. The result surprised me.</h2>\n\n"
+
         "━━━ FOR EVERY SECTION, DO ALL OF THESE ━━━\n\n"
-        "① PERSONAL HOOK — start H2 with a curiosity gap:\n"
+        "① PERSONAL HOOK — first <p> AFTER the H2 (NOT inside the H2):\n"
         "   'Here is what the spec sheet does NOT tell you about this one.'\n"
         "   'I tested this for 2 weeks straight. The result genuinely surprised me.'\n"
         "   'Before you add to cart — read this section first.'\n\n"
