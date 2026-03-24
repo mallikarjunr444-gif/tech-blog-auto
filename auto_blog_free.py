@@ -2,8 +2,8 @@
 # technewswithai.blogspot.com - Mallikarjun R, Bengaluru
 # ================================================================
 # SCHEDULE:
-#   Daily   → 1 Smartphone/Laptop news + 2 Google search topics
-#   Weekly  → Earphones Headphones AirPods PowerBank Smartwatch
+#   Daily   → 1 Smartphone news + 2 Google search topics
+#   Weekly  → Laptop, Earphones, Headphones, AirPods, PowerBank, Smartwatch
 # ================================================================
 # PROCESS:
 #   Step 1: Fetch from 65+ official RSS feeds
@@ -829,8 +829,10 @@ def days_since_cat(log, cat):
     return 999
 
 def should_post_cat(log, cat):
-    if cat in ("smartphone", "laptop"):
+    # Smartphone is ALWAYS daily
+    if cat == "smartphone":
         return True
+    # Laptop and others rotate based on ROTATION_DAYS
     days_needed = ROTATION_DAYS.get(cat, 21)
     return days_since_cat(log, cat) >= days_needed
 
@@ -1737,9 +1739,11 @@ def groq_draft(story, is_search):
     # Build the section-to-H2 instruction — each section becomes a mandatory H2
     sections_list = struct["sections"]
     # Strip leading "N. " numbering for cleaner H2 text; keep the full description as guide
+    pat = re.compile(r"^\d+\.\s*")
     sections_as_h2 = "\n".join(
-        f'  <h2 id="section-{i+1}">{re.sub(r"^\\d+\\.\\s*", "", s.split("—")[0]).strip()}</h2>  '
-        f'← H2 {i+1} of {len(sections_list)} | details: {s.split("—")[1].strip() if "—" in s else s}'
+        "  <h2 id=\"section-" + str(i+1) + "\">" + pat.sub("", s.split("—")[0]).strip() + "</h2>  "
+        + "<-- H2 " + str(i+1) + " of " + str(len(sections_list))
+        + " | details: " + (s.split("—")[1].strip() if "—" in s else s)
         for i, s in enumerate(sections_list)
     )
 
