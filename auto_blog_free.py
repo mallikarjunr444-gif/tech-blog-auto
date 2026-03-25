@@ -1,5 +1,5 @@
-# TECH NEWS WITH AI - AUTO BLOG v14.0 ADVANCED FINAL
-# technewswithai.blogspot.com - Mallikarjun R, Bengaluru
+# TECH NEWS WITH AI - AUTO BLOG v15.0 ADVANCED FINAL
+# technewsai.me - Mallikarjun R, Bengaluru
 # ================================================================
 # SCHEDULE:
 #   Daily   → 1 Smartphone news + 2 Google search topics
@@ -205,18 +205,17 @@ CAT = {
             {"t": "best Infinix phone India 2026",                 "k": ["Infinix", "India"]},
         ],
         "sections": [
-            "1. Why This Smartphone Matters to Indian Buyers in 2026",
-            "2. Design Build and First Impressions — materials colors dimensions weight feel",
-            "3. Display Technology Explained Simply — panel resolution refresh rate brightness outdoor",
-            "4. Camera System Complete Guide — every lens aperture features photography tips video",
-            "5. Processor Performance and Gaming — chip speed gaming heat management multitasking",
-            "6. Battery Life and Charging — real hours fast charge wireless reverse daily use",
-            "7. Software and AI Features — Android version UI unique AI tools updates",
-            "8. Connectivity and Extra Features — 5G WiFi Bluetooth NFC biometrics speakers IP",
-            "9. India Price EMI and Where to Buy — variants Flipkart Amazon No Cost EMI deals",
-            "10. Who Should Buy and Who Should Avoid — students gamers professionals photographers",
-            "11. Top 3 Alternatives with India Prices — honest named comparison",
-            "12. My Final Verdict and FAQ — clear recommendation + 7 questions Indians search",
+            "1. Price in India — All Variants, Launch Offers, EMI and Where to Buy",
+            "2. Design and Build Quality — Materials, Dimensions, IP Rating, Colors, Feel in Hand",
+            "3. Display — Panel Type, Resolution, Refresh Rate, Peak Nits, HDR, Outdoor Visibility",
+            "4. Performance — Chipset Name, AnTuTu Score, Gaming FPS, Thermal Management, RAM and Storage",
+            "5. Battery Life and Charging — mAh Capacity, Real Screen-On Hours, Fast Charge Wattage and Time",
+            "6. Camera — Main Sensor, Ultrawide, Selfie, OIS, Low-Light, Video, AI Photography Features",
+            "7. Connectivity — 5G Bands, WiFi Version, Bluetooth, NFC, USB Type, Biometrics, Speakers, IR",
+            "8. Software and AI — Android Version, UI Name, AI Features List, Update Commitment in Years",
+            "9. Full Specifications — Complete Specs Table",
+            "10. Who Should Buy and Who Should Avoid — Students, Gamers, Professionals, Photographers",
+            "11. My Final Verdict and FAQ — Clear Winner Declared Plus 7 Questions Indians Search",
         ]
     },
 
@@ -262,18 +261,17 @@ CAT = {
             {"t": "best laptop with 16GB RAM India 2026",          "k": ["16GB RAM laptop", "India"]},
         ],
         "sections": [
-            "1. Why This Laptop Matters to Indian Buyers in 2026 — market position target audience value",
-            "2. {Product} Design and Build Quality — chassis materials hinge weight port layout keyboard trackpad",
-            "3. {Product} Display Features — panel type resolution refresh rate brightness nits color gamut outdoor",
-            "4. {Product} Performance and Processor — CPU generation benchmark real-world tasks multitasking heat",
-            "5. {Product} Graphics and Gaming — GPU frame rates video editing 3D rendering creative work",
-            "6. {Product} RAM and Storage Options — variants SSD speed upgrade path real-world load times",
-            "7. {Product} Battery Life and Charging — real hours by use case fast charge USB-C wattage",
-            "8. {Product} Thermal Management — cooling system fan noise sustained performance throttling",
-            "9. {Product} Price in India and Where to Buy — all variants INR Flipkart Amazon No Cost EMI bank offers",
-            "10. Who Should Buy the {Product} and Who Should Avoid — students developers creators gamers professionals",
-            "11. Top 3 Alternatives to {Product} with India Prices — honest named comparison by use case",
-            "12. Final Verdict on {Product} and FAQ — clear recommendation plus 5 questions Indians actually search",
+            "1. Price in India — All Variants, Launch Offers, EMI and Where to Buy",
+            "2. Design and Build Quality — Chassis Material, Hinge, Ports Layout, Keyboard, Trackpad, Weight",
+            "3. Display — Panel Type, Resolution, Refresh Rate, Nits, Colour Gamut, Outdoor Visibility, Bezels",
+            "4. Performance — CPU Name and Generation, Benchmark Score, Real Tasks, GPU, Gaming FPS, Heat",
+            "5. Battery Life and Charging — Wh Capacity, Real Hours by Use Case, Charger Wattage, Charging Time",
+            "6. Camera — Webcam Resolution, Video Call Quality, Low-Light Performance, WFH and Online Class Use",
+            "7. Connectivity — WiFi Version, Bluetooth, USB-A, USB-C, Thunderbolt, SD Card, HDMI, Audio Jack",
+            "8. Software and AI — OS Version, Bloatware Level, AI Features, Copilot, Update Support Years",
+            "9. Full Specifications — Complete Specs Table",
+            "10. Who Should Buy and Who Should Avoid — Students, Developers, Creators, Gamers, Professionals",
+            "11. My Final Verdict and FAQ — Clear Winner Declared Plus 5 Questions Indians Search",
         ]
     },
 
@@ -315,18 +313,17 @@ CAT = {
             {"t": "best earphones for calls India 2026",           "k": ["earphones calls", "India"]},
         ],
         "sections": [
-            "1. Why This Earphone Matters to Indian Buyers in 2026 — market position who it targets pricing value",
-            "2. {Product} Design and Build Quality — form factor materials fit IP rating controls comfort",
-            "3. {Product} Sound Quality — bass mids highs soundstage driver size tuning signature",
-            "4. {Product} ANC and Transparency Mode — ANC strength dB real environments transparency quality",
-            "5. {Product} Microphone and Call Quality — voice clarity noise rejection wind call experience",
-            "6. {Product} Battery Life and Charging Case — earbuds hours case charges fast charge wireless",
-            "7. {Product} Connectivity and Codec Support — Bluetooth version multipoint LDAC AAC SBC latency ms",
-            "8. {Product} App and Smart Features — companion app EQ gestures auto-pause voice assistant",
-            "9. {Product} Comfort for Long Sessions — gym commute office all-day wear experience",
-            "10. {Product} Price in India and Where to Buy — all variants INR Flipkart Amazon EMI deals",
-            "11. Who Should Buy the {Product} and Who Should Avoid — music lovers commuters gym casual users",
-            "12. Top 3 Alternatives to {Product} and Final Verdict — honest named comparison plus FAQ",
+            "1. Price in India — All Variants, Launch Offers, EMI and Where to Buy",
+            "2. Design and Build Quality — Form Factor, Materials, IP Rating, Ear Tip Fit, Comfort, Controls",
+            "3. Sound Quality — Driver Size, Bass Response, Mids, Highs, Soundstage, Real Listening Test",
+            "4. ANC and Transparency Mode — ANC Strength in dB, Real Environments, Transparency Quality, Wind Test",
+            "5. Battery and Charging — Earbuds Hours, Case Total Charges, Fast Charge, Wireless, India Daily Life",
+            "6. Call Quality and Mic — Voice Clarity, Noise Rejection, Wind Performance, Outdoor Call Test",
+            "7. Connectivity — Bluetooth Version, Codecs (LDAC AAC SBC), Multipoint, Latency ms, Pairing Stability",
+            "8. Software and App Features — Companion App, EQ Settings, Gestures, Auto-Pause, Voice Assistant",
+            "9. Full Specifications — Complete Specs Table",
+            "10. Who Should Buy and Who Should Avoid — Music Lovers, Commuters, Gym Users, Audiophiles, Casual",
+            "11. My Final Verdict and FAQ — Clear Winner Declared Plus 5 Questions Indians Search",
         ]
     },
 
@@ -354,18 +351,17 @@ CAT = {
             {"t": "best wired headphones under 2000 India 2026",   "k": ["wired headphones", "India"]},
         ],
         "sections": [
-            "1. Why This Headphone Matters to Indian Buyers in 2026 — market position who it targets value",
-            "2. {Product} Design and Build Quality — padding clamp force foldability weight materials finish",
-            "3. {Product} Sound Signature — bass mids highs soundstage tuning style driver size",
-            "4. {Product} ANC and Passive Isolation — ANC strength real environments passive seal comparison",
-            "5. {Product} Microphone and Call Quality — clarity noise rejection wind online meetings WFH",
-            "6. {Product} Battery Life and Charging — hours ANC on off quick charge wired backup USB-C",
-            "7. {Product} Connectivity and Multipoint — two devices simultaneously wired mode Bluetooth version",
-            "8. {Product} App and Smart Controls — touch buttons EQ companion app voice assistant",
-            "9. {Product} Portability and Travel — folding case airline adapter commute use",
-            "10. {Product} Price in India and Where to Buy — all variants INR Flipkart Amazon EMI bank offers",
-            "11. Who Should Buy the {Product} and Who Should Avoid — audiophiles WFH workers travellers students",
-            "12. Top 3 Alternatives to {Product} and Final Verdict — honest named comparison plus FAQ",
+            "1. Price in India — All Variants, Launch Offers, EMI and Where to Buy",
+            "2. Design and Build Quality — Clamping Force, Padding, Foldability, Weight, Materials, Hinge Durability",
+            "3. Sound Quality — Driver Size, Bass, Mids, Highs, Soundstage, Tuning Signature, Real Listening Test",
+            "4. ANC and Passive Isolation — ANC Strength in dB, Real Environments, Passive Seal, Comparison",
+            "5. Battery and Charging — Hours ANC On and Off, Quick Charge Time, Wired Backup, USB-C",
+            "6. Call Quality and Mic — Voice Clarity, Noise Rejection, Wind Test, WFH Meetings, Online Class",
+            "7. Connectivity — Bluetooth Version, Multipoint Devices, Wired Mode, Codec Support, Pairing",
+            "8. Software and App Features — Companion App, EQ, Touch Controls, Voice Assistant, Smart Features",
+            "9. Full Specifications — Complete Specs Table",
+            "10. Who Should Buy and Who Should Avoid — Audiophiles, WFH Workers, Travellers, Students, Commuters",
+            "11. My Final Verdict and FAQ — Clear Winner Declared Plus 5 Questions Indians Search",
         ]
     },
 
@@ -386,18 +382,17 @@ CAT = {
             {"t": "best AirPods alternative India 2026",           "k": ["AirPods alternative", "India"]},
         ],
         "sections": [
-            "1. Why These AirPods Matter to Indian Buyers in 2026 — positioning vs Android alternatives value",
-            "2. {Product} Design and Fit — form factor ear tip sizes comfort colors IP rating",
-            "3. {Product} Sound Quality and Spatial Audio — real listening experience bass mids highs",
-            "4. {Product} ANC and Transparency Mode — ANC depth vs Sony Bose Samsung real comparison",
-            "5. {Product} Apple Ecosystem Integration — iPhone iPad Mac seamless switching H2 chip",
-            "6. {Product} Microphone and Call Quality — clarity wind noise Siri India accuracy",
-            "7. {Product} Battery Life and Charging Case — hours MagSafe wireless quick charge total",
-            "8. {Product} Smart Features — adaptive audio conversation awareness auto-switch controls",
-            "9. {Product} Comfort for Indian Users — long sessions gym commute daily all-day wear",
-            "10. {Product} Price in India and Is It Worth It — vs Noise boAt Sony OnePlus EMI comparison",
-            "11. Should You Buy the {Product} or an Android Alternative — honest India advice",
-            "12. Final Verdict on {Product} and FAQ — buy or skip recommendation plus 5 questions Indians ask",
+            "1. Price in India — All Models, Launch Offers, EMI and Where to Buy vs Alternatives",
+            "2. Design and Build Quality — Form Factor, Ear Tip Sizes, Colors, IP Rating, Premium Finish",
+            "3. Sound Quality — Bass, Mids, Highs, Spatial Audio, Real Listening Test vs Rivals",
+            "4. ANC and Transparency Mode — ANC Depth vs Sony and Bose, Adaptive Audio, Wind Test",
+            "5. Battery and Charging — Hours per Charge, MagSafe, Wireless, Quick Charge, Total Case Battery",
+            "6. Call Quality and Mic — Voice Clarity, Wind Noise Rejection, Siri Performance, Outdoor Test",
+            "7. Connectivity — Seamless iPhone iPad Mac Switching, Bluetooth Version, Codec, Android Use",
+            "8. Software and Chip Features — H2 Chip, Auto-Switch, Conversation Awareness, Adaptive EQ, Controls",
+            "9. Full Specifications — Complete Specs Table",
+            "10. Who Should Buy and Who Should Avoid — iPhone Users, Android Users, Budget Seekers, Audiophiles",
+            "11. My Final Verdict and FAQ — Buy or Skip, Clear Recommendation Plus 5 Questions Indians Ask",
         ]
     },
 
@@ -425,17 +420,17 @@ CAT = {
             {"t": "best slim power bank India 2026",               "k": ["slim power bank", "India"]},
         ],
         "sections": [
-            "1. Why This Power Bank Matters to Indian Buyers in 2026 — use case positioning value for money",
-            "2. {Product} Design and Build Quality — size weight pocket fit finish materials port layout",
-            "3. {Product} Real Capacity and Charging Performance — actual mAh output devices charged real test",
-            "4. {Product} Charging Speed — input watt output watt PD QC PPS protocol real charging time",
-            "5. {Product} Ports and Device Compatibility — USB-A USB-C simultaneous phone laptop tablet earbuds",
-            "6. {Product} Safety Features — overcharge protection temperature control auto cut-off certifications",
-            "7. {Product} Display and Indicators — LED dots percentage screen charge status info",
-            "8. {Product} Price in India and Where to Buy — all variants INR Flipkart Amazon EMI value variant",
-            "9. Who Should Buy the {Product} and Who Should Avoid — travellers students professionals commuters",
-            "10. Top 3 Alternatives to {Product} with India Prices — Anker MI Realme boAt honest comparison",
-            "11. Final Verdict on {Product} and FAQ — recommendation plus 5 questions Indians search about power banks",
+            "1. Price in India — All Variants, Launch Offers, EMI and Where to Buy",
+            "2. Design and Build Quality — Size, Weight, Pocket Fit, Finish, Materials, Port Layout, Durability",
+            "3. Real Capacity and Output — Actual mAh, Real Output Efficiency, Number of Device Charges, Test Results",
+            "4. Charging Speed — Input Watt, Output Watt, PD, QC, PPS Standards, Real Phone and Laptop Charge Time",
+            "5. Battery Life — How Long It Powers Your Devices, Standby Drain, Repeated Charge Cycles Real Test",
+            "6. Ports and Device Compatibility — USB-A Count, USB-C Count, Simultaneous Charging, Phone Laptop Tablet",
+            "7. Safety and Reliability — Overcharge Protection, Temperature Control, Auto Cut-Off, Certifications",
+            "8. Connectivity and Travel — Cable Included, Pass-Through Charging, Airline Carry-On Compliance",
+            "9. Full Specifications — Complete Specs Table",
+            "10. Who Should Buy and Who Should Avoid — Travellers, Students, Professionals, Commuters, Gamers",
+            "11. My Final Verdict and FAQ — Clear Winner Declared Plus 5 Questions Indians Search",
         ]
     },
 
@@ -466,18 +461,17 @@ CAT = {
             {"t": "best smartwatch for fitness India 2026",        "k": ["fitness smartwatch", "India"]},
         ],
         "sections": [
-            "1. Why This Smartwatch Matters to Indian Buyers in 2026 — positioning target users value",
-            "2. {Product} Design and Build Quality — case material size weight strap options colors",
-            "3. {Product} Display Quality — type size brightness resolution always-on outdoor visibility",
-            "4. {Product} Health and Fitness Tracking — heart rate SpO2 sleep stress ECG accuracy real test",
-            "5. {Product} Smart Notifications and Daily Use — call reply notifications quick actions",
-            "6. {Product} Battery Life and Charging — days per charge AOD on off quick charge time",
-            "7. {Product} GPS and Sports Tracking — built-in GPS route accuracy auto sport detection",
-            "8. {Product} App Ecosystem and Compatibility — Android iPhone app quality third party support",
-            "9. {Product} Water Resistance and Durability — ATM rating swim shower dust resistance",
-            "10. {Product} Price in India and Where to Buy — all sizes colors INR Flipkart Amazon EMI",
-            "11. Who Should Buy the {Product} and Who Should Avoid — fitness lovers professionals casual students",
-            "12. Top 3 Alternatives to {Product} and Final Verdict — honest comparison plus FAQ",
+            "1. Price in India — All Sizes and Colors, Launch Offers, EMI and Where to Buy",
+            "2. Design and Build Quality — Case Material, Size, Weight, Strap Options, Colors, Premium Feel",
+            "3. Display — Type, Size, Peak Brightness, Resolution, Always-On Mode, Outdoor Visibility",
+            "4. Health and Fitness Tracking — Heart Rate, SpO2, Sleep Tracking, Stress, ECG, Accuracy Real Test",
+            "5. Battery Life and Charging — Days per Charge, AOD On and Off Impact, Quick Charge Time",
+            "6. Smart Notifications and Daily Use — Call Alerts, Reply Options, App Notifications, Quick Actions",
+            "7. GPS and Sports Tracking — Built-In GPS, Route Accuracy, Auto Sport Detection, Running Cycling Swimming",
+            "8. Software and App Ecosystem — Companion App Quality, Third-Party App Support, Android iPhone Compat",
+            "9. Full Specifications — Complete Specs Table",
+            "10. Who Should Buy and Who Should Avoid — Fitness Lovers, Professionals, Casual Users, Students",
+            "11. My Final Verdict and FAQ — Clear Winner Declared Plus 5 Questions Indians Search",
         ]
     },
 }
@@ -1184,31 +1178,14 @@ def fetch_product_image(product_name, cat, width=1200, height=628):
 
 def build_image_block(product_name, cat="smartphone", caption="", width=1200, height=628):
     """
-    Builds a real image block with fetched image URL.
-    Uses official brand logos or free Unsplash photos.
-    1200x628px — required for Google Discover.
+    Returns an image placeholder comment only.
+    The blogger (Mallikarjun R) will paste the real product image manually.
+    Do NOT auto-fetch images.
     """
-    img_url, attribution = fetch_product_image(product_name, cat, width, height)
-
-    if not img_url:
-        return (
-            f'<!-- IMAGE: Upload 1200x628px photo of {product_name} here -->\n'
-        )
-
-    display_caption = caption or f"{product_name} — Tech News With AI"
-    attr_text = f" | {attribution}" if attribution else ""
-
     return (
-        f'<figure style="margin:16px 0;text-align:center;">'
-        f'<img src="{img_url}" '
-        f'alt="{product_name} India review 2026" '
-        f'width="{width}" height="{height}" '
-        f'style="max-width:100%;height:auto;border-radius:8px;" '
-        f'loading="lazy"/>'
-        f'<figcaption style="font-size:11px;color:#888;margin-top:4px;">'
-        f'{display_caption}{attr_text}'
-        f'</figcaption>'
-        f'</figure>\n'
+        f'\n<!-- ===== IMAGE PLACEHOLDER ===== -->\n'
+        f'<!-- Add 1200x628px product image of: {product_name} here -->\n'
+        f'<!-- Upload your image in Blogger and paste it below this comment -->\n\n'
     )
 
 
@@ -1367,57 +1344,59 @@ AD_SLOT_HTML = (
 
 
 # ── Internal link map: brand/category → your blog label URL ──────
+BLOG_URL = "https://www.technewsai.me"
+
 INTERNAL_LINKS = {
     # Brands — smartphones
-    "apple":      "https://technewswithai.blogspot.com/search/label/Apple",
-    "samsung":    "https://technewswithai.blogspot.com/search/label/Samsung",
-    "oneplus":    "https://technewswithai.blogspot.com/search/label/OnePlus",
-    "xiaomi":     "https://technewswithai.blogspot.com/search/label/Xiaomi",
-    "redmi":      "https://technewswithai.blogspot.com/search/label/Xiaomi",
-    "poco":       "https://technewswithai.blogspot.com/search/label/Xiaomi",
-    "realme":     "https://technewswithai.blogspot.com/search/label/Realme",
-    "oppo":       "https://technewswithai.blogspot.com/search/label/OPPO",
-    "vivo":       "https://technewswithai.blogspot.com/search/label/Vivo",
-    "iqoo":       "https://technewswithai.blogspot.com/search/label/Vivo",
-    "nothing":    "https://technewswithai.blogspot.com/search/label/Nothing",
-    "google":     "https://technewswithai.blogspot.com/search/label/Google",
-    "pixel":      "https://technewswithai.blogspot.com/search/label/Google",
-    "motorola":   "https://technewswithai.blogspot.com/search/label/Motorola",
-    "nokia":      "https://technewswithai.blogspot.com/search/label/Nokia",
-    "honor":      "https://technewswithai.blogspot.com/search/label/Honor",
-    "huawei":     "https://technewswithai.blogspot.com/search/label/Huawei",
-    "infinix":    "https://technewswithai.blogspot.com/search/label/Infinix",
-    "tecno":      "https://technewswithai.blogspot.com/search/label/Tecno",
+    "apple":      f"{BLOG_URL}/search/label/Apple",
+    "samsung":    f"{BLOG_URL}/search/label/Samsung",
+    "oneplus":    f"{BLOG_URL}/search/label/OnePlus",
+    "xiaomi":     f"{BLOG_URL}/search/label/Xiaomi",
+    "redmi":      f"{BLOG_URL}/search/label/Xiaomi",
+    "poco":       f"{BLOG_URL}/search/label/Xiaomi",
+    "realme":     f"{BLOG_URL}/search/label/Realme",
+    "oppo":       f"{BLOG_URL}/search/label/OPPO",
+    "vivo":       f"{BLOG_URL}/search/label/Vivo",
+    "iqoo":       f"{BLOG_URL}/search/label/iQOO",
+    "nothing":    f"{BLOG_URL}/search/label/Nothing",
+    "google":     f"{BLOG_URL}/search/label/Google",
+    "pixel":      f"{BLOG_URL}/search/label/Google",
+    "motorola":   f"{BLOG_URL}/search/label/Motorola",
+    "nokia":      f"{BLOG_URL}/search/label/Nokia",
+    "honor":      f"{BLOG_URL}/search/label/Honor",
+    "huawei":     f"{BLOG_URL}/search/label/Huawei",
+    "infinix":    f"{BLOG_URL}/search/label/Infinix",
+    "tecno":      f"{BLOG_URL}/search/label/Tecno",
     # Brands — laptops
-    "dell":       "https://technewswithai.blogspot.com/search/label/Dell",
-    "hp":         "https://technewswithai.blogspot.com/search/label/HP",
-    "lenovo":     "https://technewswithai.blogspot.com/search/label/Lenovo",
-    "asus":       "https://technewswithai.blogspot.com/search/label/ASUS",
-    "acer":       "https://technewswithai.blogspot.com/search/label/Acer",
-    "msi":        "https://technewswithai.blogspot.com/search/label/Laptops",
-    "razer":      "https://technewswithai.blogspot.com/search/label/Laptops",
-    "macbook":    "https://technewswithai.blogspot.com/search/label/Apple",
+    "dell":       f"{BLOG_URL}/search/label/Dell",
+    "hp":         f"{BLOG_URL}/search/label/HP",
+    "lenovo":     f"{BLOG_URL}/search/label/Lenovo",
+    "asus":       f"{BLOG_URL}/search/label/ASUS",
+    "acer":       f"{BLOG_URL}/search/label/Acer",
+    "msi":        f"{BLOG_URL}/search/label/Laptops",
+    "razer":      f"{BLOG_URL}/search/label/Laptops",
+    "macbook":    f"{BLOG_URL}/search/label/Apple",
     # Brands — audio
-    "boat":       "https://technewswithai.blogspot.com/search/label/boAt",
-    "noise":      "https://technewswithai.blogspot.com/search/label/Noise",
-    "jbl":        "https://technewswithai.blogspot.com/search/label/Earphones",
-    "sony":       "https://technewswithai.blogspot.com/search/label/Sony",
-    "bose":       "https://technewswithai.blogspot.com/search/label/Headphones",
-    "sennheiser": "https://technewswithai.blogspot.com/search/label/Headphones",
-    "anker":      "https://technewswithai.blogspot.com/search/label/Earphones",
-    "skullcandy": "https://technewswithai.blogspot.com/search/label/Earphones",
+    "boat":       f"{BLOG_URL}/search/label/boAt",
+    "noise":      f"{BLOG_URL}/search/label/Noise",
+    "jbl":        f"{BLOG_URL}/search/label/Earphones",
+    "sony":       f"{BLOG_URL}/search/label/Sony",
+    "bose":       f"{BLOG_URL}/search/label/Headphones",
+    "sennheiser": f"{BLOG_URL}/search/label/Headphones",
+    "anker":      f"{BLOG_URL}/search/label/Earphones",
+    "skullcandy": f"{BLOG_URL}/search/label/Earphones",
     # Brands — wearables / power
-    "garmin":     "https://technewswithai.blogspot.com/search/label/Smartwatch",
-    "amazfit":    "https://technewswithai.blogspot.com/search/label/Smartwatch",
-    "fitbit":     "https://technewswithai.blogspot.com/search/label/Smartwatch",
+    "garmin":     f"{BLOG_URL}/search/label/Smartwatch",
+    "amazfit":    f"{BLOG_URL}/search/label/Smartwatch",
+    "fitbit":     f"{BLOG_URL}/search/label/Smartwatch",
     # Categories
-    "smartphone":  "https://technewswithai.blogspot.com/search/label/Smartphones",
-    "laptop":      "https://technewswithai.blogspot.com/search/label/Laptops",
-    "earphone":    "https://technewswithai.blogspot.com/search/label/Earphones",
-    "headphone":   "https://technewswithai.blogspot.com/search/label/Headphones",
-    "airpods":     "https://technewswithai.blogspot.com/search/label/AirPods",
-    "powerbank":   "https://technewswithai.blogspot.com/search/label/Power+Bank",
-    "smartwatch":  "https://technewswithai.blogspot.com/search/label/Smartwatch",
+    "smartphone":  f"{BLOG_URL}/search/label/Smartphones",
+    "laptop":      f"{BLOG_URL}/search/label/Laptops",
+    "earphone":    f"{BLOG_URL}/search/label/Earphones",
+    "headphone":   f"{BLOG_URL}/search/label/Headphones",
+    "airpods":     f"{BLOG_URL}/search/label/AirPods",
+    "powerbank":   f"{BLOG_URL}/search/label/Power+Bank",
+    "smartwatch":  f"{BLOG_URL}/search/label/Smartwatch",
 }
 
 def build_internal_link_instructions(cat):
@@ -1426,7 +1405,7 @@ def build_internal_link_instructions(cat):
     Tells the AI exactly which brand names to hyperlink and to what URL.
     """
     lines = [
-        "INTERNAL LINKS — YOUR BLOG ONLY (technewswithai.blogspot.com):",
+        f"INTERNAL LINKS — YOUR BLOG ONLY ({BLOG_URL}):",
         "Rule: Every time you write a brand or category name, wrap it as a hyperlink to your blog label page.",
         "Use each link maximum 2 times per article. NEVER link to any other website.",
         "NEVER link to: GSMArena, 91Mobiles, Flipkart, Amazon, or ANY external site.",
@@ -1438,11 +1417,84 @@ def build_internal_link_instructions(cat):
     lines += [
         "",
         "Example usage in text:",
-        '  "...the <a href="https://technewswithai.blogspot.com/search/label/boAt" target="_blank">boAt</a> Airdopes 141..."',
-        '  "...check our full <a href="https://technewswithai.blogspot.com/search/label/Earphones" target="_blank">earphones reviews</a>..."',
-        '  "...more on <a href="https://technewswithai.blogspot.com" target="_blank">Tech News With AI</a>..."',
+        f'  "...the <a href="{BLOG_URL}/search/label/boAt" target="_blank">boAt</a> Airdopes 141..."',
+        f'  "...check our full <a href="{BLOG_URL}/search/label/Earphones" target="_blank">earphones reviews</a>..."',
+        f'  "...more on <a href="{BLOG_URL}" target="_blank">Tech News With AI</a>..."',
     ]
     return "\n".join(lines)
+
+
+# ── Category label mapping for Also Read box ─────────────────────
+CAT_LABELS = {
+    "smartphone": "Smartphones",
+    "laptop":     "Laptops",
+    "earphones":  "Earphones",
+    "headphones": "Headphones",
+    "airpods":    "AirPods",
+    "powerbank":  "Power+Bank",
+    "smartwatch": "Smartwatch",
+    "ai":         "AI",
+}
+
+def detect_brand_from_title(title):
+    """Detect brand name from article title for Also Read box."""
+    tl = title.lower()
+    for brand in INTERNAL_LINKS:
+        if brand in tl and brand not in ("smartphone", "laptop", "earphone",
+                                          "headphone", "airpods", "powerbank", "smartwatch"):
+            return brand
+    return None
+
+def build_also_read_box(cat, title):
+    """
+    Builds a styled 'Also Read' box at the end of the blog.
+    For a Vivo blog → links to all Vivo label posts.
+    For any brand → links to that brand's label page.
+    Falls back to category label page if no brand detected.
+    Point 5: All blogs interlinked by brand.
+    """
+    brand = detect_brand_from_title(title)
+    cat_label = CAT_LABELS.get(cat, "Smartphones")
+
+    # Determine the primary "Also Read" link (brand or category)
+    if brand and brand in INTERNAL_LINKS:
+        brand_display = brand.title()
+        brand_url     = INTERNAL_LINKS[brand]
+        also_read_label = f"More {brand_display} Reviews"
+        also_read_url   = brand_url
+    else:
+        also_read_label = f"More {cat_label} Reviews"
+        also_read_url   = f"{BLOG_URL}/search/label/{cat_label}"
+
+    # Build related links row
+    related_links = []
+    related_cats = list(CAT_LABELS.values())
+    for lbl in related_cats[:4]:
+        related_links.append(
+            f'<a href="{BLOG_URL}/search/label/{lbl}" '
+            f'style="display:inline-block;margin:4px 8px;font-size:13px;'
+            f'color:#1a73e8;text-decoration:none;font-weight:500;">'
+            f'📱 {lbl.replace("+", " ")}</a>'
+        )
+
+    return (
+        '\n<div style="border:2px solid #1a73e8;border-radius:10px;padding:20px;'
+        'margin:32px 0;background:#f0f7ff;">'
+        '<p style="margin:0 0 12px;font-size:16px;font-weight:bold;color:#1a73e8;">'
+        '📚 Also Read — Related Articles</p>'
+        f'<p style="margin:0 0 10px;">'
+        f'<a href="{also_read_url}" target="_blank" '
+        f'style="font-size:15px;font-weight:bold;color:#1a73e8;">'
+        f'→ {also_read_label} on Tech News With AI</a></p>'
+        '<p style="margin:8px 0 4px;font-size:13px;color:#444;">Browse by category:</p>'
+        '<div style="display:flex;flex-wrap:wrap;gap:2px;">'
+        + "".join(related_links) +
+        '</div>'
+        f'<p style="margin:10px 0 0;font-size:12px;color:#888;">'
+        f'<em>All reviews tested and written by Mallikarjun R | '
+        f'<a href="{BLOG_URL}" target="_blank" style="color:#1a73e8;">technewsai.me</a></em></p>'
+        '</div>\n'
+    )
 
 
 # ── HTML structure templates ──────────────────────────────────────
@@ -1497,236 +1549,282 @@ SPECS_BOX_HTML = """<div style="border:1px solid #ddd;padding:14px;margin:10px 0
 # ── Buying guide structure rules ──────────────────────────────────
 BUYING_GUIDE_STRUCTURE = """
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-MANDATORY ARTICLE STRUCTURE (v14 — AdSense + Traffic)
+MANDATORY ARTICLE STRUCTURE (v15 — iQOO 15R Style)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+REFERENCE BLOG STYLE: https://www.technewsai.me/2026/03/iqoo-15r-review-indias-slimmest-7600mah.html
+Study this blog. Every article must match this exact style: rich prose paragraphs, clean H3 headings, no Q&A format.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 [A] H1 TITLE — CLICKBAIT-BUT-HONEST FORMAT:
-    • Use "Top 5" or "Top 10" for lists
-    • Use "vs" for comparisons
-    • Use "Worth Buying?" for reviews
-    • Include: India + year + price + benefit
     Examples:
-      "Top 5 Earphones Under ₹2000 in India (2026): ANC Tested, Battery Ranked"
-      "Stop Buying the Wrong Phone! Best 5G Picks Under ₹15000 India 2026"
-      "I Tested 7 Laptops Under ₹40000. Only 3 Are Worth It — India 2026"
+      "Top 5 Earphones Under ₹2000 India 2026: ANC Tested, Battery Ranked"
+      "iQOO 15R Review: India's Slimmest 7600mAh Gaming Beast — Worth Buying?"
+      "Best 5 Laptops Under ₹50,000 India 2026 — Tested and Ranked"
 
-[B] HOOK INTRO (2 sentences MAX — MOBILE FRIENDLY):
-    Sentence 1: State the exact pain point Indians face right now.
-    Sentence 2: Promise this article solves it with a number (Top 5, 2 weeks tested).
-    → Primary keyword in first 100 words — no exceptions.
-    → SHORT paragraph. Max 3 lines. Indian readers use mobile phones.
+[B] HOOK INTRO — NARRATIVE STYLE (like the iQOO 15R blog):
+    • Write 2-3 rich italic paragraphs as the opening (no H2 heading for this section)
+    • Sentence 1: Paint the picture of the Indian buyer who needs this product
+    • Sentence 2-5: Build the context — what problem, what market gap, why this product matters now
+    • NEVER write: "In this article we will..." or "We have tested..."
+    • Primary keyword must appear in first 100 words
+    Example style (iQOO 15R):
+    "There is a very specific kind of smartphone buyer in India today. Someone who has followed
+    the flagship world closely enough to know exactly what they want — top-tier processing power,
+    an immersive display, a battery that does not die halfway through a gaming session..."
 
-[C] TABLE OF CONTENTS (plain border, no colours):
+[C] TABLE OF CONTENTS (for Top 5 buying guides only):
 """ + TOC_HTML + """
 
-[D] QUICK COMPARISON TABLE (id="comparison-table"):
+[D] QUICK COMPARISON TABLE (for Top 5 buying guides — id="comparison-table"):
     • Plain border only — no colour on headers
     • All specs must be real — never invent numbers
-    • Add a "Rating" column (e.g., 8.5/10) for easy scanning
     Columns by category:
-    • Earphones/Headphones: Model | Driver | ANC | Battery | Codec | Rating | Price
-    • Smartphones: Model | Chip | RAM | Camera | Battery | Rating | Price
-    • Laptops: Model | CPU | RAM | SSD | Display | Rating | Price
-    • Smartwatch: Model | Display | Battery | GPS | Health | Rating | Price
-    • Power Bank: Model | mAh | Max W | Ports | Weight | Rating | Price
-    • AI topic: Tool | Free Plan | Best For | India Available | Rating
+    • Smartphones: Model | Chip | Display | Camera | Battery | Price (₹)
+    • Laptops: Model | CPU | RAM | Display | Battery | Price (₹)
+    • Earphones/Headphones: Model | Driver | ANC | Battery | Codec | Price (₹)
+    • Smartwatch: Model | Display | Battery | GPS | Health | Price (₹)
+    • Power Bank: Model | mAh | Max Watt | Ports | Weight | Price (₹)
 
-[E] PER-PRODUCT SECTION (repeat for all 5 products — SAME H3 order every time):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[E] PER-PRODUCT SECTION — MIRROR THE iQOO 15R BLOG STRUCTURE EXACTLY:
 
-<h2 id="product-N">N. [Brand + Model] — [10-word honest verdict]</h2>
+For each product, use this H2 format:
+<h2 id="product-N">[Brand + Model Name] — [10-word descriptive honest verdict tagline]</h2>
 
-  IMAGE (auto-injected by script — write this exact placeholder comment, script replaces it):
-  <!-- PRODUCT_IMAGE: [Brand Name] [Model Name] -->
+Then immediately: IMAGE PLACEHOLDER comment (blogger pastes manually):
+<!-- IMAGE PLACEHOLDER: [Brand Name] [Model Name] -->
 
-  SPECS BOX (immediately under H2 — no colour, plain border):
+Then SPECS BOX:
 """ + SPECS_BOX_HTML + """
 
-  <h3>Is the Design and Build Worth It?</h3>
-  → 3-5 bullets. Max 12 words each. MOBILE READABLE.
-  → One real-life India line per H3.
+Then follow this EXACT H3 order for SMARTPHONES (same as iQOO 15R blog):
 
-  <h3>How Does It Actually [Perform / Sound / Feel]?</h3>
-  → Specific words: deep bass, clear vocals, 42dB ANC, 28ms latency
-  → Add numbers: hours, dB, ms, Hz, MP, W
-  → Long-tail keyword naturally in one bullet (e.g., "best ANC earphones under ₹2000 India")
+<h3>[Product Name] Price in India — All Variants and Offers Explained</h3>
+→ Write 2-3 paragraphs. Cover: all RAM/storage variants with prices in ₹, launch bank offers,
+  effective price after discount, which variant gives best value, where to buy (Amazon/Flipkart).
+→ End with: which variant Mallikarjun recommends and why.
 
-  <h3>Battery Life — Does It Survive Your Full Day?</h3>
-  → Exact hours: "32 hrs (6 earbuds + 4 case charges)"
-  → India real-life: "lasted full IPL match + 2 hr college lecture"
+<h3>[Product Name] Design and Build Quality — [Short Tagline]</h3>
+→ Write 3 rich paragraphs (NOT bullet points). Cover:
+  Para 1: thickness, weight, how it compares to rivals, feel in hand, one-hand use verdict
+  Para 2: back panel material, camera module design, edge shape, color variants described vividly
+  Para 3: IP rating explained (what IP68/IP69 actually means in real life), durability verdict
+→ Include real-life India line: "At 7.9mm fits perfectly in jeans pocket without bulk"
 
-  <h3>Pros & Cons</h3>
+<h3>[Product Name] Display — [Panel Type, Hz, and Peak Nits]</h3>
+→ Write 2-3 rich paragraphs. Cover:
+  Para 1: size, panel type, resolution, Hz, punch-hole or notch, bezels, visual impression
+  Para 2: peak brightness in nits, HDR support, outdoor visibility in Indian sunlight, color reproduction
+  Para 3: touch sampling rate if gaming-focused, real-world gaming/streaming/scrolling experience
+→ Include real-life: "Perfectly visible under direct Bengaluru afternoon sunlight"
+
+<h3>[Product Name] Performance — [Chipset Name and Key Gaming Claim]</h3>
+→ Write 3-4 rich paragraphs. Cover:
+  Para 1: chipset name, nm process, architecture, benchmark score (AnTuTu), generational leap
+  Para 2: gaming frame rates (fps in which titles), thermal/cooling system name, sustained performance
+  Para 3: RAM type (LPDDR5X) and speed, storage type (UFS 4.1), multitasking real experience
+  Para 4 (if applicable): any co-processor or AI chip and what it specifically does
+→ India real-life: "40 minutes BGMI at 90fps — zero frame drops, barely warm"
+
+<h3>[Product Name] Battery Life — [mAh Capacity and Key Claim]</h3>
+→ Write 3 rich paragraphs. Cover:
+  Para 1: mAh capacity, how it compares to competitors (they have X, this has Y = 50% more)
+  Para 2: real India daily usage translation — mixed use days, gaming hours, student/professional scenario
+  Para 3: fast charge wattage, time from 0 to 50%, time to full charge, wireless charging if present
+→ India real-life: "7600mAh = full IPL match + 6 hrs college + night gaming, still 25% left"
+
+<h3>[Product Name] Camera — [Main Sensor Name and Key Feature]</h3>
+→ Write 2-3 rich paragraphs. Cover:
+  Para 1: main sensor name and size, MP count, aperture, OIS if present, what these specs mean in practice
+  Para 2: ultrawide specs, selfie camera MP, what real daylight photos look like (not just numbers)
+  Para 3: low-light performance, video stabilization, AI camera features, any trade-offs to be honest about
+→ Be honest: if telephoto is missing, say so clearly and explain the trade-off
+
+<h3>[Product Name] Connectivity — [Key Innovation or Highlight]</h3>
+→ Write 2 rich paragraphs. Cover:
+  Para 1: any connectivity innovation (e.g. 24 antennas, network enhancement chip), 5G bands, WiFi version
+  Para 2: Bluetooth version and what it means, NFC, USB type, IR blaster, biometrics type and speed,
+           speaker setup (stereo/mono), IP rating if not in design section
+
+<h3>[Product Name] Software and AI — [OS Version and Key AI Feature]</h3>
+→ Write 3 rich paragraphs. Cover:
+  Para 1: OS version and UI name, first impressions of the interface, bloatware level
+  Para 2: AI features list — what each does in real Indian daily use (not just names, explain benefits)
+  Para 3: update commitment — how many OS updates, how many years of security patches, why this matters
+→ Compare update policy to competitors if iQOO 15R's 4+6 year policy is better
+
+<h3>[Product Name] Full Specifications</h3>
+→ Write a clean bullet list of ALL key specs: Display, Processor, RAM, Storage,
+  Rear Camera(s), Front Camera, Battery, Charging, OS, Thickness, Weight, Durability, Connectivity
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FOR LAPTOPS — same structure but adapt sections:
+  H3 order: Price → Design/Build → Display → Performance/Gaming → Battery → Camera/Webcam
+            → Connectivity → Software/AI → Full Specs
+
+FOR EARPHONES/HEADPHONES — same structure but adapt:
+  H3 order: Price → Design/Build → Sound Quality → ANC/Transparency → Battery
+            → Call Quality/Mic → Connectivity → App/Software → Full Specs
+
+FOR POWER BANKS — adapt:
+  H3 order: Price → Design/Build → Real Capacity → Charging Speed → Battery Life
+            → Ports/Compatibility → Safety → Connectivity/Travel → Full Specs
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AFTER ALL H3 SECTIONS, for each product add:
+
+  PROS & CONS TABLE (plain border):
 """ + PROS_CONS_HTML + """
 
-  <p><strong>🎯 Best For:</strong> [very specific user — "students on 1.5 hr metro commute"]</p>
+  <p><strong>🎯 Best For:</strong> [Very specific user type — "students on 1.5 hr daily commute"]</p>
   <p><strong>🏅 Verdict Label:</strong> [Top Pick / Value Pick / Budget Champion / Premium Pick]</p>
-  <p><strong>💬 Mini Verdict:</strong> [1 sentence. Include comparison: "Better than X. Cheaper than Y by ₹NNN."]</p>
+  <p><strong>💬 Mini Verdict:</strong> [1 sentence including honest comparison — "Better battery than OnePlus 13. ₹5000 cheaper than Samsung S25."]</p>
 
-  Expert Tip callout:
+  Expert Tip box:
   <div style="border-left:3px solid #333;padding:10px 14px;margin:12px 0;background:#f9f9f9;">
-  <strong>💡 Expert Tip:</strong> [India-specific buying advice: timing, variant, cashback]
+  <strong>💡 Expert Tip:</strong> [Specific India timing/variant/offer advice]
   </div>
 
   Should You Buy box:
   <div style="border:1px solid #ddd;padding:12px 16px;margin:14px 0;">
   <strong>🤔 Should You Buy This?</strong><br/>
-  ✅ Buy if: [case 1] | [case 2]<br/>
-  ❌ Skip if: [reason 1] | [reason 2]
+  ✅ Buy if: [specific case 1] | [specific case 2]<br/>
+  ❌ Skip if: [honest reason 1] | [honest reason 2]
   </div>
 
-  <p>📌 <em>Read more reviews on <a href="https://technewswithai.blogspot.com/search/label/[Category]" target="_blank">Tech News With AI</a>.</em></p>
+  TRANSITION LINE before next product:
+  "Now if that price is still too high, the next pick will genuinely surprise you."
+  "That was the safe pick. Now here is the one for real enthusiasts."
+  "This next one is polarising. Some love it. Some hate it. Here is exactly why."
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[F] TRANSITION LINES between every product:
-    "Now if that price is still tight, the next one will surprise you."
-    "Different category of value — keep reading, this one is interesting."
-    "That was the safe pick. Now here is the one for real enthusiasts."
-
-[G] FINAL VERDICT (id="final-verdict"):
+[F] FINAL VERDICT (id="final-verdict"):
 <h2 id="final-verdict">🏆 Final Verdict — The Clear Winner in India 2026</h2>
 """ + VERDICT_TABLE_HTML + """
-    → Declare ONE winner clearly. One sentence why.
-    → Add "Value Pick" (best for budget) and "Top Pick" (best overall).
-    → CTA: "Explore all [Category] reviews →
-       <a href="https://technewswithai.blogspot.com/search/label/[Category]" target="_blank">Tech News With AI</a>"
+    → Declare ONE clear winner with one sentence explaining why
+    → Add Value Pick, Premium Pick rows to the table
+    → CTA: Link to category label → <a href="https://www.technewsai.me/search/label/[Category]">Tech News With AI</a>
 
-[H] FAQ (id="faq") — 5 question-based H3 subheadings (Google rich results):
-    • First question = exact search query (mandatory)
-    • Mix of: which/what/how/is/are questions
-    • Keep answers under 60 words each (Google snippet optimal)
-    • Each answer must be complete and standalone
+[G] FAQ SECTION (id="faq") — 5 to 7 question H3s for Google rich results:
+    • Use clean question H3s (these ARE allowed as questions in FAQ section only)
+    • First question must be exact search query
+    • Answers under 60 words — complete and standalone
     Examples:
-    <h3>Which is the best [product] under ₹[price] in India 2026?</h3>
-    <h3>Is [Product Name] worth buying in India 2026?</h3>
-    <h3>What is the difference between [X] and [Y]?</h3>
-    <h3>How long does [Product] battery last in real use?</h3>
-    <h3>Where is the best place to buy [Product] in India?</h3>
-
-[I] LONG-TAIL KEYWORD PLACEMENT (SEO):
-    Place these naturally in the text — not forced:
-    • In first 100 words (primary keyword)
-    • In at least 2 H2 headings (secondary keywords)
-    • In 1 H3 per product (long-tail variant)
-    • In conclusion/verdict section
-    Examples of long-tail patterns:
-    "best [product] under ₹[price] for [use case] in India [year]"
-    "which [product] is best for [use case] India [year]"
-    "[product1] vs [product2] which is better India [year]"
+    <h3>Which is the best smartphone under ₹50,000 in India 2026?</h3>
+    <h3>Is the iQOO 15R worth buying in India 2026?</h3>
+    <h3>How long does the iQOO 15R battery last in real use?</h3>
+    <h3>What is the difference between iQOO 15R and OnePlus 13R?</h3>
+    <h3>Where is the best place to buy the iQOO 15R in India?</h3>
 """
 
 
 # ── Writing rules injected into every prompt ─────────────────────
 WRITING_RULES = """
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-WRITING, SEO & ENGAGEMENT RULES — APPLY TO EVERY SECTION
+WRITING STYLE — MATCH THE iQOO 15R REVIEW BLOG EXACTLY
+Reference: https://www.technewsai.me/2026/03/iqoo-15r-review-indias-slimmest-7600mah.html
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-TARGET: 4000+ words total. Every section must be rich and full.
+TARGET: 4000+ words total. Every H3 section = 2 to 4 rich paragraphs.
 
-─── STRUCTURE ───────────────────────────────────────
-• H2 = product or main section header
-• H3 = question-based feature subheading (improves SEO ranking)
-• Bullet points for all feature lists — NOT long paragraphs
-• Every H3: 1 opening sentence + 4-6 bullets + 1 closing line
-• Bold: <strong>price</strong>, <strong>battery hrs</strong>, key spec values
+─── H3 HEADING FORMAT ───────────────────────────────
+• H3 format: "[Product Name] [Section Name] — [Short Descriptive Tagline]"
+  ✅ CORRECT: <h3>iQOO 15R Design and Build Quality — Slim, Sleek, and Seriously Durable</h3>
+  ✅ CORRECT: <h3>Dell XPS 15 Battery Life — All-Day Power or Office Slave?</h3>
+  ✅ CORRECT: <h3>Sony WH-1000XM6 Sound Quality — Deep Bass That Hits Different</h3>
+  ❌ WRONG:   <h3>What Are the Key Design Elements of the iQOO 15R?</h3>
+  ❌ WRONG:   <h3>Is the Battery Worth It?</h3>
+  ❌ WRONG:   <h3>How Does It Actually Perform?</h3>
+• FAQ section H3s are the ONLY place question format is allowed.
 
-─── SENTENCE RULES ──────────────────────────────────
-• Max 15 words per sentence. Mix short (5 words) with medium (12-15 words).
-• NEVER two consecutive sentences of the same length.
+─── PARAGRAPH STYLE (iQOO 15R REFERENCE) ────────────
+• Write 2 to 4 flowing prose paragraphs per H3 — NOT bullet point lists.
+• Each paragraph: 3 to 6 sentences. Mix short (6-8 words) with medium (12-16 words).
+• Pattern per section:
+    Para 1: Lead with the most impressive or surprising fact about this spec
+    Para 2: Explain what it means in real Indian daily life with concrete scenarios
+    Para 3: Honest trade-off or comparison — what it beats, what it misses
+• Bullet points ONLY for: specs box, price variants list, final specifications list
+• NEVER write a H3 section as only bullet points — always prose first
 
-─── ENGAGEMENT TECHNIQUES ───────────────────────────
-① HOOK every H2 with a curiosity gap:
-   "Here is what the spec sheet does NOT tell you."
-   "I tested this for 2 weeks. The result surprised me."
-   "This one thing makes it stand out from every competitor."
+─── OPENING HOOK (first sentence of each H3 section) ───
+Use one of these styles to open each section naturally:
+  "One of the first things that catches your attention about [X] is..."
+  "The [section] on the [Product] is a [descriptor] — here is why it matters."
+  "For a phone clearly oriented toward [use case], [spec] is non-negotiable."
+  "What makes the [Product]'s [section] particularly interesting is..."
+  "It is worth being clear about where the [spec] sits relative to the market."
 
-② CLIFFHANGER after intro of each product:
-   "But there is one big problem. Keep reading."
-   "Before you add it to cart — read section 4 first."
-   "Sounds perfect, right? Wait until you see the battery test."
+─── INDIA REAL-LIFE TRANSLATION (mandatory per section) ─
+Every battery/performance section must translate specs into Indian life:
+  "7,600mAh = two full days of mixed use for the average Indian user"
+  "At 7.9mm, it slips into your jeans pocket without the uncomfortable bulk"
+  "Lasted the entire IPL match + 2 hours of Hotstar binge, still had 25% left"
+  "During BGMI at 90fps for 40 continuous minutes — barely warm to the touch"
+  "Crystal clear call quality even against Bengaluru peak-hour traffic noise"
 
-③ TRANSITION BRIDGE between every product:
-   "Now if that price is still too high, the next pick will surprise you."
-   "Different budget, completely different experience — here we go."
-   "This next one is polarising. Some love it. Some hate it. Here is why."
+─── HONEST TRADE-OFF (mandatory per product) ────────────
+Be clear about what the product sacrifices. Like iQOO 15R blog:
+  "It is worth being clear about where the camera setup sits relative to the market.
+   The phone has deliberately skipped a dedicated telephoto lens to keep the price
+   competitive — a trade-off that iQOO has been transparent about."
+→ Honesty builds trust. Never hide a weakness. State it, then explain why it still matters.
 
-④ EXPERT TIP CALLOUT inside each product section (use this exact HTML):
-<div style="border-left:3px solid #333;padding:10px 14px;margin:12px 0;background:#f9f9f9;">
-<strong>💡 Expert Tip:</strong> [Specific actionable India tip for this product — price timing, variant choice, where to buy]
-</div>
+─── ENGAGEMENT HOOKS ────────────────────────────────────
+Add naturally to prose (not as separate lines):
+  "But there is one thing nobody tells you about this phone."
+  "Before you add it to cart — read this section first."
+  "This next one is polarising. Some love it. Some hate it. Here is why."
+  "Now if that price is still too high, the next pick will genuinely surprise you."
 
-⑤ SHOULD YOU BUY BOX at end of each product (use this exact HTML):
-<div style="border:1px solid #ddd;padding:12px 16px;margin:14px 0;">
-<strong>🤔 Should You Buy This?</strong><br/>
-✅ Buy if: [specific use case 1] | [specific use case 2]<br/>
-❌ Skip if: [specific reason 1] | [specific reason 2]
-</div>
+─── TRANSITION LINES between each product ───────────────
+  "That was the safe pick. Now here is the one for real enthusiasts."
+  "Different budget, completely different story — keep reading."
+  "This next one is polarising. Some love it. Some hate it. Here is exactly why."
 
-─── DATA & SPECIFICITY ──────────────────────────────
+─── DATA & SPECIFICITY ──────────────────────────────────
 • NEVER: good, nice, amazing, great, excellent, decent, solid
-• ALWAYS use specifics: deep bass, punchy mids, 42dB ANC, 28ms latency, 120Hz AMOLED
-• Every section: minimum 2 real numbers (hours, dB, ms, Hz, MP, W, g, mAh)
-• Comparison line in every product: "beats X in battery", "₹NNN cheaper than Z"
+• ALWAYS specifics: deep bass, punchy mids, 42dB ANC, 28ms latency, 144Hz AMOLED
+• Minimum 3 real numbers per section (hours, dB, ms, Hz, MP, W, g, mAh, nits)
+• Compare to a named competitor: "beats the OnePlus 13R by 15% on AnTuTu"
 
-─── REAL-LIFE INDIA USAGE ───────────────────────────
-One real-life India scenario per H3. Rotate through:
-• "through my 1.5 hr Bengaluru metro commute without any discomfort"
-• "during PUBG Mobile session at 90fps — no thermal throttle for 2 hrs"
-• "battery lasted full IPL match + 2 hr Hotstar binge, still 20% left"
-• "worked perfectly on hostel WiFi at 2 Mbps — zero stutter on Spotify"
-• "survived 40-min morning run, IP54 handled the sweat without issue"
-• "powered through 3 engineering exam prep days on a single charge"
-• "6-hr offline lecture recording with zero heating on this laptop"
-• "crystal clear call quality even in Bengaluru traffic noise"
+─── CATEGORY ACCURACY ───────────────────────────────────
+• Earphones:   ANC dB | codec AAC/aptX/LDAC | driver mm | IP rating | latency ms
+• Headphones:  clamping force | earcup padding | ANC dB | fold design | wired mode
+• Smartphones: SoC name+process | panel type+Hz | sensor name | mAh | charge W | IP
+• Laptops:     CPU name+gen | RAM GB | SSD GB+type | nits | Wh | kg | GPU name
+• Smartwatch:  display type+size | battery days | GPS type | SpO2/ECG | ATM
+• Power Bank:  mAh rated vs actual | input W | output W | PD/QC version | g weight
 
-─── CATEGORY ACCURACY ───────────────────────────────
-NEVER mix categories. Only use specs that belong to this device:
-• Earphones:   ANC dB | codec (AAC/aptX/LDAC) | driver mm | IP rating | latency ms
-• Headphones:  clamping force | earcup depth | ANC dB | fold design | wired backup port
-• Smartphones: SoC name | display type+Hz | camera sensor size | battery mAh | charge W
-• Laptops:     CPU name+gen | RAM GB | SSD GB+type | nits brightness | Wh battery | kg weight
-• Smartwatch:  display size+type | battery days | GPS type | SpO2/ECG | ATM rating
-• Power Bank:  real mAh output | input W | output W | PD/QC version | port count | g weight
-
-─── ABSOLUTE NEVER ──────────────────────────────────
-• NO **markdown bold** — ONLY <strong>HTML</strong> tags
+─── ABSOLUTE NEVER ──────────────────────────────────────
+• NO **markdown bold** — ONLY <strong>HTML</strong> bold tags
+• NO Q&A H3 headings (except in FAQ section)
 • NO: "In conclusion", "To summarize", "It is worth noting", "Overall"
-• NO two consecutive sections starting the same way
 • NO repeated sentence anywhere in the article
-• NO wrong-category specs (AMOLED in earphone article = instant disqualification)
-• NO links to any external website — ONLY technewswithai.blogspot.com label pages
+• NO wrong-category specs (AMOLED in earphone article = immediate reject)
+• NO links to external sites — ONLY www.technewsai.me label pages
+• NO auto-image insertion — images are pasted manually by the blogger
 
-─── MINIMUM REQUIREMENTS (CHECKLIST) ────────────────
-✓ 4000+ words
-✓ Hook intro: problem line 1, solution line 2
+─── MINIMUM REQUIREMENTS ────────────────────────────────
+✓ 4000+ words of rich prose content
+✓ Narrative hook intro (2-3 paragraphs, italic style, no H2)
 ✓ Primary keyword in first 100 words
-✓ Comparison table at top (real specs, no colour headers)
-✓ Specs box per product
-✓ Pros/Cons table per product
-✓ Expert Tip callout per product
-✓ Should You Buy box per product
-✓ Transition bridge between every product
-✓ Best For line per product
-✓ Mini Verdict per product (comparison word included)
-✓ CTA per product (links to your blog label)
-✓ Final Verdict table (plain border)
-✓ FAQ with 5+ questions (first = exact search query)
+✓ Per product: Price section + all category H3s + Pros/Cons + Expert Tip + Should You Buy
+✓ Full Specifications bullet list per product
+✓ Transition line between every product
+✓ Final Verdict table (plain border, no colour)
+✓ FAQ with 5-7 question H3s (only Q&A allowed here)
+✓ Author bio as absolute last element
 
-─── ADSENSE APPROVAL REQUIREMENTS ──────────────────
-• ORIGINAL content only — never copy from any source
-• Every sentence must add NEW information — no filler
-• <p> tags: max 3 sentences each (mobile-friendly)
-• No broken HTML — all tags must be properly closed
-• No thin sections — every H3 must have 4+ bullet points
-• Write like a real person, not a tool — AdSense rejects AI-sounding content
-• DO NOT repeat the same idea in different words anywhere
+─── ADSENSE APPROVAL ────────────────────────────────────
+• 100% original — never copy or closely paraphrase any source
+• Every paragraph adds NEW information — no filler or repeated ideas
+• <p> max 3-4 sentences (mobile-friendly)
+• No broken HTML — all tags properly closed
 
-─── GOOGLE DISCOVER OPTIMIZATION ────────────────────
-• First image must be 1200px wide (placeholder block is already added by code)
-• Use descriptive, emotional language in first 100 words
-• Include trending angle: AI features, India price, value-for-money
-
-─── LONG-TAIL KEYWORDS (inject naturally, not stuffed) ──
-These must appear organically in the article text:
+─── LONG-TAIL KEYWORDS (inject naturally) ───────────────
+These must appear in the article text — not stuffed, naturally woven:
 [LONGTAIL_KEYWORDS_PLACEHOLDER]
 """
 
@@ -1914,7 +2012,7 @@ def human_rewrite(draft, story):
         '<a href="https://whatsapp.com/channel/0029VazWwdn0wajoizN5PY3Q" target="_blank" style="color:#25d366;margin-right:15px;font-weight:bold;">&#128172; WhatsApp</a>'
         '<a href="https://www.linkedin.com/in/mallikarjun-r-a85685367" target="_blank" style="color:#0077b5;font-weight:bold;">&#128188; LinkedIn</a>'
         "</p>"
-        '<p style="font-size:12px;color:#999;"><em>Published: ' + today + ' &bull; technewswithai.blogspot.com</em></p>'
+        f'<p style="font-size:12px;color:#999;"><em>Published: {today} &bull; <a href="{BLOG_URL}" target="_blank">technewsai.me</a></em></p>'
         "</td></tr></table></div>"
     )
 
@@ -1931,18 +2029,21 @@ def human_rewrite(draft, story):
         "• Expert Tip callout divs and Should You Buy boxes\n"
         "• Table of Contents and all anchor links\n"
         "• ALL H1, H2, H3 HEADINGS — copy them EXACTLY as they are. NEVER rewrite heading text.\n"
-        "• All internal links to technewswithai.blogspot.com\n"
+        "• All internal links to www.technewsai.me\n"
         "• Best For lines, Mini Verdict lines, CTA lines\n\n"
 
         "━━━ CRITICAL HEADING RULE ━━━\n"
-        "The H2 and H3 heading text is FIXED and SEO-optimised. You must copy it exactly.\n"
-        "Personal hooks, curiosity gaps, and cliffhangers go in the FIRST <p> tag AFTER the heading.\n"
-        "NEVER put a hook sentence inside an H2 or H3 tag. NEVER change heading text.\n"
-        "Correct: <h2>Lenovo ThinkPad E15 Battery Life and Charging</h2><p>Here is what surprised me...</p>\n"
-        "Wrong:   <h2>I tested this for 2 weeks. The result surprised me.</h2>\n\n"
+        "H2 and H3 heading text is FIXED and SEO-optimised. Copy it exactly.\n"
+        "H3 headings are CLEAN and DESCRIPTIVE — like 'Build Quality', 'Display and Design',\n"
+        "'Performance (Chipset + Gaming)', 'Camera (Real Usage)', 'Battery and Charging',\n"
+        "'Software and AI', 'Connectivity'.\n"
+        "NEVER change H3 to a question format like 'What Are the Key Design Elements of...'.\n"
+        "Personal hooks and commentary go in the FIRST <p> tag AFTER the heading.\n"
+        "Correct: <h3>Build Quality</h3><p>Here is what surprised me about this one...</p>\n"
+        "Wrong:   <h3>What is the build quality like?</h3>\n\n"
 
         "━━━ FOR EVERY SECTION, DO ALL OF THESE ━━━\n\n"
-        "① PERSONAL HOOK — first <p> AFTER the H2 (NOT inside the H2):\n"
+        "① PERSONAL HOOK — first <p> AFTER the H2/H3 (NOT inside the heading):\n"
         "   'Here is what the spec sheet does NOT tell you about this one.'\n"
         "   'I tested this for 2 weeks straight. The result genuinely surprised me.'\n"
         "   'Before you add to cart — read this section first.'\n\n"
@@ -1976,11 +2077,11 @@ def human_rewrite(draft, story):
         "   'Dislike: call quality drops in heavy wind above 20 kmph.'\n\n"
 
         "━━━ WRITING STYLE ━━━\n"
-        "• Sentences: max 15 words. Short. Punchy.\n"
-        "• Bullet points — not long paragraphs\n"
+        "• Write rich PROSE paragraphs for each section (like the reference blog at technewsai.me)\n"
+        "• Mix bullets with paragraphs — not everything should be bullet points\n"
         "• Indian English: value for money, decent enough, not bad at all\n"
         "• Connectors: look, here is the thing, honestly, but wait, catch is\n"
-        "• Questions: 'But does it hold up in real use?'\n"
+        "• Questions embedded in prose: 'But does it hold up in real use?'\n"
         "• India scenarios: IPL, hostel WiFi, Bengaluru traffic, wedding, board exams\n"
         "• Comparison lines: 'better ANC than X', 'cheaper than Y by ₹NNN'\n"
         "• Specific words only — NEVER: good, nice, amazing, great, excellent\n"
@@ -2001,20 +2102,21 @@ def human_rewrite(draft, story):
         "━━━ ABSOLUTE NEVER ━━━\n"
         "• NEVER **markdown** — ONLY <strong>HTML</strong> tags\n"
         "• NEVER: 'In conclusion', 'To summarize', 'It is worth noting'\n"
+        "• NEVER change clean H3 headings to question format\n"
         "• NEVER two consecutive sections starting the same way\n"
         "• NEVER repeat same sentence in different sections\n"
         "• NEVER remove or change any HTML table\n"
-        "• NEVER link to any website except technewswithai.blogspot.com\n"
+        "• NEVER link to any website except www.technewsai.me\n"
         "• NEVER write generic sentences that could apply to any product\n\n"
 
         "━━━ FINAL CHECKS ━━━\n"
         "✓ 4000+ words\n"
         "✓ Hook intro — problem line 1, solution line 2\n"
         "✓ Primary keyword in first 100 words\n"
-        "✓ Curiosity gap hook on every H2\n"
+        "✓ Curiosity gap hook on every H2 (in first <p> after heading)\n"
         "✓ Cliffhanger after first line of every product\n"
         "✓ Transition bridge between every product section\n"
-        "✓ All 5 products: specs box + pros/cons + expert tip + should-you-buy + best for + mini verdict + CTA\n"
+        "✓ All products: specs box + all 7 H3 sections + pros/cons + expert tip + should-you-buy + mini verdict\n"
         "✓ Strong final verdict with clear winner declared\n"
         "✓ Author bio at the very end\n\n"
 
@@ -2094,31 +2196,17 @@ def run_article(story, is_search, label, atype, log):
     print("Final: " + str(words) + " words | " + title[:55])
 
     cat  = story.get("category","general")
-    blog_url = "https://technewswithai.blogspot.com"
 
-    # Step 3b — Replace PRODUCT_IMAGE placeholder comments with real images
-    def replace_product_image(m):
-        product_name = m.group(1).strip()
-        return build_image_block(product_name, cat)
+    # Step 3b — Remove any PRODUCT_IMAGE placeholder comments (no auto images — blogger pastes manually)
     final = re.sub(
         r'<!--\s*PRODUCT_IMAGE:\s*([^-]+?)\s*-->',
-        replace_product_image,
+        r'<!-- IMAGE PLACEHOLDER: \1 — Add your image here -->',
         final,
         flags=re.IGNORECASE
     )
 
-    # Step 3 — Inject hero image (real brand logo or Unsplash photo)
-    hero_img = build_image_block(
-        product_name=title,
-        cat=cat,
-        caption=title + " | technewswithai.blogspot.com",
-    )
-    # Insert hero image after H1
-    final = re.sub(
-        r'(<h1[^>]*>.*?</h1>)',
-        r'\1\n' + hero_img,
-        final, count=1, flags=re.DOTALL|re.IGNORECASE
-    )
+    # Step 3 — Remove any auto-injected hero image blocks (keep only placeholder comment)
+    # No auto hero image — blogger pastes manually
 
     # Step 4 — Inject AdSense ad slots between H2 sections (every 2nd)
     h2_count = [0]
@@ -2143,16 +2231,20 @@ def run_article(story, is_search, label, atype, log):
     schema_block = build_faq_schema(faqs)
 
     # Step 6 — Social share block
-    social_block = build_social_block(title, blog_url)
+    social_block = build_social_block(title, BLOG_URL)
+
+    # Step 6b — Also Read box (brand-interlinked related articles)
+    also_read = build_also_read_box(cat, title)
 
     # Step 7 — Footer
     footer = (
         "<hr/>"
+        + also_read
         + social_block
-        + "<p style='font-size:12px;color:#888;text-align:center;padding:10px;'>"
-        "<em>Published by Mallikarjun R | "
-        "<a href='" + blog_url + "' target='_blank'>Tech News With AI</a>"
-        " | technewswithai.blogspot.com</em></p>"
+        + f"<p style='font-size:12px;color:#888;text-align:center;padding:10px;'>"
+        f"<em>Published by Mallikarjun R | "
+        f"<a href='{BLOG_URL}' target='_blank'>Tech News With AI</a>"
+        f" | technewsai.me</em></p>"
     )
 
     # Assemble final HTML: schema first, then article, then footer
