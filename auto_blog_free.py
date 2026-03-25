@@ -1,4 +1,6 @@
-# TECH NEWS WITH AI - AUTO BLOG v17.0 FINAL
+# TECH NEWS WITH AI - AUTO BLOG v18.0 FINAL
+# v18 Changes: Breaking news priority (Nord 6, 15T, Realme 16), 10 new India RSS feeds,
+# 2026 fresh launch topics hardcoded, breaking topics checked first in both article pickers
 # Changes: No Pros/Cons tables, No comparison tables, VS articles = full per-product sections,
 # Author bio on ALL articles, ### markdown → <h3> HTML auto-conversion
 # technewsai.me - Mallikarjun R, Bengaluru
@@ -136,7 +138,51 @@ ALL_RSS = [
     ("Trusted Reviews",       "https://www.trustedreviews.com/feed"),
     ("What HiFi",             "https://www.whathifi.com/feeds/all"),
     ("RTings",                "https://www.rtings.com/feed/"),
+    # ── Extra India breaking news sources (2026 additions) ──────────
+    ("Beebom Gadgets",        "https://gadgets.beebom.com/feed/"),
+    ("Smartprix",             "https://www.smartprix.com/bytes/feed/"),
+    ("TelecomTalk",           "https://telecomtalk.info/feed/"),
+    ("Cashify Blog",          "https://www.cashify.in/blog/feed/"),
+    ("iGeeksBlog",            "https://www.igeeksblog.com/feed/"),
+    ("Sportskeeda Tech",      "https://tech.sportskeeda.com/feed/"),
+    ("Gizmochina India",      "https://www.gizmochina.com/category/india/feed/"),
+    ("TechPP",                "https://techpp.com/feed/"),
+    ("Nokiapoweruser",        "https://nokiapoweruser.com/feed/"),
+    ("GadgetsToUse",          "https://gadgetstouse.com/feed/"),
 ]
+
+# ================================================================
+# BREAKING NEWS TOPICS — Updated March 2026
+# These are injected first in pick_search_story() for freshness
+# ================================================================
+BREAKING_NEWS_2026 = [
+    # OnePlus
+    {"cat": "smartphone", "t": "OnePlus Nord 6 review price India 2026",        "k": ["OnePlus Nord 6", "India"]},
+    {"cat": "smartphone", "t": "OnePlus Nord 6 vs OnePlus 15R India 2026",      "k": ["OnePlus Nord 6", "OnePlus 15R"]},
+    {"cat": "smartphone", "t": "OnePlus 15T specs price India 2026",             "k": ["OnePlus 15T", "India"]},
+    {"cat": "smartphone", "t": "is OnePlus Nord 6 worth buying India 2026",      "k": ["OnePlus Nord 6", "worth buying"]},
+    # Realme
+    {"cat": "smartphone", "t": "Realme 16 5G selfie mirror phone India 2026",   "k": ["Realme 16 5G", "India"]},
+    {"cat": "smartphone", "t": "Realme 16 5G vs Redmi Note 15 Pro India 2026",  "k": ["Realme 16 5G", "Redmi Note 15"]},
+    # Samsung
+    {"cat": "smartphone", "t": "Samsung Galaxy S26 price specs India 2026",     "k": ["Samsung Galaxy S26", "India"]},
+    {"cat": "smartphone", "t": "Samsung Galaxy A57 launch India 2026",          "k": ["Samsung Galaxy A57", "India"]},
+    {"cat": "smartphone", "t": "Samsung Galaxy A37 price India 2026",           "k": ["Samsung Galaxy A37", "India"]},
+    # Vivo / iQOO
+    {"cat": "smartphone", "t": "Vivo X300 Ultra India launch 2026",             "k": ["Vivo X300 Ultra", "India"]},
+    {"cat": "smartphone", "t": "iQOO 15R review India 2026 worth buying",       "k": ["iQOO 15R", "India"]},
+    {"cat": "smartphone", "t": "Vivo V70 FE India launch April 2026",           "k": ["Vivo V70 FE", "India"]},
+    # OPPO
+    {"cat": "smartphone", "t": "OPPO Find X9 Ultra India launch April 2026",    "k": ["OPPO Find X9 Ultra", "India"]},
+    # Redmi / Poco
+    {"cat": "smartphone", "t": "Redmi Note 15 SE 5G launch India April 2026",  "k": ["Redmi Note 15 SE", "India"]},
+    {"cat": "smartphone", "t": "Poco X8 Pro Max India 2026 review",             "k": ["Poco X8 Pro Max", "India"]},
+    # Budget guides updated
+    {"cat": "smartphone", "t": "best phone under 20000 India April 2026",       "k": ["best phone 20000", "India"]},
+    {"cat": "smartphone", "t": "best gaming phone under 30000 India 2026",      "k": ["gaming phone 30000", "India"]},
+    {"cat": "smartphone", "t": "best 5G phone under 15000 India April 2026",    "k": ["5G phone 15000", "India"]},
+]
+
 
 # ================================================================
 # CATEGORY STRUCTURES — 12 sections per category
@@ -148,21 +194,23 @@ CAT = {
         "detect": ["phone", "smartphone", "android", "iphone", "samsung", "oneplus",
                    "realme", "xiaomi", "oppo", "vivo", "nothing", "honor", "huawei",
                    "pixel", "motorola", "nokia", "infinix", "tecno", "poco", "redmi",
-                   "iqoo", "lava", "micromax", "narzo", "moto"],
+                   "iqoo", "lava", "micromax", "narzo", "moto",
+                   "nord 6", "nord6", "15t", "realme 16", "s26", "x300", "find x9",
+                   "a57", "a37", "note 15", "x8 pro", "v70", "15r", "turbo 6"],
         "news_topics": [
-            "Samsung Galaxy launch India 2026",
-            "iPhone launch specs India 2026",
-            "OnePlus launch India 2026",
-            "Xiaomi Redmi Poco launch India 2026",
-            "OPPO Realme launch India 2026",
-            "Vivo iQOO launch India 2026",
-            "Nothing phone launch 2026",
-            "Honor phone launch India 2026",
-            "Google Pixel launch India 2026",
-            "Motorola Moto launch India 2026",
-            "Infinix phone launch India 2026",
-            "Tecno Spark launch India 2026",
-            "Narzo launch India 2026",
+            "OnePlus Nord 6 India launch April 2026",
+            "OnePlus 15T specs India 2026",
+            "Realme 16 5G India launch 2026",
+            "Samsung Galaxy S26 India launch 2026",
+            "iPhone 17 India launch price 2026",
+            "Xiaomi Redmi Note 15 Pro launch India 2026",
+            "iQOO 15R launch India 2026",
+            "Nothing Phone 3 launch India 2026",
+            "Vivo X300 Ultra India launch 2026",
+            "OPPO Find X9 Ultra India launch 2026",
+            "Google Pixel 10 India launch 2026",
+            "Motorola Edge 60 India launch 2026",
+            "Poco X8 Pro Max India launch 2026",
             "budget 5G phone launch India 2026",
             "foldable phone launch India 2026",
             "gaming smartphone launch India 2026",
@@ -207,7 +255,7 @@ CAT = {
             {"t": "best Infinix phone India 2026",                 "k": ["Infinix", "India"]},
         ],
         "sections": [
-            "INTRO. Introduction — Who This Phone Is For, Why It Matters in India 2026 (2 paragraphs)",
+            "INTRO. Introduction — Who This Phone Is For, Why It Matters in India 2026 (3 paragraphs)",
             "2. Design and Build Quality — Premium Feel or Not? Materials, IP Rating, Dimensions, Colors, Durability",
             "3. Display Review — Brightness, HDR, Outdoor Test, Panel Type, Resolution, Refresh Rate, Real Usage",
             "4. Performance Review — Chipset Deep Dive, Benchmarks, Gaming Test (titles+fps), Daily Usage Experience",
@@ -843,10 +891,22 @@ def should_post_cat(log, cat):
 # STORY PICKERS
 # ================================================================
 def pick_news_story(log):
-    print("\n[News] Searching RSS feeds...")
+    print("\n[News] Searching RSS feeds (checking breaking news first)...")
     feeds = ALL_RSS[:]
     random.shuffle(feeds)
     used_titles = {e.get("title","") for e in log}
+
+    # ── 0. Check BREAKING_NEWS_2026 via NewsAPI first (latest launches) ──
+    for item in BREAKING_NEWS_2026[:6]:  # check top 6 breaking topics
+        if item["t"] in used_titles:
+            continue
+        arts = fetch_newsapi(item["t"])
+        if arts and arts[0]["title"] not in used_titles:
+            a = arts[0]
+            a["specs"]    = get_specs(a["title"])
+            a["category"] = item["cat"]
+            print("Breaking [" + item["cat"] + "]: " + a["title"][:60])
+            return a
 
     priority = ["smartphone", "laptop"]
     for pcat in priority:
@@ -876,7 +936,7 @@ def pick_news_story(log):
     return None
 
 def pick_search_story(log, used_in_run):
-    print("\n[Search] Building hybrid topic pool (dynamic RSS + static backup)...")
+    print("\n[Search] Building hybrid topic pool (breaking + dynamic RSS + static backup)...")
 
     used_titles  = {e.get("title","")        for e in log}
     used_topics  = {e.get("search_topic","") for e in log}
@@ -886,6 +946,13 @@ def pick_search_story(log, used_in_run):
     secondary_cats   = [c for c in CAT if c not in priority_cats]
 
     all_options = []   # list of (cat, {"t":..., "k":[...]}, source)
+
+    # ── 0. BREAKING NEWS — highest priority (latest 2026 launches) ──
+    for item in BREAKING_NEWS_2026:
+        t = {"t": item["t"], "k": item["k"], "sections": CAT.get(item["cat"], CAT["smartphone"])["sections"], "category": item["cat"]}
+        if item["t"] not in combined_used:
+            all_options.append((item["cat"], t, "breaking"))
+    print(f"[Breaking] {len([x for x in all_options if x[2]=='breaking'])} fresh 2026 topics added")
 
     # ── 1. DYNAMIC topics from live RSS (priority categories first) ──
     for pcat in priority_cats:
@@ -927,12 +994,14 @@ def pick_search_story(log, used_in_run):
         print("[Search] No topics available.")
         return None
 
-    # Prioritise dynamic topics over static (fresher = higher rank)
-    dynamic_opts = [(c, t, s) for c, t, s in all_options if "dynamic" in s]
-    static_opts  = [(c, t, s) for c, t, s in all_options if "static"  in s]
+    # Priority order: breaking (latest launches) > dynamic (RSS) > static (backup)
+    breaking_opts = [(c, t, s) for c, t, s in all_options if s == "breaking"]
+    dynamic_opts  = [(c, t, s) for c, t, s in all_options if "dynamic" in s]
+    static_opts   = [(c, t, s) for c, t, s in all_options if "static"  in s]
+    random.shuffle(breaking_opts)
     random.shuffle(dynamic_opts)
     random.shuffle(static_opts)
-    ordered = dynamic_opts + static_opts
+    ordered = breaking_opts + dynamic_opts + static_opts
 
     chosen_cat, chosen_t, src = ordered[0]
     topic = chosen_t["t"]
@@ -2540,7 +2609,7 @@ def run_article(story, is_search, label, atype, log):
 # ================================================================
 def main():
     print("=======================================================")
-    print(" TECH NEWS WITH AI - AUTO BLOG v17.0 FINAL")
+    print(" TECH NEWS WITH AI - AUTO BLOG v18.0 FINAL")
     print(" Daily: 1 News + 2 Dynamic Search Topics")
     print(" Topics: Live RSS → Groq auto-generates trending topics")
     print(" Content: 4000+ words | Schema | Images | Social Share")
