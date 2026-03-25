@@ -205,17 +205,18 @@ CAT = {
             {"t": "best Infinix phone India 2026",                 "k": ["Infinix", "India"]},
         ],
         "sections": [
-            "1. Price in India — All Variants, Launch Offers, EMI and Where to Buy",
-            "2. Design and Build Quality — Materials, Dimensions, IP Rating, Colors, Feel in Hand",
-            "3. Display — Panel Type, Resolution, Refresh Rate, Peak Nits, HDR, Outdoor Visibility",
-            "4. Performance — Chipset Name, AnTuTu Score, Gaming FPS, Thermal Management, RAM and Storage",
-            "5. Battery Life and Charging — mAh Capacity, Real Screen-On Hours, Fast Charge Wattage and Time",
-            "6. Camera — Main Sensor, Ultrawide, Selfie, OIS, Low-Light, Video, AI Photography Features",
-            "7. Connectivity — 5G Bands, WiFi Version, Bluetooth, NFC, USB Type, Biometrics, Speakers, IR",
-            "8. Software and AI — Android Version, UI Name, AI Features List, Update Commitment in Years",
-            "9. Full Specifications — Complete Specs Table",
-            "10. Who Should Buy and Who Should Avoid — Students, Gamers, Professionals, Photographers",
-            "11. My Final Verdict and FAQ — Clear Winner Declared Plus 7 Questions Indians Search",
+            "INTRO. Introduction — Who This Phone Is For, Why It Matters in India 2026 (3 paragraphs)",
+            "2. Design and Build Quality — Premium Feel or Not? Materials, IP Rating, Dimensions, Colors, Durability",
+            "3. Display Review — Brightness, HDR, Outdoor Test, Panel Type, Resolution, Refresh Rate, Real Usage",
+            "4. Performance Review — Chipset Deep Dive, Benchmarks, Gaming Test (titles+fps), Daily Usage Experience",
+            "5. Battery Life and Charging — Real Usage Test, mAh, Screen-On Hours, Fast Charge Time, India Scenarios",
+            "6. Camera Review — Daylight, Night, Portrait, Video, Selfie (each tested separately with real results)",
+            "7. Connectivity and Audio — 5G Bands, WiFi, Bluetooth, NFC, Speakers, Sensors, Biometrics",
+            "8. Software and AI Features — Android Version, UI, AI Tools, Updates and Long-Term Support",
+            "9. Price in India 2026 — All Variants, Launch Offers, No Cost EMI, Best Buy Links",
+            "10. Who Should Buy and Who Should Avoid — Specific User Types with Clear Reasons",
+            "11. Final Verdict — Is It Worth It? Clear Buy or Skip Recommendation",
+            "12. FAQ — Most Searched Questions Indians Ask About This Phone (7 questions)",
         ]
     },
 
@@ -261,17 +262,18 @@ CAT = {
             {"t": "best laptop with 16GB RAM India 2026",          "k": ["16GB RAM laptop", "India"]},
         ],
         "sections": [
-            "1. Price in India — All Variants, Launch Offers, EMI and Where to Buy",
-            "2. Design and Build Quality — Chassis Material, Hinge, Ports Layout, Keyboard, Trackpad, Weight",
-            "3. Display — Panel Type, Resolution, Refresh Rate, Nits, Colour Gamut, Outdoor Visibility, Bezels",
-            "4. Performance — CPU Name and Generation, Benchmark Score, Real Tasks, GPU, Gaming FPS, Heat",
-            "5. Battery Life and Charging — Wh Capacity, Real Hours by Use Case, Charger Wattage, Charging Time",
-            "6. Camera — Webcam Resolution, Video Call Quality, Low-Light Performance, WFH and Online Class Use",
-            "7. Connectivity — WiFi Version, Bluetooth, USB-A, USB-C, Thunderbolt, SD Card, HDMI, Audio Jack",
-            "8. Software and AI — OS Version, Bloatware Level, AI Features, Copilot, Update Support Years",
-            "9. Full Specifications — Complete Specs Table",
+            "INTRO. Introduction — Who This Laptop Is For, Why It Matters in India 2026 (3 paragraphs)",
+            "2. Design and Build Quality — Chassis Material, Hinge Durability, Port Layout, Keyboard Feel, Trackpad, Weight",
+            "3. Display Review — Panel Type, Resolution, Refresh Rate, Nits, Colour Gamut, Outdoor Visibility, Bezels",
+            "4. Performance Review — CPU Deep Dive, Benchmarks, Gaming Test (titles+fps), Daily Tasks, Thermal Management",
+            "5. Battery Life and Charging — Real Hours by Use Case (coding/media/office), Charger Wattage, Charge Time",
+            "6. Keyboard and Trackpad — Key Travel, Typing Feel, Backlight, Trackpad Accuracy, Gesture Support",
+            "7. Connectivity and Ports — WiFi Version, Bluetooth, USB-A, USB-C, Thunderbolt, SD Card, HDMI, Audio Jack",
+            "8. Software and AI Features — OS, Bloatware, Copilot or AI Tools, Update Support Years, Security",
+            "9. Price in India 2026 — All Variants, Launch Offers, No Cost EMI, Best Buy Links",
             "10. Who Should Buy and Who Should Avoid — Students, Developers, Creators, Gamers, Professionals",
-            "11. My Final Verdict and FAQ — Clear Winner Declared Plus 5 Questions Indians Search",
+            "11. Final Verdict — Is It Worth It? Clear Buy or Skip Recommendation",
+            "12. FAQ — Most Searched Questions Indians Ask About This Laptop (5 questions)",
         ]
     },
 
@@ -313,17 +315,18 @@ CAT = {
             {"t": "best earphones for calls India 2026",           "k": ["earphones calls", "India"]},
         ],
         "sections": [
-            "1. Price in India — All Variants, Launch Offers, EMI and Where to Buy",
-            "2. Design and Build Quality — Form Factor, Materials, IP Rating, Ear Tip Fit, Comfort, Controls",
-            "3. Sound Quality — Driver Size, Bass Response, Mids, Highs, Soundstage, Real Listening Test",
-            "4. ANC and Transparency Mode — ANC Strength in dB, Real Environments, Transparency Quality, Wind Test",
-            "5. Battery and Charging — Earbuds Hours, Case Total Charges, Fast Charge, Wireless, India Daily Life",
-            "6. Call Quality and Mic — Voice Clarity, Noise Rejection, Wind Performance, Outdoor Call Test",
-            "7. Connectivity — Bluetooth Version, Codecs (LDAC AAC SBC), Multipoint, Latency ms, Pairing Stability",
-            "8. Software and App Features — Companion App, EQ Settings, Gestures, Auto-Pause, Voice Assistant",
-            "9. Full Specifications — Complete Specs Table",
-            "10. Who Should Buy and Who Should Avoid — Music Lovers, Commuters, Gym Users, Audiophiles, Casual",
-            "11. My Final Verdict and FAQ — Clear Winner Declared Plus 5 Questions Indians Search",
+            "INTRO. Introduction — Who These Earphones Are For, Why They Matter in India 2026 (3 paragraphs)",
+            "2. Design and Build Quality — Form Factor, Materials, IP Rating, Ear Tip Fit, Comfort, Controls Finish",
+            "3. Sound Quality Review — Bass Test, Mids, Highs, Soundstage, Driver Size, Real Listening Deep Dive",
+            "4. ANC and Transparency Mode — ANC Strength in dB, Real Environments Tested, Transparency Quality",
+            "5. Battery Life and Charging — Earbuds Hours, Case Total, Fast Charge, Wireless, India Daily Life",
+            "6. Call Quality and Mic Test — Voice Clarity, Noise Rejection, Wind Test, Office and Outdoor Calls",
+            "7. Connectivity and Codecs — Bluetooth Version, LDAC AAC SBC, Latency ms, Multipoint, Pairing",
+            "8. Software and App Features — Companion App, EQ Presets, Gestures, Auto-Pause, Voice Assistant",
+            "9. Price in India 2026 — All Variants, Launch Offers, No Cost EMI, Best Buy Links",
+            "10. Who Should Buy and Who Should Avoid — Music Lovers, Commuters, Gym, Audiophiles, Casual Users",
+            "11. Final Verdict — Is It Worth It? Clear Buy or Skip Recommendation",
+            "12. FAQ — Most Searched Questions Indians Ask About These Earphones (5 questions)",
         ]
     },
 
@@ -351,17 +354,18 @@ CAT = {
             {"t": "best wired headphones under 2000 India 2026",   "k": ["wired headphones", "India"]},
         ],
         "sections": [
-            "1. Price in India — All Variants, Launch Offers, EMI and Where to Buy",
-            "2. Design and Build Quality — Clamping Force, Padding, Foldability, Weight, Materials, Hinge Durability",
-            "3. Sound Quality — Driver Size, Bass, Mids, Highs, Soundstage, Tuning Signature, Real Listening Test",
-            "4. ANC and Passive Isolation — ANC Strength in dB, Real Environments, Passive Seal, Comparison",
-            "5. Battery and Charging — Hours ANC On and Off, Quick Charge Time, Wired Backup, USB-C",
-            "6. Call Quality and Mic — Voice Clarity, Noise Rejection, Wind Test, WFH Meetings, Online Class",
-            "7. Connectivity — Bluetooth Version, Multipoint Devices, Wired Mode, Codec Support, Pairing",
+            "INTRO. Introduction — Who These Headphones Are For, Why They Matter in India 2026 (3 paragraphs)",
+            "2. Design and Build Quality — Clamping Force, Padding Thickness, Foldability, Weight, Materials, Hinge",
+            "3. Sound Quality Review — Driver Size, Bass Depth, Mids, Highs, Soundstage, Tuning, Real Listening",
+            "4. ANC and Passive Isolation — ANC Strength in dB, Real Environments Tested, Passive Seal Comparison",
+            "5. Battery Life and Charging — Hours ANC On and Off, Quick Charge Time, Wired Backup, USB-C",
+            "6. Call Quality and Mic Test — Voice Clarity, Noise Rejection, Wind, WFH Meetings, Online Class",
+            "7. Connectivity and Codecs — Bluetooth Version, Multipoint Devices, Wired Mode, Codec Support",
             "8. Software and App Features — Companion App, EQ, Touch Controls, Voice Assistant, Smart Features",
-            "9. Full Specifications — Complete Specs Table",
+            "9. Price in India 2026 — All Variants, Launch Offers, No Cost EMI, Best Buy Links",
             "10. Who Should Buy and Who Should Avoid — Audiophiles, WFH Workers, Travellers, Students, Commuters",
-            "11. My Final Verdict and FAQ — Clear Winner Declared Plus 5 Questions Indians Search",
+            "11. Final Verdict — Is It Worth It? Clear Buy or Skip Recommendation",
+            "12. FAQ — Most Searched Questions Indians Ask About These Headphones (5 questions)",
         ]
     },
 
@@ -382,17 +386,18 @@ CAT = {
             {"t": "best AirPods alternative India 2026",           "k": ["AirPods alternative", "India"]},
         ],
         "sections": [
-            "1. Price in India — All Models, Launch Offers, EMI and Where to Buy vs Alternatives",
-            "2. Design and Build Quality — Form Factor, Ear Tip Sizes, Colors, IP Rating, Premium Finish",
-            "3. Sound Quality — Bass, Mids, Highs, Spatial Audio, Real Listening Test vs Rivals",
-            "4. ANC and Transparency Mode — ANC Depth vs Sony and Bose, Adaptive Audio, Wind Test",
-            "5. Battery and Charging — Hours per Charge, MagSafe, Wireless, Quick Charge, Total Case Battery",
-            "6. Call Quality and Mic — Voice Clarity, Wind Noise Rejection, Siri Performance, Outdoor Test",
-            "7. Connectivity — Seamless iPhone iPad Mac Switching, Bluetooth Version, Codec, Android Use",
-            "8. Software and Chip Features — H2 Chip, Auto-Switch, Conversation Awareness, Adaptive EQ, Controls",
-            "9. Full Specifications — Complete Specs Table",
+            "INTRO. Introduction — Who These AirPods Are For, Apple Ecosystem vs Alternatives in India 2026 (3 paragraphs)",
+            "2. Design and Build Quality — Form Factor, Ear Tip Sizes, Colors, IP Rating, Case Design, Premium Finish",
+            "3. Sound Quality Review — Bass, Mids, Highs, Spatial Audio Test, Real Listening Deep Dive vs Rivals",
+            "4. ANC and Transparency Mode — ANC Depth Test vs Sony and Bose, Adaptive Audio, Wind Noise Test",
+            "5. Battery Life and Charging — Hours per Charge, MagSafe, Wireless, Quick Charge, Total Case Battery",
+            "6. Call Quality and Mic Test — Voice Clarity, Wind Noise Rejection, Siri India Performance, Outdoor Test",
+            "7. Connectivity — Seamless iPhone iPad Mac Switching, Bluetooth Version, Codec Support, Android Use",
+            "8. Software and Chip Features — H2 or H3 Chip, Auto-Switch, Conversation Awareness, Adaptive EQ",
+            "9. Price in India 2026 — All Models, Launch Offers, No Cost EMI, Best Buy Links vs Alternatives",
             "10. Who Should Buy and Who Should Avoid — iPhone Users, Android Users, Budget Seekers, Audiophiles",
-            "11. My Final Verdict and FAQ — Buy or Skip, Clear Recommendation Plus 5 Questions Indians Ask",
+            "11. Final Verdict — Is It Worth It? Clear Buy or Skip Recommendation",
+            "12. FAQ — Most Searched Questions Indians Ask About AirPods (5 questions)",
         ]
     },
 
@@ -420,17 +425,18 @@ CAT = {
             {"t": "best slim power bank India 2026",               "k": ["slim power bank", "India"]},
         ],
         "sections": [
-            "1. Price in India — All Variants, Launch Offers, EMI and Where to Buy",
-            "2. Design and Build Quality — Size, Weight, Pocket Fit, Finish, Materials, Port Layout, Durability",
-            "3. Real Capacity and Output — Actual mAh, Real Output Efficiency, Number of Device Charges, Test Results",
-            "4. Charging Speed — Input Watt, Output Watt, PD, QC, PPS Standards, Real Phone and Laptop Charge Time",
-            "5. Battery Life — How Long It Powers Your Devices, Standby Drain, Repeated Charge Cycles Real Test",
+            "INTRO. Introduction — Who This Power Bank Is For, Why It Matters in India 2026 (3 paragraphs)",
+            "2. Design and Build Quality — Size, Weight, Pocket Fit, Finish, Materials, Port Layout, LED Indicator",
+            "3. Real Capacity Test — Rated vs Actual mAh Output, Efficiency Percentage, Number of Full Phone Charges",
+            "4. Charging Speed Test — Input Watt, Output Watt, PD, QC, PPS, Real Phone and Laptop Charge Time",
+            "5. Battery Life — How Many Device Charges, Standby Self-Drain, Long-Term Reliability Real Test",
             "6. Ports and Device Compatibility — USB-A Count, USB-C Count, Simultaneous Charging, Phone Laptop Tablet",
-            "7. Safety and Reliability — Overcharge Protection, Temperature Control, Auto Cut-Off, Certifications",
-            "8. Connectivity and Travel — Cable Included, Pass-Through Charging, Airline Carry-On Compliance",
-            "9. Full Specifications — Complete Specs Table",
+            "7. Safety and Reliability — Overcharge Protection, Temperature Control, Auto Cut-Off, BIS Certification",
+            "8. Connectivity and Travel — Cable Included, Pass-Through Charging, Airline Compliance, Portability",
+            "9. Price in India 2026 — All Variants, Launch Offers, No Cost EMI, Best Buy Links",
             "10. Who Should Buy and Who Should Avoid — Travellers, Students, Professionals, Commuters, Gamers",
-            "11. My Final Verdict and FAQ — Clear Winner Declared Plus 5 Questions Indians Search",
+            "11. Final Verdict — Is It Worth It? Clear Buy or Skip Recommendation",
+            "12. FAQ — Most Searched Questions Indians Ask About This Power Bank (5 questions)",
         ]
     },
 
@@ -461,17 +467,18 @@ CAT = {
             {"t": "best smartwatch for fitness India 2026",        "k": ["fitness smartwatch", "India"]},
         ],
         "sections": [
-            "1. Price in India — All Sizes and Colors, Launch Offers, EMI and Where to Buy",
-            "2. Design and Build Quality — Case Material, Size, Weight, Strap Options, Colors, Premium Feel",
-            "3. Display — Type, Size, Peak Brightness, Resolution, Always-On Mode, Outdoor Visibility",
-            "4. Health and Fitness Tracking — Heart Rate, SpO2, Sleep Tracking, Stress, ECG, Accuracy Real Test",
-            "5. Battery Life and Charging — Days per Charge, AOD On and Off Impact, Quick Charge Time",
-            "6. Smart Notifications and Daily Use — Call Alerts, Reply Options, App Notifications, Quick Actions",
-            "7. GPS and Sports Tracking — Built-In GPS, Route Accuracy, Auto Sport Detection, Running Cycling Swimming",
-            "8. Software and App Ecosystem — Companion App Quality, Third-Party App Support, Android iPhone Compat",
-            "9. Full Specifications — Complete Specs Table",
+            "INTRO. Introduction — Who This Smartwatch Is For, Why It Matters in India 2026 (3 paragraphs)",
+            "2. Design and Build Quality — Case Material, Size, Weight, Strap Options, Colors, Build Premium Feel",
+            "3. Display Review — Type, Size, Peak Brightness, Resolution, Always-On Mode, Outdoor Visibility Test",
+            "4. Health and Fitness Tracking — Heart Rate, SpO2, Sleep, Stress, ECG, Accuracy Real Test Results",
+            "5. Battery Life and Charging — Days per Charge, AOD Impact, Quick Charge Time, Real India Usage",
+            "6. Smart Notifications and Daily Use — Call Alerts, Quick Reply, App Notifications, Productivity Features",
+            "7. GPS and Sports Tracking — Built-In GPS Accuracy, Route Mapping, Auto Sport Detection, Swimming Running",
+            "8. Software and App Ecosystem — Companion App Quality, Third-Party Apps, Android and iPhone Compatibility",
+            "9. Price in India 2026 — All Sizes and Colors, Launch Offers, No Cost EMI, Best Buy Links",
             "10. Who Should Buy and Who Should Avoid — Fitness Lovers, Professionals, Casual Users, Students",
-            "11. My Final Verdict and FAQ — Clear Winner Declared Plus 5 Questions Indians Search",
+            "11. Final Verdict — Is It Worth It? Clear Buy or Skip Recommendation",
+            "12. FAQ — Most Searched Questions Indians Ask About This Smartwatch (5 questions)",
         ]
     },
 }
@@ -1549,173 +1556,315 @@ SPECS_BOX_HTML = """<div style="border:1px solid #ddd;padding:14px;margin:10px 0
 # ── Buying guide structure rules ──────────────────────────────────
 BUYING_GUIDE_STRUCTURE = """
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-MANDATORY ARTICLE STRUCTURE (v15 — iQOO 15R Style)
+MANDATORY ARTICLE STRUCTURE v15 — ALL CATEGORIES
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-REFERENCE BLOG STYLE: https://www.technewsai.me/2026/03/iqoo-15r-review-indias-slimmest-7600mah.html
-Study this blog. Every article must match this exact style: rich prose paragraphs, clean H3 headings, no Q&A format.
+Every article MUST follow this structure EXACTLY — in this ORDER.
+No sections may be skipped, merged, or reordered.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[A] H1 TITLE — CLICKBAIT-BUT-HONEST FORMAT:
-    Examples:
-      "Top 5 Earphones Under ₹2000 India 2026: ANC Tested, Battery Ranked"
-      "iQOO 15R Review: India's Slimmest 7600mAh Gaming Beast — Worth Buying?"
-      "Best 5 Laptops Under ₹50,000 India 2026 — Tested and Ranked"
+[STEP 1] H1 TITLE
+Format: [Product Name] Review: [Key Claim] — Price, Full Specs & Should You Buy? ([Year])
+Example: "iQOO 15R Review: India's Slimmest 7600mAh Gaming Beast — Price, Full Specs & Should You Buy? (2026)"
+Example: "Sony WH-1000XM6 Review: Best ANC Headphones Under ₹30,000 India 2026 — Worth It?"
 
-[B] HOOK INTRO — NARRATIVE STYLE (like the iQOO 15R blog):
-    • Write 2-3 rich italic paragraphs as the opening (no H2 heading for this section)
-    • Sentence 1: Paint the picture of the Indian buyer who needs this product
-    • Sentence 2-5: Build the context — what problem, what market gap, why this product matters now
-    • NEVER write: "In this article we will..." or "We have tested..."
-    • Primary keyword must appear in first 100 words
-    Example style (iQOO 15R):
-    "There is a very specific kind of smartphone buyer in India today. Someone who has followed
-    the flagship world closely enough to know exactly what they want — top-tier processing power,
-    an immersive display, a battery that does not die halfway through a gaming session..."
-
-[C] TABLE OF CONTENTS (for Top 5 buying guides only):
-""" + TOC_HTML + """
-
-[D] QUICK COMPARISON TABLE (for Top 5 buying guides — id="comparison-table"):
-    • Plain border only — no colour on headers
-    • All specs must be real — never invent numbers
-    Columns by category:
-    • Smartphones: Model | Chip | Display | Camera | Battery | Price (₹)
-    • Laptops: Model | CPU | RAM | Display | Battery | Price (₹)
-    • Earphones/Headphones: Model | Driver | ANC | Battery | Codec | Price (₹)
-    • Smartwatch: Model | Display | Battery | GPS | Health | Price (₹)
-    • Power Bank: Model | mAh | Max Watt | Ports | Weight | Price (₹)
+IMAGE PLACEHOLDER immediately after H1:
+<!-- IMAGE PLACEHOLDER: [Product Name] — Add your main product image here -->
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[E] PER-PRODUCT SECTION — MIRROR THE iQOO 15R BLOG STRUCTURE EXACTLY:
+[STEP 2] INTRODUCTION — 3 Full Paragraphs (NO H2 heading, write as flowing italic prose)
 
-For each product, use this H2 format:
-<h2 id="product-N">[Brand + Model Name] — [10-word descriptive honest verdict tagline]</h2>
+Para 1 (Paint the buyer's picture):
+→ Describe the exact type of Indian buyer who needs this product
+→ What pain point they have, what they want, what they cannot afford to compromise on
+→ 4-6 sentences. Emotional, narrative, not salesy.
+Example: "There is a very specific kind of smartphone buyer in India today. Someone who..."
 
-Then immediately: IMAGE PLACEHOLDER comment (blogger pastes manually):
-<!-- IMAGE PLACEHOLDER: [Brand Name] [Model Name] -->
+Para 2 (Product context):
+→ When and where it launched in India, pricing context, market positioning
+→ Which segment it targets, what gap it fills, why now
+→ 3-5 sentences with real launch date and pricing mention
 
-Then SPECS BOX:
+Para 3 (What this review covers):
+→ What Mallikarjun tested, how long, what this review will answer
+→ Build trust: "I have been using this for X weeks and this review covers everything"
+→ 2-3 sentences, transition into the article body
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[STEP 3] QUICK SPECS BOX (immediately after intro):
 """ + SPECS_BOX_HTML + """
 
-Then follow this EXACT H3 order for SMARTPHONES (same as iQOO 15R blog):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[STEP 4] MAIN SECTIONS — Write ALL of these in order:
 
-<h3>[Product Name] Price in India — All Variants and Offers Explained</h3>
-→ Write 2-3 paragraphs. Cover: all RAM/storage variants with prices in ₹, launch bank offers,
-  effective price after discount, which variant gives best value, where to buy (Amazon/Flipkart).
-→ End with: which variant Mallikarjun recommends and why.
+══════════════════════════════════════════════════
+FOR SMARTPHONES — Write these H2 sections in this exact order:
+══════════════════════════════════════════════════
 
-<h3>[Product Name] Design and Build Quality — [Short Tagline]</h3>
-→ Write 3 rich paragraphs (NOT bullet points). Cover:
-  Para 1: thickness, weight, how it compares to rivals, feel in hand, one-hand use verdict
-  Para 2: back panel material, camera module design, edge shape, color variants described vividly
-  Para 3: IP rating explained (what IP68/IP69 actually means in real life), durability verdict
-→ Include real-life India line: "At 7.9mm fits perfectly in jeans pocket without bulk"
+<h2>[Product] Design and Build Quality — Premium Feel or Not?</h2>
+→ IMAGE PLACEHOLDER: <!-- IMAGE PLACEHOLDER: [Product] Design -->
+→ Write 3-4 full paragraphs. Cover ALL of these:
+   • Exact thickness (mm) and weight (g) and how it compares to rivals
+   • Back panel material (glass/plastic/vegan leather), camera module design, flat/curved edges
+   • Color variants described vividly — not just "Black" but "Midnight matte black that resists fingerprints"
+   • IP rating EXPLAINED: "IP68 means submerged 1.5m for 30min. IP69 means high-pressure jets too."
+   • Gorilla Glass version on screen, button placement, one-hand usability verdict
+   • India real-life line: "At 7.9mm it slips perfectly into jeans without that uncomfortable bulge"
 
-<h3>[Product Name] Display — [Panel Type, Hz, and Peak Nits]</h3>
-→ Write 2-3 rich paragraphs. Cover:
-  Para 1: size, panel type, resolution, Hz, punch-hole or notch, bezels, visual impression
-  Para 2: peak brightness in nits, HDR support, outdoor visibility in Indian sunlight, color reproduction
-  Para 3: touch sampling rate if gaming-focused, real-world gaming/streaming/scrolling experience
-→ Include real-life: "Perfectly visible under direct Bengaluru afternoon sunlight"
+<h2>[Product] Display Review — Brightness, HDR, Outdoor Test</h2>
+→ IMAGE PLACEHOLDER: <!-- IMAGE PLACEHOLDER: [Product] Display -->
+→ Write 3 full paragraphs. Cover ALL of these:
+   • Size (inches), panel technology (AMOLED/LTPO/IPS), resolution (FHD+/1.5K/4K), refresh rate Hz
+   • Peak brightness in nits — what that number means in Indian outdoor sunlight
+   • HDR10+ or Dolby Vision — which streaming apps support it (Netflix, YouTube, Prime)
+   • Bezels, punch-hole or notch design, chin size, symmetry
+   • Touch sampling rate (gaming), colour accuracy, DCI-P3 coverage percentage
+   • Real verdict: "In Bengaluru afternoon sun at 2pm — could I read texts without squinting?"
 
-<h3>[Product Name] Performance — [Chipset Name and Key Gaming Claim]</h3>
-→ Write 3-4 rich paragraphs. Cover:
-  Para 1: chipset name, nm process, architecture, benchmark score (AnTuTu), generational leap
-  Para 2: gaming frame rates (fps in which titles), thermal/cooling system name, sustained performance
-  Para 3: RAM type (LPDDR5X) and speed, storage type (UFS 4.1), multitasking real experience
-  Para 4 (if applicable): any co-processor or AI chip and what it specifically does
-→ India real-life: "40 minutes BGMI at 90fps — zero frame drops, barely warm"
+<h2>[Product] Performance Review — Chipset, Benchmarks, Gaming, Daily Use</h2>
+→ IMAGE PLACEHOLDER: <!-- IMAGE PLACEHOLDER: [Product] Performance Gaming -->
+→ Write 4-5 full paragraphs. MUST include ALL four sub-areas:
 
-<h3>[Product Name] Battery Life — [mAh Capacity and Key Claim]</h3>
-→ Write 3 rich paragraphs. Cover:
-  Para 1: mAh capacity, how it compares to competitors (they have X, this has Y = 50% more)
-  Para 2: real India daily usage translation — mixed use days, gaming hours, student/professional scenario
-  Para 3: fast charge wattage, time from 0 to 50%, time to full charge, wireless charging if present
-→ India real-life: "7600mAh = full IPL match + 6 hrs college + night gaming, still 25% left"
+  [Chipset Explanation]
+  → Full chipset name, nm process node, core configuration (prime+performance+efficiency)
+  → What makes this chip special vs the previous generation, GPU name
 
-<h3>[Product Name] Camera — [Main Sensor Name and Key Feature]</h3>
-→ Write 2-3 rich paragraphs. Cover:
-  Para 1: main sensor name and size, MP count, aperture, OIS if present, what these specs mean in practice
-  Para 2: ultrawide specs, selfie camera MP, what real daylight photos look like (not just numbers)
-  Para 3: low-light performance, video stabilization, AI camera features, any trade-offs to be honest about
-→ Be honest: if telephoto is missing, say so clearly and explain the trade-off
+  [Benchmarks]
+  → AnTuTu score, Geekbench single and multi-core scores
+  → How it compares to competitors: "Beats the Snapdragon 7s Gen 3 by 18% on AnTuTu"
 
-<h3>[Product Name] Connectivity — [Key Innovation or Highlight]</h3>
-→ Write 2 rich paragraphs. Cover:
-  Para 1: any connectivity innovation (e.g. 24 antennas, network enhancement chip), 5G bands, WiFi version
-  Para 2: Bluetooth version and what it means, NFC, USB type, IR blaster, biometrics type and speed,
-           speaker setup (stereo/mono), IP rating if not in design section
+  [Gaming Test]
+  → Specific game titles tested: BGMI, Free Fire, Call of Duty Mobile, Genshin Impact
+  → Frame rate achieved at which graphics setting for each game
+  → Temperature after 30 minutes of gaming, thermal throttle observed or not
+  → Cooling system name and how it works
 
-<h3>[Product Name] Software and AI — [OS Version and Key AI Feature]</h3>
-→ Write 3 rich paragraphs. Cover:
-  Para 1: OS version and UI name, first impressions of the interface, bloatware level
-  Para 2: AI features list — what each does in real Indian daily use (not just names, explain benefits)
-  Para 3: update commitment — how many OS updates, how many years of security patches, why this matters
-→ Compare update policy to competitors if iQOO 15R's 4+6 year policy is better
+  [Daily Usage]
+  → App launch speed, multitasking with 10+ apps open, camera app speed
+  → RAM management over 3 days of continuous use
+  → India real-life: "Switched from Instagram to Chrome to BGMI — zero reload, zero stutter"
 
-<h3>[Product Name] Full Specifications</h3>
-→ Write a clean bullet list of ALL key specs: Display, Processor, RAM, Storage,
-  Rear Camera(s), Front Camera, Battery, Charging, OS, Thickness, Weight, Durability, Connectivity
+<h2>[Product] Battery Life and Charging — Real Usage Test</h2>
+→ Write 2 full paragraphs. Cover:
+   Para 1: mAh capacity, real screen-on time achieved (hours), what use pattern (gaming/social/video),
+            India real-life translation: "7600mAh = full IPL + 6 hrs college + night gaming = still 25%"
+   Para 2: Fast charge wattage, time from 0% to 50%, time to 100%, wireless charging if present,
+            reverse charging if present, charger included in box or not
+
+<h2>[Product] Camera Review — Daylight, Night, Portrait, Video, Selfie</h2>
+→ IMAGE PLACEHOLDER: <!-- IMAGE PLACEHOLDER: [Product] Camera Samples -->
+→ Write 5 paragraphs — one for EACH camera test. NEVER merge them:
+
+  [Daylight]
+  → Main sensor name, MP, aperture, OIS present or not
+  → What daylight photos look like: sharpness, colour accuracy, dynamic range
+  → Specific scenario: street photography, landscape, food shots at a restaurant
+
+  [Night]
+  → Night mode performance: how much detail in shadows, noise level, processing time
+  → Astrophotography mode if present
+  → Honest comparison: "Beats the Nothing Phone 3 in night shots but loses to the Pixel 9a"
+
+  [Portrait]
+  → Edge detection accuracy around hair and glasses
+  → Bokeh quality, background blur natural or artificial-looking
+  → Portrait selfie capability
+
+  [Video]
+  → Maximum resolution and frame rate (4K/30fps, 1080p/60fps, 4K/60fps)
+  → OIS stabilization verdict: walking video shaky or smooth?
+  → Slow motion capability (720p/960fps, 1080p/240fps)
+  → Audio recording quality during video
+
+  [Selfie]
+  → Front camera MP, aperture, autofocus present or not
+  → Skin tone accuracy for Indian skin tones
+  → Portrait selfie edge detection verdict
+
+<h2>[Product] Connectivity and Audio — 5G, Speakers, Sensors</h2>
+→ Write 2 full paragraphs. Cover ALL:
+   Para 1: 5G band count (SA+NSA), WiFi version (6/6E/7), Bluetooth version, NFC for UPI payments,
+            USB type (2.0/3.2), IR blaster present or not, any proprietary network chip or antenna innovation
+   Para 2: Speaker setup (stereo/mono), Dolby Atmos support, loudness test at max volume,
+            biometrics (under-display optical/ultrasonic, side fingerprint, face unlock speed),
+            other sensors (gyroscope, barometer, proximity)
+
+<h2>[Product] Software and AI Features — Updates and UI Experience</h2>
+→ Write 1 full paragraph (3-5 sentences). Cover:
+   → Android version, UI name and first-impression of cleanliness vs bloatware
+   → Top 3 AI features explained in plain language (what they do, not just names)
+   → Update commitment: how many OS updates, how many years security patches — and why this matters
+   → "iQOO promises 4 major OS updates + 6 years security patches — better than most Android brands"
+
+<h2>[Product] Price in India 2026 — Variants, Offers and Best Buy Links</h2>
+→ Write 2 full paragraphs + a bullet list. Cover:
+   → All RAM/storage variants with exact ₹ prices
+   → Available colors per variant
+   → Launch bank offers (HDFC/Axis/SBI/ICICI) and effective price after discount
+   → Exchange offers if applicable
+   → No Cost EMI calculation: "₹47,999 = ₹3,999/month for 12 months"
+   → Where to buy: Amazon India, Flipkart, brand website, offline stores
+   → Mallikarjun's recommendation: which variant gives the best value and why
+
+══════════════════════════════════════════════════
+FOR LAPTOPS — same intro + specs box, then these H2 sections:
+══════════════════════════════════════════════════
+
+<h2>[Product] Design and Build Quality</h2>
+→ 3 paragraphs: chassis material, lid flex test, hinge smoothness (180-degree?),
+  port layout side by side, keyboard flex, bottom panel grip, premium feel score
+
+<h2>[Product] Display Review</h2>
+→ 3 paragraphs: panel type, resolution, Hz, nits, colour gamut (sRGB/DCI-P3),
+  outdoor use in sunlight, glare, bezels, webcam quality, notch or not
+
+<h2>[Product] Performance Review — CPU, Benchmarks, Gaming, Daily Tasks</h2>
+→ 4 paragraphs covering:
+  [CPU] full name, generation, core count, TDP, architecture
+  [Benchmarks] Cinebench R23/R24, PCMark 10, GeekBench 6 scores
+  [Gaming] titles tested, settings, fps, temperature, fan noise under load
+  [Daily Tasks] browser tabs, coding IDEs, video calls, editing, thermal throttle
+
+<h2>[Product] Battery Life and Charging</h2>
+→ 2 paragraphs: Wh capacity, real hours (web browsing / video / coding),
+  charger wattage, USB-C or barrel, time to full, can charge via USB-C PD?
+
+<h2>[Product] Keyboard and Trackpad</h2>
+→ 1-2 paragraphs: key travel (mm), typing feel, backlight (RGB/white/none),
+  trackpad size, glass or plastic surface, gesture support, accidental touch rejection
+
+<h2>[Product] Connectivity and Ports</h2>
+→ 2 paragraphs: WiFi version, BT version, USB-A count, USB-C/Thunderbolt count,
+  HDMI version, SD card, headphone jack, fingerprint/face, webcam resolution
+
+<h2>[Product] Software and AI Features</h2>
+→ 1 paragraph: OS (Windows 11/macOS), bloatware level, Copilot/Apple Intelligence,
+  exclusive AI tools, driver update quality, update support years
+
+<h2>[Product] Price in India 2026</h2>
+→ Same format as smartphone price section above
+
+══════════════════════════════════════════════════
+FOR EARPHONES — same intro + specs box, then these H2 sections:
+══════════════════════════════════════════════════
+
+<h2>[Product] Design and Build Quality</h2>
+→ 2 paragraphs: TWS or wired, earbud size, stem design, IP rating, ear tip sizes included,
+  fit stability during workout, controls (touch/button), case size, hinge quality
+
+<h2>[Product] Sound Quality Review — Bass, Mids, Highs</h2>
+→ 3 paragraphs — one each for bass, mids+highs, soundstage+imaging:
+  Bass: depth, punch, sub-bass extension, bloat or tight?
+  Mids+Highs: vocal clarity, instrument separation, sibilance at high volume?
+  Soundstage: wide or narrow, does it sound in-your-head or open?
+
+<h2>[Product] ANC and Transparency Mode</h2>
+→ 2 paragraphs: ANC dB rating, real environments tested (metro, bus, office AC),
+  transparency mode natural or tinny, wind noise in transparency mode
+
+<h2>[Product] Battery Life and Charging</h2>
+→ 2 paragraphs: earbuds-only hours (ANC on vs off), case charges count, total hours,
+  fast charge (10 min = X hours), wireless charging case or not
+
+<h2>[Product] Call Quality and Mic Test</h2>
+→ 1-2 paragraphs: voice clarity in quiet room, crowded place noise rejection,
+  wind test outdoors, ENC microphone beamforming, call on both ears or one
+
+<h2>[Product] Connectivity and Codecs</h2>
+→ 1-2 paragraphs: BT version, codecs (LDAC/aptX Adaptive/AAC/SBC), latency ms for gaming/video,
+  multipoint (2 devices simultaneously), pairing speed, range (meters)
+
+<h2>[Product] Software and App Features</h2>
+→ 1 paragraph: companion app name, EQ presets available, custom EQ, gesture customization,
+  auto-pause on ear removal, voice assistant integration, firmware updates
+
+<h2>[Product] Price in India 2026</h2>
+→ Same format as smartphone price section above
+
+══════════════════════════════════════════════════
+FOR HEADPHONES — same as earphones but adapt:
+Replace: Ear tip fit → Clamping force and earcup padding comfort
+Replace: Earbud size → Headband adjustment, foldable or not
+Add: Wired mode (3.5mm included?), carry pouch or case included
+
+══════════════════════════════════════════════════
+FOR AIRPODS — same as earphones but add:
+Replace Software section → Apple Chip Features (H2/H3 chip, auto device switch, Conversation Awareness)
+Add Apple ecosystem context in every relevant section
+
+══════════════════════════════════════════════════
+FOR POWER BANKS — same intro + specs box, then these H2 sections:
+══════════════════════════════════════════════════
+
+<h2>[Product] Design and Build Quality</h2>
+→ 2 paragraphs: dimensions (mm), weight (g), pocket fit, matte/gloss finish,
+  rubber grip or not, LED indicator dots or digital display, port layout
+
+<h2>[Product] Real Capacity Test — Rated vs Actual Output</h2>
+→ 2 paragraphs: rated mAh vs actual mAh delivered (conversion efficiency %),
+  how many full charges of iPhone 15, Samsung S25, OnePlus 13 achieved
+
+<h2>[Product] Charging Speed Test</h2>
+→ 2 paragraphs: input charging speed (how long to charge the power bank itself),
+  output speed (what W delivered to phone/laptop), PD/QC/PPS support,
+  real test: "Charged my Samsung S25 from 0% to 100% in X minutes"
+
+<h2>[Product] Battery Life — How Many Devices Can It Charge</h2>
+→ 2 paragraphs: number of full charges per device type, standby drain over 7 days,
+  does capacity degrade after 6 months? reliability long-term verdict
+
+<h2>[Product] Ports and Device Compatibility</h2>
+→ 1-2 paragraphs: USB-A count, USB-C count, max W per port, simultaneous charging slots,
+  laptop compatibility (which brands tested), tablet, earbuds
+
+<h2>[Product] Safety and Reliability</h2>
+→ 1 paragraph: overcharge protection, over-temperature cutoff, BIS certification,
+  short circuit protection, brand reputation for reliability in India
+
+<h2>[Product] Connectivity and Travel</h2>
+→ 1 paragraph: cable included (type, length), pass-through charging support,
+  airline carry-on compliance (100Wh limit), TSA rules, size for backpack
+
+<h2>[Product] Price in India 2026</h2>
+→ Same format as smartphone price section above
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-FOR LAPTOPS — same structure but adapt sections:
-  H3 order: Price → Design/Build → Display → Performance/Gaming → Battery → Camera/Webcam
-            → Connectivity → Software/AI → Full Specs
+[STEP 5] AFTER ALL MAIN SECTIONS — add for EVERY category:
 
-FOR EARPHONES/HEADPHONES — same structure but adapt:
-  H3 order: Price → Design/Build → Sound Quality → ANC/Transparency → Battery
-            → Call Quality/Mic → Connectivity → App/Software → Full Specs
-
-FOR POWER BANKS — adapt:
-  H3 order: Price → Design/Build → Real Capacity → Charging Speed → Battery Life
-            → Ports/Compatibility → Safety → Connectivity/Travel → Full Specs
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-AFTER ALL H3 SECTIONS, for each product add:
-
-  PROS & CONS TABLE (plain border):
+PROS & CONS TABLE:
 """ + PROS_CONS_HTML + """
 
-  <p><strong>🎯 Best For:</strong> [Very specific user type — "students on 1.5 hr daily commute"]</p>
-  <p><strong>🏅 Verdict Label:</strong> [Top Pick / Value Pick / Budget Champion / Premium Pick]</p>
-  <p><strong>💬 Mini Verdict:</strong> [1 sentence including honest comparison — "Better battery than OnePlus 13. ₹5000 cheaper than Samsung S25."]</p>
+<h2>Who Should Buy [Product] and Who Should Avoid</h2>
+→ Write 2 paragraphs. Be specific:
+  Para 1 (Buy): "If you are a college student who games on weekends, a daily commuter..."
+  Para 2 (Avoid): "If you need a dedicated telephoto camera, or if OIS in video matters..."
+  → Never write vague generic lines like "good for most users"
 
-  Expert Tip box:
-  <div style="border-left:3px solid #333;padding:10px 14px;margin:12px 0;background:#f9f9f9;">
-  <strong>💡 Expert Tip:</strong> [Specific India timing/variant/offer advice]
-  </div>
+<h2>Final Verdict — Is [Product] Worth It in India 2026?</h2>
+""" + VERDICT_TABLE_HTML + """
+→ Write 2-3 paragraphs declaring a clear winner with honest reasoning
+→ Name the closest competitor and explain where this product wins and loses
+→ End with: "My final verdict: [Buy / Skip / Wait for sale]"
+→ CTA: <a href="https://www.technewsai.me/search/label/[Category]">Read all [Category] reviews on Tech News With AI</a>
 
-  Should You Buy box:
-  <div style="border:1px solid #ddd;padding:12px 16px;margin:14px 0;">
-  <strong>🤔 Should You Buy This?</strong><br/>
-  ✅ Buy if: [specific case 1] | [specific case 2]<br/>
-  ❌ Skip if: [honest reason 1] | [honest reason 2]
-  </div>
-
-  TRANSITION LINE before next product:
-  "Now if that price is still too high, the next pick will genuinely surprise you."
-  "That was the safe pick. Now here is the one for real enthusiasts."
-  "This next one is polarising. Some love it. Some hate it. Here is exactly why."
+<h2>FAQ — Most Searched Questions About [Product]</h2>
+→ Write 7 FAQ for smartphones, 5 for all other categories
+→ Use question-based H3 ONLY in this section:
+   <h3>Is the [Product] worth buying in India 2026?</h3>
+   <h3>What is the [Product] price in India 2026?</h3>
+   <h3>How long does the [Product] battery last?</h3>
+   <h3>Which is better: [Product] vs [Competitor]?</h3>
+   <h3>Does [Product] support 5G in India?</h3>
+   <h3>Where is the best place to buy [Product] in India?</h3>
+   <h3>Is [Product] good for gaming?</h3>
+→ Each answer: 40-60 words, complete, standalone, conversational
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[F] FINAL VERDICT (id="final-verdict"):
-<h2 id="final-verdict">🏆 Final Verdict — The Clear Winner in India 2026</h2>
-""" + VERDICT_TABLE_HTML + """
-    → Declare ONE clear winner with one sentence explaining why
-    → Add Value Pick, Premium Pick rows to the table
-    → CTA: Link to category label → <a href="https://www.technewsai.me/search/label/[Category]">Tech News With AI</a>
-
-[G] FAQ SECTION (id="faq") — 5 to 7 question H3s for Google rich results:
-    • Use clean question H3s (these ARE allowed as questions in FAQ section only)
-    • First question must be exact search query
-    • Answers under 60 words — complete and standalone
-    Examples:
-    <h3>Which is the best smartphone under ₹50,000 in India 2026?</h3>
-    <h3>Is the iQOO 15R worth buying in India 2026?</h3>
-    <h3>How long does the iQOO 15R battery last in real use?</h3>
-    <h3>What is the difference between iQOO 15R and OnePlus 13R?</h3>
-    <h3>Where is the best place to buy the iQOO 15R in India?</h3>
+[STEP 6] END OF ARTICLE — ALWAYS in this order:
+1. Also Read box (auto-added by code — brand-interlinked)
+2. Social share block (auto-added by code)
+3. Author bio with photo (auto-added by code)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
 
 
@@ -2033,14 +2182,14 @@ def human_rewrite(draft, story):
         "• Best For lines, Mini Verdict lines, CTA lines\n\n"
 
         "━━━ CRITICAL HEADING RULE ━━━\n"
-        "H2 and H3 heading text is FIXED and SEO-optimised. Copy it exactly.\n"
-        "H3 headings are CLEAN and DESCRIPTIVE — like 'Build Quality', 'Display and Design',\n"
-        "'Performance (Chipset + Gaming)', 'Camera (Real Usage)', 'Battery and Charging',\n"
-        "'Software and AI', 'Connectivity'.\n"
-        "NEVER change H3 to a question format like 'What Are the Key Design Elements of...'.\n"
-        "Personal hooks and commentary go in the FIRST <p> tag AFTER the heading.\n"
-        "Correct: <h3>Build Quality</h3><p>Here is what surprised me about this one...</p>\n"
-        "Wrong:   <h3>What is the build quality like?</h3>\n\n"
+        "H2 and H3 heading text is FIXED — copy it exactly from the draft.\n"
+        "H2 section headings follow this pattern: '[Product Name] [Section] — [Short Tagline]'\n"
+        "Example: 'iQOO 15R Design and Build Quality — Premium Feel or Not?'\n"
+        "Example: 'Sony WH-1000XM6 Battery Life and Charging — Real Usage Test'\n"
+        "The ONLY place question-format H3s are allowed = inside the FAQ section.\n"
+        "Personal hooks go in the FIRST <p> paragraph AFTER the heading — never inside the H2.\n"
+        "Correct: <h2>iQOO 15R Performance Review</h2><p>Here is what genuinely surprised me...</p>\n"
+        "Wrong:   <h2>Does the iQOO 15R Perform Well?</h2>\n\n"
 
         "━━━ FOR EVERY SECTION, DO ALL OF THESE ━━━\n\n"
         "① PERSONAL HOOK — first <p> AFTER the H2/H3 (NOT inside the heading):\n"
