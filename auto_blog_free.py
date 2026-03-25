@@ -1,4 +1,6 @@
-# TECH NEWS WITH AI - AUTO BLOG v15.0 ADVANCED FINAL
+# TECH NEWS WITH AI - AUTO BLOG v17.0 FINAL
+# Changes: No Pros/Cons tables, No comparison tables, VS articles = full per-product sections,
+# Author bio on ALL articles, ### markdown → <h3> HTML auto-conversion
 # technewsai.me - Mallikarjun R, Bengaluru
 # ================================================================
 # SCHEDULE:
@@ -205,7 +207,7 @@ CAT = {
             {"t": "best Infinix phone India 2026",                 "k": ["Infinix", "India"]},
         ],
         "sections": [
-            "INTRO. Introduction — Who This Phone Is For, Why It Matters in India 2026 (3 paragraphs)",
+            "INTRO. Introduction — Who This Phone Is For, Why It Matters in India 2026 (2 paragraphs)",
             "2. Design and Build Quality — Premium Feel or Not? Materials, IP Rating, Dimensions, Colors, Durability",
             "3. Display Review — Brightness, HDR, Outdoor Test, Panel Type, Resolution, Refresh Rate, Real Usage",
             "4. Performance Review — Chipset Deep Dive, Benchmarks, Gaming Test (titles+fps), Daily Usage Experience",
@@ -956,10 +958,19 @@ def pick_search_story(log, used_in_run):
     }
 
 def fix_bold(text):
+    # Convert markdown bold/italic to HTML
     text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
     text = re.sub(r"\*(.+?)\*",     r"<em>\1</em>",          text)
+    # Strip code fences
     text = re.sub(r"```html",       "",                       text)
     text = re.sub(r"```",           "",                       text)
+    # Convert markdown headings to HTML (### before ## before #)
+    text = re.sub(r"^###\s+(.+)$", r"<h3>\1</h3>", text, flags=re.MULTILINE)
+    text = re.sub(r"^##\s+(.+)$",  r"<h2>\1</h2>", text, flags=re.MULTILINE)
+    text = re.sub(r"^#\s+(.+)$",   r"<h1>\1</h1>", text, flags=re.MULTILINE)
+    # Remove any remaining raw ### that slipped through (e.g. inline ### What is...)
+    text = re.sub(r"###\s*", "", text)
+    text = re.sub(r"##\s*",  "", text)
     return text.strip()
 
 # ================================================================
@@ -1899,6 +1910,112 @@ These must appear in the article text — not stuffed, naturally woven:
 """
 
 
+# ================================================================
+# VS COMPARISON STRUCTURE — Per-Product Full Deep-Dive
+# ================================================================
+VS_COMPARISON_STRUCTURE = """
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VS COMPARISON — MANDATORY STRUCTURE v17
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ABSOLUTELY NO: Pros & Cons tables | Comparison tables | Side-by-side columns | Mixed product paragraphs
+
+[STEP 1] H1 TITLE (pre-generated — use exactly as given)
+
+[STEP 2] INTRO — 3 paragraphs, no H2:
+  Para 1: The Indian buyer dilemma — who is torn between these two products and why
+  Para 2: What makes this comparison unique in India 2026 — pricing, availability, ecosystem
+  Para 3: What this article covers and Mallikarjun's testing methodology
+
+[STEP 3] PRODUCT A — COMPLETE STANDALONE REVIEW
+<h2>[Product A Full Name] — Full Review India 2026</h2>
+<!-- IMAGE PLACEHOLDER: [Product A] — Add product image here -->
+
+QUICK SPECS BOX for Product A only
+
+FOR SMARTPHONES write these H3 sections for Product A ONLY:
+<h3>[Product A] Introduction — Who This Is For and Why It Matters in India 2026</h3>
+→ 3 paragraphs: target user, India launch context, market positioning, what makes it stand out
+
+<h3>[Product A] Design and Build Quality — Materials, IP Rating, Dimensions, Colors</h3>
+→ 3-4 paragraphs: thickness mm, weight g, back material, IP rating explained, Gorilla Glass, colors described vividly, button layout, one-hand use verdict
+
+<h3>[Product A] Display Review — Panel Type, Brightness, HDR, Outdoor Test</h3>
+→ 3 paragraphs: panel tech, size, resolution, Hz, nits in Indian sunlight, HDR app support, bezels, touch sampling
+
+<h3>[Product A] Performance Review — Chipset, Benchmarks, Gaming Test, Daily Use</h3>
+→ 4 paragraphs: chipset name+nm+cores, AnTuTu+Geekbench scores vs named rival, BGMI/Free Fire fps+temp, daily multitasking India scenario
+
+<h3>[Product A] Battery Life and Charging — mAh, Screen-On Hours, Fast Charge Time</h3>
+→ 2 paragraphs: mAh, real SOT hours, India real-life translation, fast charge W + 0-100% time, charger in box
+
+<h3>[Product A] Camera Review — Daylight, Night, Portrait, Video, Selfie</h3>
+→ 5 paragraphs (one per test — never merge): daylight sharpness+DR, night shadow detail, portrait edge detection, video OIS+fps, selfie skin tone accuracy
+
+<h3>[Product A] Connectivity and Audio — 5G Bands, WiFi, Speakers, Biometrics</h3>
+→ 2 paragraphs: 5G bands, WiFi version, BT, NFC for UPI, USB type; speakers stereo/mono, Dolby Atmos, fingerprint speed
+
+<h3>[Product A] Software and AI Features — Android Version, UI, AI Tools, Updates</h3>
+→ 1-2 paragraphs: Android version, UI cleanliness, top 3 AI features in plain language, OS+security update years
+
+<h3>[Product A] Price in India 2026 — All Variants, Bank Offers, No Cost EMI</h3>
+→ 2 paragraphs + bullet list: all variants with ₹ prices, bank offers, No Cost EMI calculation, where to buy, best variant recommendation
+
+<h3>[Product A] Who Should Buy This and Who Should Skip It</h3>
+→ 2 paragraphs (NO table, pure prose):
+  Para 1 — Buy if: specific user type with real scenarios
+  Para 2 — Skip if: specific cases where the other product is better
+
+FOR LAPTOPS use: Intro, Design+Build, Display, Performance, Battery, Keyboard+Trackpad, Connectivity+Ports, Software+AI, Price, Who Should Buy
+FOR EARPHONES use: Intro, Design+Build, Sound Quality, ANC+Transparency, Battery, Call Quality, Connectivity+Codecs, App+Features, Price, Who Should Buy
+FOR SMARTWATCHES use: Intro, Design+Build, Display, Health+Fitness Tracking, Battery+Charging, Smart Notifications, GPS+Sports, Software+App Ecosystem, Price, Who Should Buy
+FOR HEADPHONES use: same as earphones but adapt for over-ear comfort, clamping force, foldability
+FOR POWER BANKS use: Intro, Design+Build, Real Capacity Test, Charging Speed, Device Compatibility, Safety, Price, Who Should Buy
+
+[STEP 4] TRANSITION LINE (mandatory — one of these):
+→ "That was the full story on [Product A]. Now here is [Product B] — a completely different experience."
+→ "Different ecosystem, different philosophy — here is what [Product B] brings to the table."
+→ "Now if [Product A] did not convince you, what [Product B] does next might change everything."
+
+[STEP 5] PRODUCT B — COMPLETE STANDALONE REVIEW
+<h2>[Product B Full Name] — Full Review India 2026</h2>
+<!-- IMAGE PLACEHOLDER: [Product B] — Add product image here -->
+
+QUICK SPECS BOX for Product B only
+
+[Write ALL same H3 sections as Product A above — for Product B ONLY]
+Every section about Product B only. Never mix Product A specs here.
+
+[STEP 6] FINAL VERDICT — Which One Should You Buy in India 2026?
+<h2>Final Verdict — [Product A] vs [Product B]: Which is Worth Buying in India 2026?</h2>
+→ 4 rich prose paragraphs (NO table, NO bullet points — pure narrative):
+  Para 1: Declare the winner and WHY in one confident sentence, then explain fully
+  Para 2: Use-case breakdown — which product wins for which exact user (gamer, camera lover, battery user, budget buyer, ecosystem user)
+  Para 3: Price-value context — which gives better rupee value, when to wait for a sale
+  Para 4: Mallikarjun's personal pick and honest reasoning
+→ End with: "My final verdict: [Product Name]. Here is why I would put my own money on it."
+→ CTA: <a href="https://www.technewsai.me/search/label/[Category]">Read all [Category] reviews on Tech News With AI</a>
+
+[STEP 7] FAQ — 7 Questions Indians Ask About This Comparison
+<h2 id="faq">FAQ — [Product A] vs [Product B]: Most Asked Questions India 2026</h2>
+→ 7 question-based H3s (ONLY place Q format is allowed):
+  <h3>Which is better: [Product A] or [Product B] in India 2026?</h3>
+  <h3>What is the price difference between [Product A] and [Product B] in India?</h3>
+  <h3>Which has better battery life: [Product A] or [Product B]?</h3>
+  <h3>Which has better camera: [Product A] or [Product B]?</h3>
+  <h3>Is [Product A] worth buying over [Product B] in India 2026?</h3>
+  <h3>Which is better for gaming: [Product A] or [Product B]?</h3>
+  <h3>Where to buy [Product A] and [Product B] at the best price in India?</h3>
+→ Each answer: 40-60 words, specific, names both products, conversational
+
+[STEP 8] END — auto-added by code in this order:
+1. Also Read box (brand-interlinked)
+2. Social share block
+3. Author bio with photo
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"""
+
+
 def groq_draft(story, is_search):
     client   = Groq(api_key=GROQ_API_KEY)
     cat      = story.get("category", "smartphone")
@@ -1953,14 +2070,37 @@ def groq_draft(story, is_search):
         ctx   = story.get("rss_context", "")
         if " vs " in topic.lower():
             mode = (
-                "HEAD TO HEAD COMPARISON.\n"
-                "- Compare BOTH products in every single section side by side.\n"
-                "- Each section: show Product A result, then Product B result.\n"
-                "- Add separate Pros & Cons table for EACH product.\n"
-                "- Add specs box for each product.\n"
-                "- End with a 'Which to Buy' verdict table (plain border, no colour).\n"
-                "- Add 'Best For' line for each product.\n"
-                "- Use transition line between each comparison section.\n"
+                "VS COMPARISON — FULL PRODUCT DEEP-DIVE FORMAT.\n"
+                "CRITICAL STRUCTURE RULES:\n"
+                "- Do NOT compare products side by side in the same paragraph.\n"
+                "- Do NOT use any Pros & Cons tables anywhere.\n"
+                "- Do NOT use any comparison tables or side-by-side columns.\n"
+                "- Do NOT mix both products in the same section.\n"
+                "\n"
+                "MANDATORY STRUCTURE:\n"
+                "1. INTRO (3 paragraphs, no H2): Paint the buyer dilemma, why this comparison matters in India 2026, what this article covers.\n"
+                "\n"
+                "2. PRODUCT A — Full Deep-Dive (use the first product name as H2):\n"
+                "   <h2>[Product A Name] — Full Review</h2>\n"
+                "   IMAGE PLACEHOLDER comment immediately after H2\n"
+                "   Quick Specs Box\n"
+                "   Then write ALL category H3 sections for Product A ONLY (Design, Display, Performance, Battery, Camera, Connectivity, Software, Price, Who Should Buy)\n"
+                "   Each H3 section: 2-4 full prose paragraphs with real specs, India real-life translation, honest trade-offs.\n"
+                "\n"
+                "3. TRANSITION LINE between the two products (mandatory).\n"
+                "\n"
+                "4. PRODUCT B — Full Deep-Dive (use the second product name as H2):\n"
+                "   <h2>[Product B Name] — Full Review</h2>\n"
+                "   IMAGE PLACEHOLDER comment immediately after H2\n"
+                "   Quick Specs Box\n"
+                "   Then write ALL category H3 sections for Product B ONLY (same structure as Product A)\n"
+                "\n"
+                "5. FINAL VERDICT (H2): 3-4 rich prose paragraphs declaring a winner, use-case recommendations, price context, Mallikarjun's personal pick.\n"
+                "   End with: 'My final verdict: [Product Name]. Here is why I would put my own money on it.'\n"
+                "   CTA link to category label page.\n"
+                "   NO verdict table. NO comparison table. Pure prose only.\n"
+                "\n"
+                "6. FAQ (H2, id=faq): 7 question H3s Indians search about this comparison. FAQ comes AFTER Final Verdict.\n"
             )
         elif "under" in topic.lower() or "best" in topic.lower():
             mode = (
@@ -1985,6 +2125,12 @@ def groq_draft(story, is_search):
                 "- Practical India advice throughout.\n"
             )
 
+        # Choose structure template based on article type
+        if " vs " in topic.lower():
+            structure_block = VS_COMPARISON_STRUCTURE
+        else:
+            structure_block = BUYING_GUIDE_STRUCTURE
+
         prompt = (
             title_instruction +
             "Write a comprehensive SEO-optimised guide for Indians searching: '" + topic + "'\n\n"
@@ -1992,7 +2138,7 @@ def groq_draft(story, is_search):
             "REAL DATA FROM RSS AND REVIEW SOURCES:\n"
             + (ctx or "Use your latest India market 2026 knowledge.") + "\n\n"
             + section_block
-            + BUYING_GUIDE_STRUCTURE + "\n\n"
+            + structure_block + "\n\n"
             + rules_with_kw + "\n\n"
             + link_rules + "\n\n"
             "SEO CHECKLIST:\n"
@@ -2242,6 +2388,34 @@ def save_log(log, title, url, words, atype, cat, search_topic=""):
         json.dump(log, f, indent=2)
     print("Log: " + str(len(log)) + " total posts")
 
+# ================================================================
+# AUTHOR BIO HTML — injected on EVERY article (all types)
+# ================================================================
+def build_author_bio():
+    today = datetime.datetime.now().strftime("%B %d, %Y")
+    return (
+        '<div style="border-top:3px solid #1a73e8;margin-top:40px;padding:20px;' 
+        'background:#f0f7ff;border-radius:12px;">'
+        "<table><tr>"
+        '<td style="width:85px;vertical-align:top;padding-right:15px;">'
+        '<img src="https://lh3.googleusercontent.com/pw/AP1GczNbk_7GTq9-pE7KTZUn0skqYYoESZzxYYQ1uTQvvu6dDj-2AUPZyvUGs5XPOGrt5HeVnMuHzPHO8tp1OA0zuhAKF6wlOho_8Q1aVAlVTwG9CNr_jH8=s400-no"'
+        ' width="75" height="75" style="border-radius:50%;border:3px solid #1a73e8;" alt="Mallikarjun R"/>'
+        "</td><td style='vertical-align:top;'>"
+        '<p style="margin:0;font-size:18px;font-weight:bold;color:#1a73e8;">Mallikarjun R</p>'
+        '<p style="margin:4px 0;font-size:13px;color:#666;">CSE Student &amp; Tech Blogger &bull; Bengaluru, India</p>'
+        '<p style="margin:10px 0;font-size:14px;color:#333;line-height:1.7;">'
+        "Passionate about smartphones, laptops and everything tech. "
+        "Honest reviews for Indian buyers. Follow for daily updates!</p>"
+        '<p style="margin:8px 0;">'
+        '<a href="https://www.instagram.com/mallikarjunr_8055" target="_blank" style="color:#e4405f;margin-right:15px;font-weight:bold;">&#128247; Instagram</a>'
+        '<a href="https://whatsapp.com/channel/0029VazWwdn0wajoizN5PY3Q" target="_blank" style="color:#25d366;margin-right:15px;font-weight:bold;">&#128172; WhatsApp</a>'
+        '<a href="https://www.linkedin.com/in/mallikarjun-r-a85685367" target="_blank" style="color:#0077b5;font-weight:bold;">&#128188; LinkedIn</a>'
+        "</p>"
+        f'<p style="font-size:12px;color:#999;"><em>Published: {today} &bull; <a href="{BLOG_URL}" target="_blank">technewsai.me</a></em></p>'
+        "</td></tr></table></div>"
+    )
+
+
 def run_article(story, is_search, label, atype, log):
     print("\n" + "="*55)
     print(label + " [" + story.get("category","?").upper() + "]")
@@ -2296,6 +2470,19 @@ def run_article(story, is_search, label, atype, log):
     # Step 3 — Remove any auto-injected hero image blocks (keep only placeholder comment)
     # No auto hero image — blogger pastes manually
 
+    # Step 3a — Strip Pros & Cons tables and comparison tables from buying guide / VS articles
+    if is_search:
+        # Remove entire <table>...</table> blocks that contain Pros or Cons headers
+        final = re.sub(
+            r'<table[^>]*>(?:(?!</table>).)*?(?:✅\s*Pros|❌\s*Cons|Pros\s*</th|Cons\s*</th)(?:(?!</table>).)*?</table>',
+            '', final, flags=re.DOTALL | re.IGNORECASE
+        )
+        # Remove verdict/comparison tables (Use Case | Best Pick | Why pattern)
+        final = re.sub(
+            r'<table[^>]*>(?:(?!</table>).)*?(?:Use Case|Best Pick|Which to Buy|Comparison)(?:(?!</table>).)*?</table>',
+            '', final, flags=re.DOTALL | re.IGNORECASE
+        )
+
     # Step 4 — Inject AdSense ad slots between H2 sections (every 2nd)
     h2_count = [0]
     def inject_ad(match):
@@ -2324,15 +2511,13 @@ def run_article(story, is_search, label, atype, log):
     # Step 6b — Also Read box (brand-interlinked related articles)
     also_read = build_also_read_box(cat, title)
 
-    # Step 7 — Footer
+    # Step 7 — Footer (author bio on EVERY article)
+    author_bio_html = build_author_bio()
     footer = (
         "<hr/>"
         + also_read
         + social_block
-        + f"<p style='font-size:12px;color:#888;text-align:center;padding:10px;'>"
-        f"<em>Published by Mallikarjun R | "
-        f"<a href='{BLOG_URL}' target='_blank'>Tech News With AI</a>"
-        f" | technewsai.me</em></p>"
+        + author_bio_html
     )
 
     # Assemble final HTML: schema first, then article, then footer
@@ -2355,7 +2540,7 @@ def run_article(story, is_search, label, atype, log):
 # ================================================================
 def main():
     print("=======================================================")
-    print(" TECH NEWS WITH AI - AUTO BLOG v14.0 ADVANCED")
+    print(" TECH NEWS WITH AI - AUTO BLOG v17.0 FINAL")
     print(" Daily: 1 News + 2 Dynamic Search Topics")
     print(" Topics: Live RSS → Groq auto-generates trending topics")
     print(" Content: 4000+ words | Schema | Images | Social Share")
