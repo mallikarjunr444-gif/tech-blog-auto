@@ -1063,14 +1063,12 @@ def generate_seo_title(story, is_search):
             f"- Must be clickbait-honest: make it exciting BUT accurate\n"
             f"- Must include primary keyword and India {year}\n"
             f"- Must be under 65 characters (fits Google title tag)\n"
-            f"- Use power words: Best, Tested, Honest, Worth It, Buying Guide, Camera, Battery, Gaming\n"
-            f"- NEVER end title with 'Ranking' or 'Honest Tested Ranking'\n"
+            f"- Use power words: Best, Tested, Ranked, Honest, Worth It, Buying Guide\n"
             f"- Format options (pick the best fit):\n"
             f"  'Top 5 Best [Product] Under ₹[Price] India {year} — Tested & Ranked'\n"
             f"  '[Product A] vs [Product B] India {year}: Which One Wins?'\n"
-            f"  '[Product] Review ({year} India): Camera, Battery & Gaming — Verdict'\n"
             f"  'Is [Product] Worth Buying India {year}? Honest Review'\n"
-            f"  'Best [Feature] [Category] India {year}: Top [N] Picks Tested'\n\n"
+            f"  'Best [Feature] [Category] India {year}: Top 7 Picks Tested'\n\n"
             f"Output ONLY the title text. No quotes. No explanation."
         )
         r = client.chat.completions.create(
@@ -1294,65 +1292,63 @@ SOCIAL_LOGOS = {
 
 def build_social_block(title, url="https://technewswithai.blogspot.com"):
     """
-    Social sharing footer with real app logos (official Wikimedia/CDN).
-    Includes WhatsApp, Telegram, Reddit, Quora, LinkedIn, Medium.
+    GitHub-style clean horizontal share bar.
+    No emoji spam, no colored boxes, no Quora tip line.
     """
     encoded_title = requests.utils.quote(title[:100])
     encoded_url   = requests.utils.quote(url)
-    wa_text       = requests.utils.quote(f"{title[:80]} 👉 {url}")
+    wa_text       = requests.utils.quote(f"{title[:80]} {url}")
 
-    logo_style = "width:24px;height:24px;vertical-align:middle;margin-right:5px;border-radius:4px;"
-    link_style = "display:inline-flex;align-items:center;margin:6px 10px;font-size:13px;font-weight:bold;text-decoration:none;"
+    icon_style = (
+        "width:20px;height:20px;vertical-align:middle;margin-right:6px;"
+        "border-radius:3px;"
+    )
+    link_style = (
+        "display:inline-flex;align-items:center;margin:0 12px 0 0;"
+        "font-size:13px;color:#57606a;text-decoration:none;"
+        "font-weight:600;letter-spacing:0.01em;"
+    )
 
-    def logo_link(href, logo_url, label, color):
+    def share_link(href, logo_url, label):
         return (
             f'<a href="{href}" target="_blank" rel="noopener" '
-            f'style="{link_style}color:{color};">'
-            f'<img src="{logo_url}" alt="{label}" style="{logo_style}" loading="lazy"/>'
+            f'style="{link_style}">'
+            f'<img src="{logo_url}" alt="{label}" style="{icon_style}" loading="lazy"/>'
             f'{label}</a>'
         )
 
     return (
-        '<div style="border:1px solid #ddd;padding:20px 16px;margin:28px 0;text-align:center;'
-        'border-radius:8px;">'
-        '<p style="margin:0 0 14px;font-size:15px;font-weight:bold;color:#222;">'
-        '📢 Found this helpful? Share it with your friends!</p>'
-        '<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px;">'
-
-        + logo_link(
-            f"https://wa.me/?text={wa_text}",
-            SOCIAL_LOGOS["whatsapp"],
-            "WhatsApp", "#25d366"
+        '\n<hr style="border:none;border-top:1px solid #d0d7de;margin:40px 0 20px;"/>\n'
+        '<div style="display:flex;align-items:center;flex-wrap:wrap;'
+        'gap:4px;margin-bottom:40px;">'
+        '<span style="font-size:13px;font-weight:600;color:#57606a;margin-right:12px;">'
+        'Share:</span>'
+        + share_link(
+            f"https://twitter.com/intent/tweet?text={encoded_title}&url={encoded_url}",
+            "https://upload.wikimedia.org/wikipedia/commons/5/57/X_logo_2023_%28white%29.png",
+            "X"
         )
-        + logo_link(
-            f"https://t.me/share/url?url={encoded_url}&text={encoded_title}",
-            SOCIAL_LOGOS["telegram"],
-            "Telegram", "#0088cc"
+        + share_link(
+            f"https://www.facebook.com/sharer/sharer.php?u={encoded_url}",
+            "https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg",
+            "Facebook"
         )
-        + logo_link(
-            f"https://reddit.com/submit?url={encoded_url}&title={encoded_title}",
-            SOCIAL_LOGOS["reddit"],
-            "Reddit", "#ff4500"
-        )
-        + logo_link(
+        + share_link(
             f"https://www.linkedin.com/sharing/share-offsite/?url={encoded_url}",
             SOCIAL_LOGOS["linkedin"],
-            "LinkedIn", "#0077b5"
+            "LinkedIn"
         )
-        + logo_link(
-            f"https://medium.com/new-story",
-            SOCIAL_LOGOS["medium"],
-            "Medium", "#333"
+        + share_link(
+            f"https://wa.me/?text={wa_text}",
+            SOCIAL_LOGOS["whatsapp"],
+            "WhatsApp"
         )
-
-        + '</div>'
-        '<p style="margin:14px 0 0;font-size:12px;color:#888;">'
-        '💡 <em>Also answer related questions on '
-        f'<img src="{SOCIAL_LOGOS["quora"]}" alt="Quora" style="width:16px;height:16px;vertical-align:middle;margin:0 3px;"/>'
-        f'<a href="https://www.quora.com/search?q={encoded_title}" target="_blank" '
-        'rel="noopener" style="color:#a82400;font-weight:bold;">Quora</a>'
-        ' and link back to this article for extra traffic!</em></p>'
-        '</div>\n'
+        + share_link(
+            f"https://t.me/share/url?url={encoded_url}&text={encoded_title}",
+            SOCIAL_LOGOS["telegram"],
+            "Telegram"
+        )
+        + '</div>\n'
     )
 
 
@@ -1536,52 +1532,53 @@ def detect_brand_from_title(title):
 
 def build_also_read_box(cat, title):
     """
-    Builds a styled 'Also Read' box at the end of the blog.
-    For a Vivo blog → links to all Vivo label posts.
-    For any brand → links to that brand's label page.
-    Falls back to category label page if no brand detected.
-    Point 5: All blogs interlinked by brand.
+    GitHub Blog-style 'Related posts' section.
+    Clean, plain layout — no colored borders, no backgrounds, no emoji.
+    Shows category label links as plain text tags.
     """
     brand = detect_brand_from_title(title)
     cat_label = CAT_LABELS.get(cat, "Smartphones")
 
-    # Determine the primary "Also Read" link (brand or category)
     if brand and brand in INTERNAL_LINKS:
         brand_display = brand.title()
-        brand_url     = INTERNAL_LINKS[brand]
-        also_read_label = f"More {brand_display} Reviews"
-        also_read_url   = brand_url
+        primary_url   = INTERNAL_LINKS[brand]
+        primary_label = f"More {brand_display} reviews on Tech News With AI"
     else:
-        also_read_label = f"More {cat_label} Reviews"
-        also_read_url   = f"{BLOG_URL}/search/label/{cat_label}"
+        primary_url   = f"{BLOG_URL}/search/label/{cat_label}"
+        primary_label = f"More {cat_label} reviews on Tech News With AI"
 
-    # Build related links row
-    related_links = []
-    related_cats = list(CAT_LABELS.values())
-    for lbl in related_cats[:4]:
-        related_links.append(
-            f'<a href="{BLOG_URL}/search/label/{lbl}" '
-            f'style="display:inline-block;margin:4px 8px;font-size:13px;'
-            f'color:#1a73e8;text-decoration:none;font-weight:500;">'
-            f'📱 {lbl.replace("+", " ")}</a>'
-        )
+    # Category tag pills — plain text, no emoji, light border
+    related_cats = list(CAT_LABELS.values())[:4]
+    tag_style = (
+        "display:inline-block;margin:4px 8px 4px 0;"
+        "padding:4px 12px;border:1px solid #d0d7de;"
+        "border-radius:20px;font-size:12px;color:#57606a;"
+        "text-decoration:none;font-weight:500;"
+    )
+    tags_html = "".join(
+        f'<a href="{BLOG_URL}/search/label/{lbl}" style="{tag_style}">'
+        f'{lbl.replace("+", " ")}</a>'
+        for lbl in related_cats
+    )
 
     return (
-        '\n<div style="border:2px solid #1a73e8;border-radius:10px;padding:20px;'
-        'margin:32px 0;background:#f0f7ff;">'
-        '<p style="margin:0 0 12px;font-size:16px;font-weight:bold;color:#1a73e8;">'
-        '📚 Also Read — Related Articles</p>'
-        f'<p style="margin:0 0 10px;">'
-        f'<a href="{also_read_url}" target="_blank" '
-        f'style="font-size:15px;font-weight:bold;color:#1a73e8;">'
-        f'→ {also_read_label} on Tech News With AI</a></p>'
-        '<p style="margin:8px 0 4px;font-size:13px;color:#444;">Browse by category:</p>'
-        '<div style="display:flex;flex-wrap:wrap;gap:2px;">'
-        + "".join(related_links) +
-        '</div>'
-        f'<p style="margin:10px 0 0;font-size:12px;color:#888;">'
-        f'<em>All reviews tested and written by Mallikarjun R | '
-        f'<a href="{BLOG_URL}" target="_blank" style="color:#1a73e8;">technewsai.me</a></em></p>'
+        '\n<hr style="border:none;border-top:1px solid #d0d7de;margin:40px 0 32px;"/>\n'
+        '<div style="margin:0 0 40px;">'
+        '<p style="margin:0 0 16px;font-size:20px;font-weight:700;color:#1f2328;">'
+        'Related posts</p>'
+        '<hr style="border:none;border-top:1px solid #d0d7de;margin:0 0 20px;"/>'
+        f'<p style="margin:0 0 6px;">'
+        f'<a href="{primary_url}" target="_blank" '
+        f'style="font-size:15px;font-weight:600;color:#0969da;text-decoration:none;">'
+        f'{primary_label}</a></p>'
+        f'<p style="margin:0 0 20px;font-size:13px;color:#57606a;">'
+        f'All reviews tested in India by Mallikarjun R &bull; '
+        f'<a href="{BLOG_URL}" style="color:#0969da;text-decoration:none;">technewsai.me</a>'
+        f'</p>'
+        '<p style="margin:0 0 8px;font-size:12px;font-weight:600;'
+        'color:#57606a;text-transform:uppercase;letter-spacing:0.05em;">'
+        'Browse by category</p>'
+        '<div>' + tags_html + '</div>'
         '</div>\n'
     )
 
@@ -1643,13 +1640,6 @@ MANDATORY ARTICLE STRUCTURE v16 — TOP 5 / BEST 5 BUYING GUIDES
 
 Every Top 5 / Best 5 / Best Under Budget article MUST follow this EXACT structure.
 NO Pros & Cons tables. NO comparison tables. NO side-by-side comparison columns.
-NO question-format H3s outside FAQ (e.g. 'What is the battery like?' is WRONG).
-H3 format: '[Product] [Section] — [Short Tagline]'
-  ✅ CORRECT: <h3>Realme 16 5G Design and Build — 8mm Slim, Curved Glass Back</h3>
-  ❌ WRONG:   <h3>Exact Thickness and Weight</h3>
-  ❌ WRONG:   <h3>India Real-Life Line</h3>
-  ❌ WRONG:   <h3>Panel Type, Size, Resolution, Refresh Rate</h3>
-Write thickness, weight, panel type etc. as flowing prose paragraphs inside the H3 section — not as sub-headings.
 Each product gets its own FULL deep-dive sections — written as narrative prose.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1997,14 +1987,6 @@ VS COMPARISON — MANDATORY STRUCTURE v17
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ABSOLUTELY NO: Pros & Cons tables | Comparison tables | Side-by-side columns | Mixed product paragraphs
-ABSOLUTELY NO: Question-format H3s outside the FAQ section (e.g. 'What is the design like?')
-H3 FORMAT (outside FAQ): '[Product Name] [Section] — [Short Tagline]'
-  ✅ CORRECT: <h3>Oppo Reno 15 Pro Design and Build — Glass Back, IP68 Certified</h3>
-  ✅ CORRECT: <h3>Samsung Galaxy Z Flip 3 Camera Review — 12MP Main, Flip Selfie Advantage</h3>
-  ❌ WRONG:   <h3>What Are the Key Design Elements?</h3>
-  ❌ WRONG:   <h3>Is the Battery Worth It?</h3>
-DO NOT add sub-section headings like 'Exact Thickness and Weight' or 'India Real-Life Line' under an H3.
-Write those details as flowing prose paragraphs within the H3 section.
 
 [STEP 1] H1 TITLE (pre-generated — use exactly as given)
 
@@ -2146,9 +2128,7 @@ def groq_draft(story, is_search):
         f"CRITICAL: Use the EXACT H2 text shown below. Replace {{Product}} with the real product name.\n"
         f"Do NOT use clickbait or dramatic hooks as H2 text. H2 must be clean and descriptive.\n"
         f"Personal hooks and commentary go in the first <p> paragraph UNDER the H2, never inside it.\n"
-        f"Under each H2, write 2-4 rich prose paragraphs — NOT question-based H3 subheadings.\n"
-        f"H3 subheadings format: '[Product] [Section] — [Short Tagline]' (e.g. 'iQOO 15R Design — Slim and Durable')\n"
-        f"NEVER use question-format H3s outside the FAQ section.\n\n"
+        f"Under each H2, write H3 question-based subheadings.\n\n"
         f"{sections_as_h2}\n"
         f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
     )
@@ -2225,7 +2205,7 @@ def groq_draft(story, is_search):
             "ARTICLE TYPE: " + mode + "\n\n"
             "REAL DATA FROM RSS AND REVIEW SOURCES:\n"
             + (ctx or "Use your latest India market 2026 knowledge.") + "\n\n"
-            + (section_block if " vs " not in topic.lower() else "")
+            + section_block
             + structure_block + "\n\n"
             + rules_with_kw + "\n\n"
             + link_rules + "\n\n"
@@ -2233,7 +2213,7 @@ def groq_draft(story, is_search):
             "✓ H1 is the pre-generated title above (use it exactly)\n"
             "✓ Primary keyword in first 100 words\n"
             "✓ Keyword in at least 3 H2 headings\n"
-            "✓ H3 format: '[Product] [Section] — [Tagline]' (NO question-format H3s outside FAQ)\n"
+            "✓ Question-based H3 subheadings (improves SEO)\n"
             "✓ Long-tail keywords woven in naturally (not stuffed)\n"
             "✓ Real ₹ prices — Flipkart/Amazon India\n"
             "✓ Real product names — never invent specs\n"
@@ -2272,7 +2252,7 @@ def groq_draft(story, is_search):
             "✓ H1 is the pre-generated title (use exactly)\n"
             "✓ Primary keyword in first 100 words\n"
             "✓ Long-tail keywords woven in naturally\n"
-            "✓ H3 format: '[Product] [Section] — [Tagline]' (NO question-format H3s outside FAQ)\n"
+            "✓ Question-based H3 subheadings\n"
             "✓ Real ₹ prices\n"
             "✓ <strong> for key specs\n"
             "✓ <p> max 3 sentences (mobile-friendly)\n"
@@ -2301,6 +2281,28 @@ def human_rewrite(draft, story):
     today  = datetime.datetime.now().strftime("%B %d, %Y")
     labels = ", ".join(CAT.get(cat, CAT["smartphone"])["labels"])
     link_rules = build_internal_link_instructions(cat)
+
+    author_bio = (
+        '<div style="border-top:3px solid #1a73e8;margin-top:40px;padding:20px;'
+        'background:#f0f7ff;border-radius:12px;">'
+        "<table><tr>"
+        '<td style="width:85px;vertical-align:top;padding-right:15px;">'
+        '<img src="https://lh3.googleusercontent.com/pw/AP1GczNbk_7GTq9-pE7KTZUn0skqYYoESZzxYYQ1uTQvvu6dDj-2AUPZyvUGs5XPOGrt5HeVnMuHzPHO8tp1OA0zuhAKF6wlOho_8Q1aVAlVTwG9CNr_jH8=s400-no"'
+        ' width="75" height="75" style="border-radius:50%;border:3px solid #1a73e8;" alt="Mallikarjun R"/>'
+        "</td><td style='vertical-align:top;'>"
+        '<p style="margin:0;font-size:18px;font-weight:bold;color:#1a73e8;">Mallikarjun R</p>'
+        '<p style="margin:4px 0;font-size:13px;color:#666;">CSE Student &amp; Tech Blogger &bull; Bengaluru, India</p>'
+        '<p style="margin:10px 0;font-size:14px;color:#333;line-height:1.7;">'
+        "Passionate about smartphones, laptops and everything tech. "
+        "Honest reviews for Indian buyers. Follow for daily updates!</p>"
+        '<p style="margin:8px 0;">'
+        '<a href="https://www.instagram.com/mallikarjunr_8055" target="_blank" style="color:#e4405f;margin-right:15px;font-weight:bold;">&#128247; Instagram</a>'
+        '<a href="https://whatsapp.com/channel/0029VazWwdn0wajoizN5PY3Q" target="_blank" style="color:#25d366;margin-right:15px;font-weight:bold;">&#128172; WhatsApp</a>'
+        '<a href="https://www.linkedin.com/in/mallikarjun-r-a85685367" target="_blank" style="color:#0077b5;font-weight:bold;">&#128188; LinkedIn</a>'
+        "</p>"
+        f'<p style="font-size:12px;color:#999;"><em>Published: {today} &bull; <a href="{BLOG_URL}" target="_blank">technewsai.me</a></em></p>'
+        "</td></tr></table></div>"
+    )
 
     prompt = (
         "You are Mallikarjun R — 19-year-old CSE student and tech blogger from Bengaluru, India.\n"
@@ -2333,11 +2335,6 @@ def human_rewrite(draft, story):
         "   'Here is what the spec sheet does NOT tell you about this one.'\n"
         "   'I tested this for 2 weeks straight. The result genuinely surprised me.'\n"
         "   'Before you add to cart — read this section first.'\n\n"
-        "② INTRODUCTION (first 3 paragraphs — NO H2, flowing narrative prose):\n"
-        "   Para 1: ONE sharp sentence naming the buyer's exact problem + phone name. Max 4 sentences total.\n"
-        "   Para 2: What makes this phone/product stand out in India 2026 — 3 sentences max.\n"
-        "   Para 3: Quick hook: what this article covers + one punchy reason to keep reading.\n"
-        "   NEVER write a long, bloated intro. Keep each para under 4 sentences. Direct. Punchy.\n\n"
         "② CLIFFHANGER after first line of every product:\n"
         "   'But there is one big problem with it. Keep reading.'\n"
         "   'Sounds perfect — until you see the battery numbers.'\n\n"
@@ -2393,11 +2390,7 @@ def human_rewrite(draft, story):
         "━━━ ABSOLUTE NEVER ━━━\n"
         "• NEVER **markdown** — ONLY <strong>HTML</strong> tags\n"
         "• NEVER: 'In conclusion', 'To summarize', 'It is worth noting'\n"
-        "• NEVER use question-format H3s (e.g. 'What is the battery like?') — ONLY in FAQ section\n"
-        "• NEVER add sub-questions under Design, Display, Performance, Battery, or Camera H2s\n"
-        "• H3 format OUTSIDE FAQ must be: '[Product] [Section] — [Short Tagline]'\n"
-        "  Example: 'Oppo Reno 15 Pro Design and Build — Premium Glass, IP68 Rated'\n"
-        "  Example: 'Samsung Galaxy Z Flip 3 Display Review — 6.7-inch AMOLED, 120Hz'\n"
+        "• NEVER change clean H3 headings to question format\n"
         "• NEVER two consecutive sections starting the same way\n"
         "• NEVER repeat same sentence in different sections\n"
         "• NEVER remove or change any HTML table\n"
@@ -2416,7 +2409,10 @@ def human_rewrite(draft, story):
         "✓ Transition bridge between every product section\n"
         "✓ All products: specs box + ALL category H3 sections (no pros/cons table in buying guides) + should-you-buy + mini verdict\n"
         "✓ Strong final verdict with clear winner declared\n"
-        "✓ DO NOT add any author bio — it will be added automatically by the system\n\n"
+        "✓ Author bio at the very end\n\n"
+
+        "ADD AUTHOR BIO as absolute last element:\n"
+        + author_bio + "\n\n"
 
         "NOW REWRITE — every word human, every spec accurate:\n\n"
         + draft
@@ -2461,30 +2457,42 @@ def save_log(log, title, url, words, atype, cat, search_topic=""):
     print("Log: " + str(len(log)) + " total posts")
 
 # ================================================================
-# AUTHOR BIO HTML — injected on EVERY article (all types)
+# AUTHOR BIO HTML — GitHub-style minimal byline on EVERY article
 # ================================================================
 def build_author_bio():
     today = datetime.datetime.now().strftime("%B %d, %Y")
     return (
-        '<div style="border-top:3px solid #1a73e8;margin-top:40px;padding:20px;' 
-        'background:#f0f7ff;border-radius:12px;">'
-        "<table><tr>"
-        '<td style="width:85px;vertical-align:top;padding-right:15px;">'
+        '\n<hr style="border:none;border-top:1px solid #d0d7de;margin:40px 0 24px;"/>\n'
+        '<div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:40px;">'
+
+        # Avatar
         '<img src="https://lh3.googleusercontent.com/pw/AP1GczNbk_7GTq9-pE7KTZUn0skqYYoESZzxYYQ1uTQvvu6dDj-2AUPZyvUGs5XPOGrt5HeVnMuHzPHO8tp1OA0zuhAKF6wlOho_8Q1aVAlVTwG9CNr_jH8=s400-no"'
-        ' width="75" height="75" style="border-radius:50%;border:3px solid #1a73e8;" alt="Mallikarjun R"/>'
-        "</td><td style='vertical-align:top;'>"
-        '<p style="margin:0;font-size:18px;font-weight:bold;color:#1a73e8;">Mallikarjun R</p>'
-        '<p style="margin:4px 0;font-size:13px;color:#666;">CSE Student &amp; Tech Blogger &bull; Bengaluru, India</p>'
-        '<p style="margin:10px 0;font-size:14px;color:#333;line-height:1.7;">'
-        "Passionate about smartphones, laptops and everything tech. "
-        "Honest reviews for Indian buyers. Follow for daily updates!</p>"
-        '<p style="margin:8px 0;">'
-        '<a href="https://www.instagram.com/mallikarjunr_8055" target="_blank" style="color:#e4405f;margin-right:15px;font-weight:bold;">&#128247; Instagram</a>'
-        '<a href="https://whatsapp.com/channel/0029VazWwdn0wajoizN5PY3Q" target="_blank" style="color:#25d366;margin-right:15px;font-weight:bold;">&#128172; WhatsApp</a>'
-        '<a href="https://www.linkedin.com/in/mallikarjun-r-a85685367" target="_blank" style="color:#0077b5;font-weight:bold;">&#128188; LinkedIn</a>'
-        "</p>"
-        f'<p style="font-size:12px;color:#999;"><em>Published: {today} &bull; <a href="{BLOG_URL}" target="_blank">technewsai.me</a></em></p>'
-        "</td></tr></table></div>"
+        ' width="48" height="48" '
+        'style="border-radius:50%;flex-shrink:0;border:1px solid #d0d7de;" '
+        'alt="Mallikarjun R"/>'
+
+        # Text block
+        '<div>'
+        '<p style="margin:0 0 2px;font-size:15px;font-weight:700;color:#1f2328;">'
+        'Mallikarjun R</p>'
+        '<p style="margin:0 0 6px;font-size:13px;color:#57606a;">'
+        f'CSE Student &amp; Tech Blogger &bull; Bengaluru, India &bull; {today}</p>'
+        '<p style="margin:0 0 10px;font-size:14px;color:#57606a;line-height:1.6;">'
+        'Passionate about smartphones, laptops and everything tech. '
+        'Honest reviews for Indian buyers. Follow for daily updates.</p>'
+        '<p style="margin:0;">'
+        f'<a href="https://www.instagram.com/mallikarjunr_8055" target="_blank" '
+        f'style="font-size:13px;color:#0969da;text-decoration:none;margin-right:14px;font-weight:600;">'
+        f'Instagram</a>'
+        f'<a href="https://whatsapp.com/channel/0029VazWwdn0wajoizN5PY3Q" target="_blank" '
+        f'style="font-size:13px;color:#0969da;text-decoration:none;margin-right:14px;font-weight:600;">'
+        f'WhatsApp</a>'
+        f'<a href="https://www.linkedin.com/in/mallikarjun-r-a85685367" target="_blank" '
+        f'style="font-size:13px;color:#0969da;text-decoration:none;font-weight:600;">'
+        f'LinkedIn</a>'
+        '</p>'
+        '</div>'
+        '</div>\n'
     )
 
 
@@ -2517,13 +2525,6 @@ def run_article(story, is_search, label, atype, log):
 
     words = len(re.sub(r"<[^>]+>","",final).split())
     print("Final: " + str(words) + " words | " + title[:55])
-
-    # Step 2b — Strip any author bio that the AI may have written into the article
-    # (prevents double bio — the real bio is appended in the footer below)
-    final = re.sub(
-        r'<div[^>]*border-top:3px solid #1a73e8[^>]*>.*?</div>\s*',
-        '', final, flags=re.DOTALL | re.IGNORECASE
-    )
 
     cat  = story.get("category","general")
 
@@ -2590,10 +2591,10 @@ def run_article(story, is_search, label, atype, log):
     # Step 6b — Also Read box (brand-interlinked related articles)
     also_read = build_also_read_box(cat, title)
 
-    # Step 7 — Footer (author bio on EVERY article)
+    # Step 7 — Footer: GitHub-style order — Related posts → Share bar → Author bio
     author_bio_html = build_author_bio()
     footer = (
-        "<hr/>"
+        "<hr style='border:none;border-top:1px solid #d0d7de;margin:40px 0 0;'/>"
         + also_read
         + social_block
         + author_bio_html
