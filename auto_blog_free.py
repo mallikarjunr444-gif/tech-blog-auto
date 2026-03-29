@@ -1,8 +1,14 @@
-# TECH NEWS WITH AI - AUTO BLOG v18.0 FINAL
-# v18 Changes: Breaking news priority (Nord 6, 15T, Realme 16), 10 new India RSS feeds,
-# 2026 fresh launch topics hardcoded, breaking topics checked first in both article pickers
-# Changes: No Pros/Cons tables, No comparison tables, VS articles = full per-product sections,
-# Author bio on ALL articles, ### markdown → <h3> HTML auto-conversion
+# TECH NEWS WITH AI - AUTO BLOG v21.0
+# v21 Changes:
+#   1. BREAKING_NEWS_2026 — each topic now has brand RSS URL for direct live fetch
+#   2. Daily schedule changed: 2 Smartphone News + 1 Search Topic (was 1 News + 2 Search)
+#      Article 1 & 2 = full product deep-dive news; Article 3 = buying guide/comparison
+#      Deduplication: Article 2 skips whatever product Article 1 already covered
+#   3. News articles now get iQOO 15R-style 2-paragraph narrative intro before ToC
+#      (story-driven, India buyer context, launch details — not a generic hook)
+#   4. SEO framework from docx wired into WRITING_RULES:
+#      Answer-First paragraph rule, Self-Contained paragraph rule, Sentence rhythm,
+#      Paragraph transition rule, Statistics citation format, AI Citation sentences
 # technewsai.me - Mallikarjun R, Bengaluru
 # ================================================================
 # SCHEDULE:
@@ -152,36 +158,160 @@ ALL_RSS = [
 ]
 
 # ================================================================
-# BREAKING NEWS TOPICS — Updated March 2026
-# These are injected first in pick_search_story() for freshness
+# BREAKING NEWS — Dynamic Live Fetch from ALL_RSS
+# Replaces the old hardcoded BREAKING_NEWS_2026 list.
+# Every run: scans ALL official brand + review RSS feeds,
+# scores each article by recency and keyword relevance,
+# returns the hottest stories as breaking topics.
 # ================================================================
-BREAKING_NEWS_2026 = [
-    # OnePlus
-    {"cat": "smartphone", "t": "OnePlus Nord 6 review price India 2026",        "k": ["OnePlus Nord 6", "India"]},
-    {"cat": "smartphone", "t": "OnePlus Nord 6 vs OnePlus 15R India 2026",      "k": ["OnePlus Nord 6", "OnePlus 15R"]},
-    {"cat": "smartphone", "t": "OnePlus 15T specs price India 2026",             "k": ["OnePlus 15T", "India"]},
-    {"cat": "smartphone", "t": "is OnePlus Nord 6 worth buying India 2026",      "k": ["OnePlus Nord 6", "worth buying"]},
-    # Realme
-    {"cat": "smartphone", "t": "Realme 16 5G selfie mirror phone India 2026",   "k": ["Realme 16 5G", "India"]},
-    {"cat": "smartphone", "t": "Realme 16 5G vs Redmi Note 15 Pro India 2026",  "k": ["Realme 16 5G", "Redmi Note 15"]},
-    # Samsung
-    {"cat": "smartphone", "t": "Samsung Galaxy S26 price specs India 2026",     "k": ["Samsung Galaxy S26", "India"]},
-    {"cat": "smartphone", "t": "Samsung Galaxy A57 launch India 2026",          "k": ["Samsung Galaxy A57", "India"]},
-    {"cat": "smartphone", "t": "Samsung Galaxy A37 price India 2026",           "k": ["Samsung Galaxy A37", "India"]},
-    # Vivo / iQOO
-    {"cat": "smartphone", "t": "Vivo X300 Ultra India launch 2026",             "k": ["Vivo X300 Ultra", "India"]},
-    {"cat": "smartphone", "t": "iQOO 15R review India 2026 worth buying",       "k": ["iQOO 15R", "India"]},
-    {"cat": "smartphone", "t": "Vivo V70 FE India launch April 2026",           "k": ["Vivo V70 FE", "India"]},
-    # OPPO
-    {"cat": "smartphone", "t": "OPPO Find X9 Ultra India launch April 2026",    "k": ["OPPO Find X9 Ultra", "India"]},
-    # Redmi / Poco
-    {"cat": "smartphone", "t": "Redmi Note 15 SE 5G launch India April 2026",  "k": ["Redmi Note 15 SE", "India"]},
-    {"cat": "smartphone", "t": "Poco X8 Pro Max India 2026 review",             "k": ["Poco X8 Pro Max", "India"]},
-    # Budget guides updated
-    {"cat": "smartphone", "t": "best phone under 20000 India April 2026",       "k": ["best phone 20000", "India"]},
-    {"cat": "smartphone", "t": "best gaming phone under 30000 India 2026",      "k": ["gaming phone 30000", "India"]},
-    {"cat": "smartphone", "t": "best 5G phone under 15000 India April 2026",    "k": ["5G phone 15000", "India"]},
+
+# Priority RSS feeds scanned FIRST for breaking news
+# (official brand feeds + top India review sites)
+BREAKING_RSS_PRIORITY = [
+    # ── Official brand feeds (highest priority — first-party news) ──
+    ("Samsung Newsroom",   "https://news.samsung.com/global/feed"),
+    ("OnePlus Forum",      "https://forums.oneplus.com/forums/oneplus-announcements.15/index.rss"),
+    ("Realme Blog",        "https://www.realme.com/in/blogs/news.atom"),
+    ("OPPO Newsroom",      "https://www.oppo.com/en/newsroom/rss/"),
+    ("Vivo Blog",          "https://www.vivo.com/en/news/rss/"),
+    ("iQOO India",         "https://www.iqoo.com/in/news.atom"),
+    ("Xiaomi Blog",        "https://blog.mi.com/en/feed/"),
+    ("Nothing Tech",       "https://nothing.tech/blogs/news.atom"),
+    ("Google Pixel",       "https://blog.google/products/pixel/rss/"),
+    ("Motorola News",      "https://newsroom.motorola.com/rss/"),
+    ("Apple Newsroom",     "https://www.apple.com/newsroom/rss-feed.rss"),
+    ("Honor News",         "https://www.hihonor.com/global/news/rss/"),
+    ("POCO India",         "https://in.poc.phone/news/rss/"),
+    ("Infinix Mobile",     "https://www.infinixmobility.com/en-in/news/rss/"),
+    # ── Top India review sites (second priority) ────────────────────
+    ("GSMArena",           "https://www.gsmarena.com/rss-news-articles.php3"),
+    ("91Mobiles",          "https://www.91mobiles.com/hub/feed/"),
+    ("MySmartPrice",       "https://www.mysmartprice.com/feed/"),
+    ("BGR India",          "https://www.bgr.in/feed/"),
+    ("GadgetBridge",       "https://gadgetbridge.com/feed/"),
+    ("NDTV Gadgets",       "https://gadgets.ndtv.com/rss/feeds"),
+    ("Digit India",        "https://www.digit.in/rss/news.xml"),
+    ("Beebom Gadgets",     "https://gadgets.beebom.com/feed/"),
+    ("Smartprix",          "https://www.smartprix.com/bytes/feed/"),
+    ("TechPP",             "https://techpp.com/feed/"),
+    ("GadgetsNow",         "https://www.gadgetsnow.com/rssfeedstopstories.cms"),
+    ("Pricebaba",          "https://pricebaba.com/blog/feed/"),
+    ("Cashify Blog",       "https://www.cashify.in/blog/feed/"),
+    # ── Global review sites (third priority) ────────────────────────
+    ("AndroidAuthority",   "https://www.androidauthority.com/feed/"),
+    ("XDA Developers",     "https://www.xda-developers.com/feed/"),
+    ("SamMobile",          "https://www.sammobile.com/feed/"),
+    ("GizmoChina",         "https://www.gizmochina.com/feed/"),
+    ("PhoneArena",         "https://www.phonearena.com/phones/articles/rss"),
+    ("The Verge",          "https://www.theverge.com/rss/index.xml"),
+    ("TechRadar",          "https://www.techradar.com/rss"),
+    ("9to5Google",         "https://9to5google.com/feed/"),
 ]
+
+# Keywords that signal a high-value breaking story
+BREAKING_KEYWORDS = [
+    "launch", "launched", "price", "specs", "review", "hands on",
+    "first look", "release", "announced", "available", "sale",
+    "india", "rupee", "flipkart", "amazon", "official",
+    "5g", "camera", "battery", "display", "processor", "chipset",
+]
+
+def fetch_breaking_news(log, max_results=20):
+    """
+    Dynamically scans BREAKING_RSS_PRIORITY feeds and ALL_RSS
+    to find the freshest breaking tech stories.
+
+    Scoring system (higher = more breaking):
+      +3  — title contains launch/launched/announced/available/sale
+      +2  — title contains India/price/review/specs
+      +1  — title contains any other BREAKING_KEYWORDS match
+      +2  — source is an official brand feed (first-party)
+      +1  — source is a top India review site
+
+    Returns list of story dicts ready for pick_news_story():
+      {"title", "description", "url", "source", "category",
+       "specs", "published", "rss_source"}
+    """
+    used_titles = {e.get("title", "") for e in log}
+    seen        = set()   # dedup within this fetch
+    candidates  = []
+
+    # Official brand sources get +2 bonus
+    brand_sources = {name for name, _ in BREAKING_RSS_PRIORITY[:14]}
+    # India review sites get +1 bonus
+    india_sources = {name for name, _ in BREAKING_RSS_PRIORITY[14:27]}
+
+    high_value_triggers = {"launch", "launched", "announced", "available",
+                           "sale", "first look", "hands on", "release"}
+
+    print("[Breaking] Scanning RSS feeds for live breaking news...")
+
+    # Scan priority feeds first, then remaining ALL_RSS
+    all_feeds = BREAKING_RSS_PRIORITY + [
+        f for f in ALL_RSS if f not in BREAKING_RSS_PRIORITY
+    ]
+
+    for name, url in all_feeds:
+        try:
+            arts = fetch_rss(name, url)
+        except Exception:
+            continue
+
+        for a in arts:
+            title = a.get("title", "")
+            if not title or title in used_titles or title in seen:
+                continue
+            if len(title) < 20:
+                continue
+
+            tl = title.lower()
+
+            # Detect category
+            cat = detect_cat(title)
+
+            # Score the article
+            score = 0
+            for kw in high_value_triggers:
+                if kw in tl:
+                    score += 3
+                    break
+            for kw in ["india", "price", "review", "specs"]:
+                if kw in tl:
+                    score += 2
+                    break
+            for kw in BREAKING_KEYWORDS:
+                if kw in tl:
+                    score += 1
+                    break
+            if name in brand_sources:
+                score += 2
+            elif name in india_sources:
+                score += 1
+
+            # Only keep stories with a meaningful score
+            if score >= 2:
+                candidates.append({
+                    "title":       title,
+                    "description": a.get("description", ""),
+                    "url":         a.get("url", url),
+                    "source":      name,
+                    "published":   a.get("published", ""),
+                    "category":    cat,
+                    "rss_source":  url,
+                    "_score":      score,
+                })
+                seen.add(title)
+
+        if len(candidates) >= max_results * 3:
+            break   # enough candidates gathered — stop fetching
+
+    # Sort by score descending → return top max_results
+    candidates.sort(key=lambda x: x["_score"], reverse=True)
+    top = candidates[:max_results]
+
+    print(f"[Breaking] Found {len(top)} live breaking stories "
+          f"(scored from {len(candidates)} candidates across {len(all_feeds)} feeds)")
+    return top
 
 
 # ================================================================
@@ -890,38 +1020,39 @@ def should_post_cat(log, cat):
 # ================================================================
 # STORY PICKERS
 # ================================================================
-def pick_news_story(log):
-    print("\n[News] Searching RSS feeds (checking breaking news first)...")
+def pick_news_story(log, exclude_titles=None):
+    print("\n[News] Fetching live breaking news from RSS feeds...")
+    used_titles = {e.get("title","") for e in log}
+    if exclude_titles:
+        used_titles = used_titles | exclude_titles
+
+    # ── Step 0: Fetch live breaking stories via fetch_breaking_news() ──
+    # Scans BREAKING_RSS_PRIORITY + ALL_RSS, scores by recency & relevance
+    breaking = fetch_breaking_news(log)
+    for story in breaking:
+        title = story.get("title", "")
+        if title in used_titles:
+            continue
+        story["specs"]    = get_specs(title)
+        story["category"] = story.get("category") or detect_cat(title)
+        print(f"[Breaking][{story['category'].upper()}] {title[:65]}")
+        return story
+
+    # ── Step 1: Fallback — scan ALL_RSS for any category match ──
     feeds = ALL_RSS[:]
     random.shuffle(feeds)
-    used_titles = {e.get("title","") for e in log}
-
-    # ── 0. Check BREAKING_NEWS_2026 via NewsAPI first (latest launches) ──
-    for item in BREAKING_NEWS_2026[:6]:  # check top 6 breaking topics
-        if item["t"] in used_titles:
-            continue
-        arts = fetch_newsapi(item["t"])
-        if arts and arts[0]["title"] not in used_titles:
-            a = arts[0]
-            a["specs"]    = get_specs(a["title"])
-            a["category"] = item["cat"]
-            print("Breaking [" + item["cat"] + "]: " + a["title"][:60])
-            return a
-
-    priority = ["smartphone", "laptop"]
-    for pcat in priority:
+    for pcat in ["smartphone", "laptop"]:
         data = CAT[pcat]
-        random.shuffle(feeds)
-        for name, url in feeds[:15]:
-            arts = fetch_rss(name, url)
-            for a in arts:
+        for name, url in feeds[:20]:
+            for a in fetch_rss(name, url):
                 if a["title"] not in used_titles:
                     if any(kw in a["title"].lower() for kw in data["detect"]):
                         a["specs"]    = get_specs(a["title"])
                         a["category"] = pcat
-                        print("Found [" + pcat + "]: " + a["title"][:60])
+                        print(f"[Fallback][{pcat}] {a['title'][:60]}")
                         return a
 
+    # ── Step 2: Final fallback — NewsAPI on category news topics ──
     for cat, data in CAT.items():
         if not should_post_cat(log, cat):
             continue
@@ -931,7 +1062,7 @@ def pick_news_story(log):
                 a = arts[0]
                 a["specs"]    = get_specs(a["title"])
                 a["category"] = cat
-                print("Found [" + cat + "]: " + a["title"][:60])
+                print(f"[NewsAPI][{cat}] {a['title'][:60]}")
                 return a
     return None
 
@@ -947,12 +1078,26 @@ def pick_search_story(log, used_in_run):
 
     all_options = []   # list of (cat, {"t":..., "k":[...]}, source)
 
-    # ── 0. BREAKING NEWS — highest priority (latest 2026 launches) ──
-    for item in BREAKING_NEWS_2026:
-        t = {"t": item["t"], "k": item["k"], "sections": CAT.get(item["cat"], CAT["smartphone"])["sections"], "category": item["cat"]}
-        if item["t"] not in combined_used:
-            all_options.append((item["cat"], t, "breaking"))
-    print(f"[Breaking] {len([x for x in all_options if x[2]=='breaking'])} fresh 2026 topics added")
+    # ── 0. BREAKING NEWS — live fetch from ALL_RSS (replaces static list) ──
+    live_breaking = fetch_breaking_news(log)
+    for story in live_breaking:
+        t_text = story["title"]
+        if t_text not in combined_used:
+            cat = story.get("category", "smartphone")
+            t = {
+                "t":        t_text,
+                "k":        [w for w in t_text.split() if len(w) > 4][:3],
+                "sections": CAT.get(cat, CAT["smartphone"])["sections"],
+                "category": cat,
+                # Carry full story data so groq_draft can use description/specs
+                "title":       t_text,
+                "description": story.get("description", ""),
+                "source":      story.get("source", "RSS"),
+                "specs":       story.get("specs", ""),
+                "url":         story.get("url", ""),
+            }
+            all_options.append((cat, t, "breaking"))
+    print(f"[Breaking] {len([x for x in all_options if x[2]=='breaking'])} live breaking topics added")
 
     # ── 1. DYNAMIC topics from live RSS (priority categories first) ──
     for pcat in priority_cats:
@@ -1957,7 +2102,7 @@ Add naturally to prose (not as separate lines):
 
 ─── MINIMUM REQUIREMENTS ────────────────────────────────
 ✓ 4000+ words of rich prose content (Top 5 articles should be 6000+ words)
-✓ Narrative hook intro (3 paragraphs, no H2)
+✓ 2-paragraph narrative intro for news articles (no H2, iQOO 15R style)
 ✓ Primary keyword in first 100 words
 ✓ For Top 5 / Buying Guide: every product gets Quick Specs box + ALL category H3 sections
 ✓ Full Specifications bullet list per product
@@ -1971,6 +2116,50 @@ Add naturally to prose (not as separate lines):
 • Every paragraph adds NEW information — no filler or repeated ideas
 • <p> max 3-4 sentences (mobile-friendly)
 • No broken HTML — all tags properly closed
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SEO FRAMEWORK v21 — AI CITATION + GOOGLE #1 RANKING
+(From SEO Content Brief Framework — mandatory for all articles)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+─── ANSWER-FIRST PARAGRAPH RULE (AI Citation — Critical) ──
+• Every H2 section MUST open with a direct answer in the VERY FIRST sentence
+• Format: "[Product/Term] is/are [clear definition that stands alone]."
+  ✅ "The iQOO 15R display is a 6.59-inch 1.5K AMOLED panel with 144Hz refresh rate."
+  ❌ "When it comes to the display, this phone has a lot to offer..."
+• This first sentence must make COMPLETE SENSE if extracted alone by ChatGPT/Perplexity/Google AI
+• NEVER bury the lead — answer first, explanation follows
+
+─── SELF-CONTAINED PARAGRAPH RULE (AI Citation — Critical) ─
+• Every paragraph must make sense read completely in isolation
+• Each paragraph: one clear claim + its supporting evidence or India example
+• If a paragraph needs the previous one to make sense → REWRITE it
+• AI tools extract individual paragraphs — dependent context gets skipped entirely
+
+─── SENTENCE RHYTHM (Google Ranking Pattern) ─────────────
+• ~40% short declarative sentences (8–15 words): "The battery is rated at 7,600mAh."
+• ~45% medium explanatory sentences (16–25 words): "At 7.9mm it slips into your jeans pocket without uncomfortable bulk."
+• ~15% longer complex sentences (26–35 words): for nuanced comparisons and trade-offs
+• Vary deliberately — rhythm keeps readers on page and lowers bounce rate
+
+─── PARAGRAPH TRANSITION RULE (mandatory) ───────────────
+Every paragraph MUST open with a transition word or phrase:
+"First," / "Moreover," / "That being said," / "For example," / "In addition,"
+"At the same time," / "Let's explore," / "Plus," / "As such," / "Second,"
+Never start two consecutive paragraphs with the same word.
+
+─── STATISTICS CITATION FORMAT ──────────────────────────
+• State: "Statistic here — Source: [Source Name, Year]"
+• Place stats near the TOP of each section (AI prioritises early-section data)
+• Use specific numbers always: not "many users" → "over 68% of Indian buyers"
+• Include 3–5 real data points per 1000 words
+
+─── AI CITATION SENTENCES (3–5 per 1000 words) ──────────
+Write standalone quotable sentences using these patterns:
+• "[Product] is [clear definition/spec]." — for definition queries
+• "[Product] features [spec] which [benefit for Indian users]." — for how-to queries
+• "[Spec/stat] makes it [positioning] in the Indian market." — for comparison queries
+These exact sentences are what ChatGPT, Perplexity, and Google AI Overview will extract and cite.
 
 ─── LONG-TAIL KEYWORDS (inject naturally) ───────────────
 These must appear in the article text — not stuffed, naturally woven:
@@ -2226,41 +2415,70 @@ def groq_draft(story, is_search):
             "Write now:"
         )
     else:
+        # ── NEWS ARTICLE — Full product deep-dive (iQOO 15R style) ──
         prompt = (
             title_instruction +
-            "Write a detailed SEO-optimised article about: " + story["title"] + "\n"
+            "Write a full in-depth product review article about: " + story["title"] + "\n"
             "CATEGORY: " + cat.upper() + "\n"
             "SOURCE: " + story["source"] + "\n"
             "REAL SPECS:\n" + (story.get("specs") or "Use your knowledge for this device.") + "\n"
             "DESCRIPTION: " + story.get("description", "") + "\n\n"
 
-            "MANDATORY STRUCTURE:\n"
-            "1. Use the pre-generated H1 title above (exactly as given)\n"
-            "2. Hook intro — 2 lines: problem + solution. Primary keyword in first 100 words.\n"
-            "3. Table of Contents — plain border, no colour:\n"
-            + TOC_HTML + "\n"
-            "4. Specs box for this device:\n"
-            + SPECS_BOX_HTML + "\n"
-            "5. Pros & Cons table — plain border, no colour:\n"
-            + PROS_CONS_HTML + "\n\n"
+            "━━━ MANDATORY ARTICLE STRUCTURE ━━━\n"
+            "Follow this EXACT sequence — do NOT deviate:\n\n"
+
+            "STEP 1 — H1 TITLE\n"
+            "Use the pre-generated H1 title above (exactly as given).\n\n"
+
+            "STEP 2 — NARRATIVE INTRO (2 full paragraphs, NO H2 heading)\n"
+            "This is the most important section — write it like the iQOO 15R review:\n"
+            "  Para 1 (4-6 sentences): Paint the exact Indian buyer who needs this phone.\n"
+            "    Who are they? What is their problem? Why does this phone matter in India 2026?\n"
+            "    Name the price bracket, the competition it faces, what makes it stand out.\n"
+            "    Use narrative storytelling — NOT specs. Draw the reader in.\n"
+            "    Example style: 'There is a very specific kind of smartphone buyer in India today.\n"
+            "    Someone who has followed the flagship world closely enough to know exactly what\n"
+            "    they want — top-tier processing power, a battery that does not die halfway through\n"
+            "    a gaming session, and a camera that does not embarrass itself in daylight.'\n"
+            "  Para 2 (3-5 sentences): India launch context — when it launched, where to buy,\n"
+            "    which competitor it is being compared to, what this review covers and how it was tested.\n"
+            "    Example: 'Oppo launched the Reno 15 Pro in India on March 5, 2026 at ₹43,990.\n"
+            "    It went on sale on Amazon and Flipkart the same day. This deep-dive covers\n"
+            "    everything you need to know before spending your money on it.'\n\n"
+
+            "STEP 3 — TABLE OF CONTENTS\n"
+            + TOC_HTML + "\n\n"
+
+            "STEP 4 — QUICK SPECS BOX\n"
+            + SPECS_BOX_HTML + "\n\n"
+
+            "STEP 5 — BODY SECTIONS (all mandatory H2 sections below)\n"
+            "Each H2 section MUST:\n"
+            "  • Start with a direct answer/definition in the VERY FIRST sentence (AI citation rule)\n"
+            "  • Every paragraph must be self-contained — makes sense read in isolation\n"
+            "  • Include India real-life translation for every spec\n"
+            "  • Open with a personal hook: 'Here is what the spec sheet does NOT tell you...'\n\n"
 
             + section_block
 
             + rules_with_kw + "\n\n"
             + link_rules + "\n\n"
-            "SEO CHECKLIST:\n"
+
+            "━━━ SEO + AI CITATION CHECKLIST ━━━\n"
             "✓ H1 is the pre-generated title (use exactly)\n"
+            "✓ 2-paragraph narrative intro BEFORE Table of Contents (no H2 on intro)\n"
+            "✓ Every H2 starts with answer in first sentence — AI citation ready\n"
+            "✓ Every paragraph self-contained — no orphaned context\n"
             "✓ Primary keyword in first 100 words\n"
             "✓ Long-tail keywords woven in naturally\n"
-            "✓ Question-based H3 subheadings\n"
-            "✓ Real ₹ prices\n"
+            "✓ Real ₹ prices with bank offers and No Cost EMI\n"
             "✓ <strong> for key specs\n"
-            "✓ <p> max 3 sentences (mobile-friendly)\n"
-            "✓ Brand names hyperlinked to your blog label pages only\n"
-            "✓ Bullet points — not long paragraphs\n"
-            "✓ Real-life India usage line in every section\n"
+            "✓ <p> max 3-4 sentences (mobile-friendly)\n"
+            "✓ Brand names hyperlinked to technewsai.me label pages only\n"
+            "✓ India real-life translation in every section (IPL, Bengaluru commute, BGMI)\n"
+            "✓ Honest trade-offs — state one weakness per section\n"
             "✓ FAQ with 7 questions Indians actually search\n"
-            "✓ Strong final verdict with clear winner + CTA\n"
+            "✓ Strong final verdict — declare buy or skip with reasons\n"
             "✓ ORIGINAL content — no copy, no thin filler\n"
             "Write now:"
         )
@@ -2620,46 +2838,50 @@ def run_article(story, is_search, label, atype, log):
 # ================================================================
 def main():
     print("=======================================================")
-    print(" TECH NEWS WITH AI - AUTO BLOG v18.0 FINAL")
-    print(" Daily: 1 News + 2 Dynamic Search Topics")
-    print(" Topics: Live RSS → Groq auto-generates trending topics")
-    print(" Content: 4000+ words | Schema | Images | Social Share")
-    print(" AdSense: Original content | Mobile-friendly | Hooks")
-    print(" technewswithai.blogspot.com")
+    print(" TECH NEWS WITH AI - AUTO BLOG v21.0")
+    print(" Daily: 2 Smartphone News (full product review each)")
+    print("      + 1 Google Search Topic")
+    print(" Breaking: Brand RSS → NewsAPI fallback")
+    print(" Content: 4000+ words | SEO Brief | AI Citation Rules")
+    print(" technewsai.me — Mallikarjun R, Bengaluru")
     print("=======================================================")
 
     log         = load_log()
-    used_in_run = set()
+    used_in_run = set()   # titles used this run — prevents same product twice
     success     = 0
 
     # Suggest old posts to update (SEO refresh)
     suggest_old_updates(log, days_threshold=30)
 
-    # Article 1 — Latest RSS News (phone/laptop priority)
+    # ── Article 1 — Smartphone News #1 (full product deep-dive) ──
     try:
         s1 = pick_news_story(log)
         if s1:
-            run_article(s1, False, "ARTICLE 1: LATEST NEWS", "news", log)
+            run_article(s1, False, "ARTICLE 1: SMARTPHONE NEWS", "news", log)
             log = load_log()
+            used_in_run.add(s1.get("title", ""))
+            used_in_run.add(s1.get("search_topic", ""))
             success += 1
-            print("Waiting 35s...")
-            time.sleep(35)
+            print("Waiting 40s before Article 2...")
+            time.sleep(40)
     except Exception as e:
         print("Article 1 failed: " + str(e))
 
-    # Article 2 — Dynamic search topic
+    # ── Article 2 — Smartphone News #2 (different product, no repeat) ──
     try:
-        s2 = pick_search_story(log, used_in_run)
+        s2 = pick_news_story(log, exclude_titles=used_in_run)
         if s2:
-            run_article(s2, True, "ARTICLE 2: SEARCH TOPIC", "search", log)
+            run_article(s2, False, "ARTICLE 2: SMARTPHONE NEWS", "news", log)
             log = load_log()
+            used_in_run.add(s2.get("title", ""))
+            used_in_run.add(s2.get("search_topic", ""))
             success += 1
-            print("Waiting 35s...")
-            time.sleep(35)
+            print("Waiting 40s before Article 3...")
+            time.sleep(40)
     except Exception as e:
         print("Article 2 failed: " + str(e))
 
-    # Article 3 — 2nd Google Search Topic
+    # ── Article 3 — 1 Google Search Topic (buying guide / comparison) ──
     try:
         s3 = pick_search_story(log, used_in_run)
         if s3:
@@ -2671,12 +2893,12 @@ def main():
     print("\n=======================================================")
     print("DONE! " + str(success) + "/3 articles posted!")
     print("Next steps:")
+    print("  → Fact-check all ₹ prices and specs in posted articles")
+    print("  → Add real product images (1200x628px) to placeholders")
+    print("  → Replace [Internal link] placeholders with real URLs")
     print("  → Submit sitemap in Google Search Console")
-    print("  → Share articles on WhatsApp & Telegram channels")
-    print("  → Post answers on Quora with your blog links")
-    print("  → Republish summaries on Medium + LinkedIn")
-    print("  → Replace image placeholders in Blogger with 1200px images")
-    print("Visit: https://technewswithai.blogspot.com")
+    print("  → Share on WhatsApp & Telegram channels")
+    print("Visit: https://www.technewsai.me")
     print("=======================================================")
 
 
