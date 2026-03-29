@@ -1,14 +1,16 @@
-# TECH NEWS WITH AI - AUTO BLOG v21.0
-# v21 Changes:
-#   1. BREAKING_NEWS_2026 — each topic now has brand RSS URL for direct live fetch
-#   2. Daily schedule changed: 2 Smartphone News + 1 Search Topic (was 1 News + 2 Search)
-#      Article 1 & 2 = full product deep-dive news; Article 3 = buying guide/comparison
-#      Deduplication: Article 2 skips whatever product Article 1 already covered
-#   3. News articles now get iQOO 15R-style 2-paragraph narrative intro before ToC
-#      (story-driven, India buyer context, launch details — not a generic hook)
-#   4. SEO framework from docx wired into WRITING_RULES:
-#      Answer-First paragraph rule, Self-Contained paragraph rule, Sentence rhythm,
-#      Paragraph transition rule, Statistics citation format, AI Citation sentences
+# TECH NEWS WITH AI - AUTO BLOG v22.0
+# v22 Fixes:
+#   1. DOUBLE AUTHOR BIO — removed old blue #1a73e8 bio from human_rewrite() prompt
+#      + added regex safety strip in run_article() so it can never appear again
+#   2. TOP 5 ONLY 1 PHONE — added pick_top5_phones() that selects 5 REAL named phones
+#      via Groq BEFORE drafting; those names are injected as MANDATORY into the prompt
+#      so AI must write a full section for each — no more single-phone Top 5 guides
+#   3. KEYWORD PLACEMENT STRATEGY — primary keyword must appear in H1, first 50 words,
+#      3+ H2 headings, FAQ; each phone's exact model name must be in its H2 heading
+#      and first sentence — ensures "Nothing Phone 4a Pro review India" type searches rank
+#   4. STRONG INTRO HOOK — mandatory Acknowledge→Gap→Promise 3-paragraph format
+#      with all 5 phones named in Para 3 before ToC
+#   5. SEO TITLES — FAQ must include one question per exact model name
 # technewsai.me - Mallikarjun R, Bengaluru
 # ================================================================
 # SCHEDULE:
@@ -2273,6 +2275,48 @@ Every section about Product B only. Never mix Product A specs here.
 """
 
 
+def pick_top5_phones(topic, cat, ctx):
+    """
+    Uses Groq to select 5 REAL, SPECIFIC phone names for this buying guide topic.
+    Returns a list of 5 phone names with their India prices.
+    This list is injected into groq_draft so the AI MUST write about ALL 5 phones.
+    Without this, the AI defaults to writing about 1 phone repeatedly.
+    """
+    try:
+        client = Groq(api_key=GROQ_API_KEY)
+        year   = datetime.datetime.now().year
+        prompt = (
+            f"You are an India smartphone expert. For this buying guide topic, "
+            f"pick exactly 5 real phones available in India in {year}.\n\n"
+            f"Topic: {topic}\n"
+            f"Category: {cat.upper()}\n"
+            f"Context from RSS: {ctx[:400] if ctx else 'Use your knowledge.'}\n\n"
+            f"Rules:\n"
+            f"- Pick 5 DIFFERENT phones from DIFFERENT brands\n"
+            f"- All must be genuinely available in India {year} with real ₹ prices\n"
+            f"- Mix budget/mid/premium within the guide's price range\n"
+            f"- Include phones people actually search for in India\n"
+            f"- Each phone name must be the EXACT model name Indians search (e.g. 'Nothing Phone 4a Pro')\n\n"
+            f"Respond ONLY as JSON array. No markdown. No explanation:\n"
+            f'[{{"name": "Brand Model Name", "price": "₹XX,XXX", "best_for": "one use case"}}, ...]'
+        )
+        r = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=300, temperature=0.5,
+        )
+        raw   = r.choices[0].message.content.strip()
+        raw   = re.sub(r"```json|```", "", raw).strip()
+        m     = re.search(r"\[.*\]", raw, re.DOTALL)
+        phones = json.loads(m.group(0)) if m else []
+        if len(phones) >= 5:
+            print(f"[Top5] Phones selected: {[p['name'] for p in phones[:5]]}")
+            return phones[:5]
+    except Exception as e:
+        print(f"[Top5] Failed ({e}) — AI will choose phones freely")
+    return []
+
+
 def groq_draft(story, is_search):
     client   = Groq(api_key=GROQ_API_KEY)
     cat      = story.get("category", "smartphone")
@@ -2359,19 +2403,49 @@ def groq_draft(story, is_search):
                 "\n"
                 "6. FAQ (H2, id=faq): 7 question H3s Indians search about this comparison. FAQ comes AFTER Final Verdict.\n"
             )
-        elif "under" in topic.lower() or "best" in topic.lower():
+        elif "under" in topic.lower() or "best" in topic.lower() or "top" in topic.lower():
+            # ── Pick 5 real phone names BEFORE writing ──
+            phones_list = pick_top5_phones(topic, cat, ctx)
+            phones_block = ""
+            if phones_list:
+                phone_lines = "\n".join(
+                    f"  Phone {i+1}: {p['name']} — {p.get('price','₹??')} — Best for: {p.get('best_for','all-round')}"
+                    for i, p in enumerate(phones_list)
+                )
+                # Build SEO keyword block: each exact model name must appear in article
+                kw_model_lines = "\n".join(
+                    f"  • {p['name']} review India {datetime.datetime.now().year}"
+                    for p in phones_list
+                )
+                phones_block = (
+                    f"\n━━━ MANDATORY: WRITE ABOUT THESE EXACT 5 PHONES — NO SUBSTITUTIONS ━━━\n"
+                    f"You MUST write a complete full section for EACH of these 5 phones:\n"
+                    f"{phone_lines}\n\n"
+                    f"CRITICAL RULES:\n"
+                    f"• Phone 1 = H2 heading with #1 ranking\n"
+                    f"• Phone 2 = H2 heading with #2 ranking\n"
+                    f"• Continue for all 5 phones\n"
+                    f"• NEVER replace any of these 5 with a different phone\n"
+                    f"• NEVER write only 1 phone and call it a Top 5 guide\n"
+                    f"• Each phone gets its OWN complete section: Intro, Design, Display, Performance, Battery, Camera, Price\n"
+                    f"• The exact model names below MUST appear in H2 headings for SEO:\n"
+                    f"{kw_model_lines}\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                )
             mode = (
                 "TOP 5 BUYING GUIDE.\n"
-                "- List exactly 5 real products with full real India specs and prices.\n"
-                "- Follow the MANDATORY ARTICLE STRUCTURE v16 below EXACTLY for every product.\n"
-                "- Every product gets ALL category-specific H3 sections written in full prose.\n"
-                "- Add Quick Specs box for every product.\n"
-                "- Add IMAGE PLACEHOLDER immediately after each product H2 heading.\n"
-                "- Add transition line between each product.\n"
+                "- Write about EXACTLY the 5 phones listed above — no substitutions.\n"
+                "- Each phone gets a COMPLETE full-section deep-dive (not a paragraph).\n"
+                "- Follow the MANDATORY ARTICLE STRUCTURE v16 below EXACTLY for every phone.\n"
+                "- Every phone gets ALL category-specific H3 sections written in full prose.\n"
+                "- Add Quick Specs box for every phone.\n"
+                "- Add IMAGE PLACEHOLDER immediately after each phone H2 heading.\n"
+                "- Add transition line between each phone.\n"
                 "- NO Pros & Cons table anywhere in the article.\n"
                 "- NO comparison table anywhere in the article.\n"
                 "- Final Verdict section is written as rich prose paragraphs — NO table.\n"
                 "- FAQ section comes AFTER the Final Verdict.\n"
+                + phones_block
             )
         else:
             mode = (
@@ -2398,19 +2472,42 @@ def groq_draft(story, is_search):
             + structure_block + "\n\n"
             + rules_with_kw + "\n\n"
             + link_rules + "\n\n"
-            "SEO CHECKLIST:\n"
-            "✓ H1 is the pre-generated title above (use it exactly)\n"
-            "✓ Primary keyword in first 100 words\n"
-            "✓ Keyword in at least 3 H2 headings\n"
-            "✓ Question-based H3 subheadings (improves SEO)\n"
-            "✓ Long-tail keywords woven in naturally (not stuffed)\n"
-            "✓ Real ₹ prices — Flipkart/Amazon India\n"
-            "✓ Real product names — never invent specs\n"
-            "✓ h1 h2 h3 p ul li table — HTML only, NEVER markdown\n"
-            "✓ <p> tags: max 3 sentences (mobile-friendly)\n"
+
+            "━━━ KEYWORD PLACEMENT STRATEGY (mandatory for Google ranking) ━━━\n"
+            "Primary keyword: '" + topic + "'\n"
+            "• Primary keyword MUST appear in: H1 title, first 100 words of intro, at least 3 H2 headings, final verdict\n"
+            "• Each phone's EXACT model name (e.g. 'Nothing Phone 4a Pro') must appear in:\n"
+            "  → That phone's H2 heading\n"
+            "  → First sentence of that phone's intro paragraph\n"
+            "  → That phone's specs box\n"
+            "  → FAQ section (at least 1 question mentioning the exact model)\n"
+            "• This ensures when someone Googles 'Nothing Phone 4a Pro review India' — YOUR article ranks\n\n"
+
+            "━━━ STRONG INTRODUCTION HOOK (mandatory — Acknowledge → Gap → Promise) ━━━\n"
+            "Para 1 (Acknowledge): Start with what the Indian buyer already knows — the struggle of choosing\n"
+            "  a phone in this price range with too many options. Make them feel seen.\n"
+            "  Example: 'If you've been scrolling through Flipkart for the past week trying to pick a phone\n"
+            "  under ₹30,000 — you already know the problem. The specs sheets all look identical.\n"
+            "  The reviews contradict each other. And everyone seems to have a different favourite.'\n"
+            "Para 2 (Gap): Subtly reveal what most comparisons miss — real India daily use testing.\n"
+            "  Example: 'Most comparison articles test phones in controlled environments. None of them\n"
+            "  ran BGMI for 40 minutes in a Bengaluru summer. None tested the camera at a Sunday market.\n"
+            "  That is exactly what I did — for every phone in this list.'\n"
+            "Para 3 (Promise + all 5 named): Name all 5 phones with one punchy line each.\n"
+            "  Example: '#1 is the camera king. #3 is the gaming beast. #5 will genuinely surprise you.'\n"
+            "  Then: 'Let's start with the top pick.'\n\n"
+
+            "SEO FINAL CHECKLIST:\n"
+            "✓ Primary keyword '" + topic + "' in H1 title (exact match)\n"
+            "✓ Primary keyword in first 50 words of intro\n"
+            "✓ Each phone's exact model name in its own H2 heading\n"
+            "✓ Acknowledge→Gap→Promise 3-para intro hook BEFORE Table of Contents\n"
+            "✓ FAQ: first question = exact primary keyword as a question\n"
+            "✓ FAQ: one question per phone model (e.g. 'Is Nothing Phone 4a Pro worth buying India 2026?')\n"
+            "✓ Real ₹ prices with Flipkart/Amazon India availability\n"
+            "✓ h1 h2 h3 p ul li — HTML only, NEVER markdown\n"
             "✓ <strong> for specs, prices, key data\n"
-            "✓ Brand names hyperlinked to your blog label pages only\n"
-            "✓ FAQ section: first question = exact search query\n"
+            "✓ Brand names hyperlinked to technewsai.me label pages only\n"
             "✓ ORIGINAL content — no copy, no thin filler\n"
             "Write now:"
         )
@@ -2496,31 +2593,8 @@ def groq_draft(story, is_search):
 def human_rewrite(draft, story):
     client = Groq(api_key=GROQ_API_KEY)
     cat    = story.get("category", "smartphone")
-    today  = datetime.datetime.now().strftime("%B %d, %Y")
     labels = ", ".join(CAT.get(cat, CAT["smartphone"])["labels"])
     link_rules = build_internal_link_instructions(cat)
-
-    author_bio = (
-        '<div style="border-top:3px solid #1a73e8;margin-top:40px;padding:20px;'
-        'background:#f0f7ff;border-radius:12px;">'
-        "<table><tr>"
-        '<td style="width:85px;vertical-align:top;padding-right:15px;">'
-        '<img src="https://lh3.googleusercontent.com/pw/AP1GczNbk_7GTq9-pE7KTZUn0skqYYoESZzxYYQ1uTQvvu6dDj-2AUPZyvUGs5XPOGrt5HeVnMuHzPHO8tp1OA0zuhAKF6wlOho_8Q1aVAlVTwG9CNr_jH8=s400-no"'
-        ' width="75" height="75" style="border-radius:50%;border:3px solid #1a73e8;" alt="Mallikarjun R"/>'
-        "</td><td style='vertical-align:top;'>"
-        '<p style="margin:0;font-size:18px;font-weight:bold;color:#1a73e8;">Mallikarjun R</p>'
-        '<p style="margin:4px 0;font-size:13px;color:#666;">CSE Student &amp; Tech Blogger &bull; Bengaluru, India</p>'
-        '<p style="margin:10px 0;font-size:14px;color:#333;line-height:1.7;">'
-        "Passionate about smartphones, laptops and everything tech. "
-        "Honest reviews for Indian buyers. Follow for daily updates!</p>"
-        '<p style="margin:8px 0;">'
-        '<a href="https://www.instagram.com/mallikarjunr_8055" target="_blank" style="color:#e4405f;margin-right:15px;font-weight:bold;">&#128247; Instagram</a>'
-        '<a href="https://whatsapp.com/channel/0029VazWwdn0wajoizN5PY3Q" target="_blank" style="color:#25d366;margin-right:15px;font-weight:bold;">&#128172; WhatsApp</a>'
-        '<a href="https://www.linkedin.com/in/mallikarjun-r-a85685367" target="_blank" style="color:#0077b5;font-weight:bold;">&#128188; LinkedIn</a>'
-        "</p>"
-        f'<p style="font-size:12px;color:#999;"><em>Published: {today} &bull; <a href="{BLOG_URL}" target="_blank">technewsai.me</a></em></p>'
-        "</td></tr></table></div>"
-    )
 
     prompt = (
         "You are Mallikarjun R — 19-year-old CSE student and tech blogger from Bengaluru, India.\n"
@@ -2627,10 +2701,7 @@ def human_rewrite(draft, story):
         "✓ Transition bridge between every product section\n"
         "✓ All products: specs box + ALL category H3 sections (no pros/cons table in buying guides) + should-you-buy + mini verdict\n"
         "✓ Strong final verdict with clear winner declared\n"
-        "✓ Author bio at the very end\n\n"
-
-        "ADD AUTHOR BIO as absolute last element:\n"
-        + author_bio + "\n\n"
+        "✓ DO NOT add any author bio — it is auto-added by the system after posting\n\n"
 
         "NOW REWRITE — every word human, every spec accurate:\n\n"
         + draft
@@ -2745,6 +2816,13 @@ def run_article(story, is_search, label, atype, log):
     print("Final: " + str(words) + " words | " + title[:55])
 
     cat  = story.get("category","general")
+
+    # ── Bio safety strip: remove ANY old blue-border bio the AI may have added ──
+    # Catches both the old #1a73e8 blue bio AND any other injected bio divs
+    final = re.sub(
+        r'<div[^>]*(?:border-top:3px solid #1a73e8|background:#f0f7ff)[^>]*>.*?</div>',
+        '', final, flags=re.DOTALL | re.IGNORECASE
+    )
 
     # Step 3b — Remove any PRODUCT_IMAGE placeholder comments (no auto images — blogger pastes manually)
     final = re.sub(
