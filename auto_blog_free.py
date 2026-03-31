@@ -1,7 +1,27 @@
-# TECH NEWS WITH AI - AUTO BLOG v23.0
-# v23 Improvements (based on Honor Magic 8 Pro audit + user requirements):
-#   CONTENT DEPTH:
-#   - News articles: real specs with numbers (no vague "latest Snapdragon")
+# TECH NEWS WITH AI - AUTO BLOG v26.0
+# v26 — LATEST LAUNCH FOCUS (Articles 1 & 2 = brand-new smartphone launches only)
+#
+#   NEW: OFFICIAL BRAND RSS PRIORITY
+#     - Articles 1 & 2 now use pick_launch_story() — ONLY picks phones that just launched
+#     - Official brand feeds (Samsung, OnePlus, Nothing, iQOO, OPPO, etc.) scanned FIRST
+#     - Launch keywords REQUIRED: "launched", "announced", "first sale", "price revealed"
+#     - Non-launch stories (deals, rumours, comparisons) are REJECTED for Articles 1 & 2
+#
+#   NEW: RICH SPEC FETCHING
+#     - fetch_official_page_specs(url): scrapes specs from the story's own source URL
+#     - GSMArena spec fetch + official page fetch combined for maximum spec data
+#     - Specs injected directly into the review prompt with "OFFICIAL LAUNCH DATA" label
+#
+#   NEW: LAUNCH REVIEW PROMPT STYLE
+#     - Prompt now says "This phone JUST launched in India — write a launch day review"
+#     - Includes India launch date, first sale date, and official price from source
+#     - "Here is what the spec sheet does not tell you" — hands-on angle even for launch reviews
+#
+# v25 fixes (kept):
+#   FIX 1: Single review titles — no "Top 5" in news articles
+#   FIX 2: No question H3s outside FAQ
+#   FIX 3: Wired-style per-phone sections in Top 5 guides
+# technewsai.me - Mallikarjun R, Bengaluru
 #   - Mandatory COMPARISON TABLE vs 2 named rivals (iPhone 17 / Samsung S26 / Pixel 10)
 #   - Mandatory REAL-LIFE USAGE section (BGMI fps, battery drain, heating test)
 #   - Mandatory PROS & CONS table (for news/review articles only)
@@ -764,6 +784,214 @@ def get_specs(device):
     except Exception:
         return ""
 
+# ================================================================
+# OFFICIAL BRAND RSS FEEDS — scanned first for new launches
+# These are the PRIMARY sources for Articles 1 & 2
+# ================================================================
+OFFICIAL_BRAND_RSS = [
+    ("Samsung Newsroom",   "https://news.samsung.com/global/feed"),
+    ("OnePlus Forum",      "https://forums.oneplus.com/forums/oneplus-announcements.15/index.rss"),
+    ("Realme Blog",        "https://www.realme.com/in/blogs/news.atom"),
+    ("OPPO Newsroom",      "https://www.oppo.com/en/newsroom/rss/"),
+    ("Vivo Blog",          "https://www.vivo.com/en/news/rss/"),
+    ("iQOO India",         "https://www.iqoo.com/in/news.atom"),
+    ("Xiaomi Blog",        "https://blog.mi.com/en/feed/"),
+    ("Nothing Tech",       "https://nothing.tech/blogs/news.atom"),
+    ("Google Pixel",       "https://blog.google/products/pixel/rss/"),
+    ("Motorola News",      "https://newsroom.motorola.com/rss/"),
+    ("Apple Newsroom",     "https://www.apple.com/newsroom/rss-feed.rss"),
+    ("Honor News",         "https://www.hihonor.com/global/news/rss/"),
+    ("POCO India",         "https://in.poc.phone/news/rss/"),
+    ("Infinix Mobile",     "https://www.infinixmobility.com/en-in/news/rss/"),
+    ("Tecno Mobile",       "https://www.tecno-mobile.com/en-in/blog/rss/"),
+    # ── Top India review sites — cover every brand launch ──────────
+    ("91Mobiles",          "https://www.91mobiles.com/hub/feed/"),
+    ("GSMArena",           "https://www.gsmarena.com/rss-news-articles.php3"),
+    ("MySmartPrice",       "https://www.mysmartprice.com/feed/"),
+    ("Smartprix",          "https://www.smartprix.com/bytes/feed/"),
+    ("BGR India",          "https://www.bgr.in/feed/"),
+    ("NDTV Gadgets",       "https://gadgets.ndtv.com/rss/feeds"),
+    ("GadgetBridge",       "https://gadgetbridge.com/feed/"),
+    ("Beebom Gadgets",     "https://gadgets.beebom.com/feed/"),
+    ("TechPP",             "https://techpp.com/feed/"),
+    ("Cashify Blog",       "https://www.cashify.in/blog/feed/"),
+    ("GadgetsNow",         "https://www.gadgetsnow.com/rssfeedstopstories.cms"),
+    ("AndroidAuthority",   "https://www.androidauthority.com/feed/"),
+    ("XDA Developers",     "https://www.xda-developers.com/feed/"),
+    ("9to5Google",         "https://9to5google.com/feed/"),
+    ("SamMobile",          "https://www.sammobile.com/feed/"),
+    ("GizmoChina",         "https://www.gizmochina.com/feed/"),
+    ("The Verge",          "https://www.theverge.com/rss/index.xml"),
+    ("PhoneArena",         "https://www.phonearena.com/phones/articles/rss"),
+]
+
+# Keywords that signal a GENUINE new product launch (not a rumour or deal)
+LAUNCH_KEYWORDS = [
+    "launched", "launch", "announced", "official", "price revealed",
+    "goes on sale", "first sale", "available now", "pre-booking",
+    "india price", "review", "first look", "hands on", "unboxing",
+    "specifications", "full specs", "price in india",
+]
+
+# Keywords that should EXCLUDE a story from being a "new launch" article
+EXCLUDE_KEYWORDS = [
+    "rumour", "rumor", "leak", "leaked", "expected", "upcoming",
+    "report", "tipped", "allegedly", "could", "might", "may launch",
+    "deal", "discount", "sale offer", "cashback", "coupon",
+    "best phones list", "top 5", "top 10", "buying guide",
+]
+
+
+def fetch_official_page_specs(url):
+    """
+    Fetches the actual source page of a launch article and extracts
+    any spec-like data (numbers, GHz, mAh, Hz, MP, nm, GB, etc).
+    Used to supplement GSMArena specs with data from the official article.
+    """
+    if not url or url.startswith("https://forums.oneplus"):
+        return ""
+    try:
+        r = requests.get(url, headers=HEADERS, timeout=10)
+        if r.status_code != 200:
+            return ""
+        text = re.sub(r"<[^>]+>", " ", r.text)
+        text = re.sub(r"\s+", " ", text)[:8000]
+
+        # Extract spec-like sentences: lines containing numbers + units
+        spec_lines = []
+        for sentence in re.split(r"[.\n]", text):
+            s = sentence.strip()
+            if len(s) < 20 or len(s) > 300:
+                continue
+            # Must contain at least one spec-style number pattern
+            if re.search(
+                r"\b(\d+(\.\d+)?\s*(mAh|GHz|Hz|MP|nm|GB|TB|W|mm|nits?|inches?|fps|ms|dB|g\b))",
+                s, re.IGNORECASE
+            ):
+                spec_lines.append(s)
+            if len(spec_lines) >= 20:
+                break
+
+        return "\n".join(spec_lines) if spec_lines else ""
+    except Exception:
+        return ""
+
+
+def pick_launch_story(log, exclude_titles=None):
+    """
+    Picks a GENUINELY NEW LAUNCHED smartphone story for Articles 1 & 2.
+
+    Priority order:
+      1. Official brand RSS feeds (Samsung, OnePlus, Nothing, iQOO etc) — first-party launch news
+      2. Top India review sites (91Mobiles, GSMArena, BGR India etc) — verified launch coverage
+      3. Fallback: any story from ALL_RSS with strong launch signals
+
+    Filters OUT:
+      - Rumours, leaks, deals, buying guides, Top 5 lists
+      - Already-posted articles (from log)
+      - Stories without launch keywords in title or description
+
+    Enriches each story with:
+      - GSMArena spec data (get_specs)
+      - Official page spec data (fetch_official_page_specs)
+    """
+    print("\n[Launch] Scanning official brand RSS feeds for new smartphone launches...")
+    used_titles = {e.get("title", "") for e in log}
+    if exclude_titles:
+        used_titles = used_titles | exclude_titles
+
+    smartphone_detect = CAT["smartphone"]["detect"]
+    candidates = []
+
+    # Official brand sources get highest priority score
+    official_brand_names = {name for name, _ in OFFICIAL_BRAND_RSS[:15]}
+
+    for name, url in OFFICIAL_BRAND_RSS:
+        try:
+            articles = fetch_rss(name, url)
+        except Exception:
+            continue
+
+        for a in articles:
+            title = a.get("title", "")
+            desc  = a.get("description", "")
+            if not title or title in used_titles:
+                continue
+            if len(title) < 20:
+                continue
+
+            tl = title.lower()
+            dl = desc.lower()
+
+            # Must be a smartphone
+            if not any(kw in tl or kw in dl for kw in smartphone_detect):
+                continue
+
+            # Must NOT be a rumour, leak, or list article
+            if any(ex in tl for ex in EXCLUDE_KEYWORDS):
+                continue
+
+            # Must have at least one launch signal
+            has_launch = any(lk in tl or lk in dl for lk in LAUNCH_KEYWORDS)
+            if not has_launch:
+                continue
+
+            # Score: official brand = 5, India review site = 3, global = 1
+            if name in official_brand_names:
+                score = 5
+            elif any(x in name for x in ["91Mobiles", "GSMArena", "BGR India",
+                                          "Smartprix", "NDTV", "GadgetBridge",
+                                          "Beebom", "TechPP", "Cashify"]):
+                score = 3
+            else:
+                score = 1
+
+            # Boost score for strong launch words in title (not just description)
+            strong_title_words = ["launched", "official", "price in india",
+                                  "review", "hands on", "first look", "india price"]
+            if any(w in tl for w in strong_title_words):
+                score += 2
+
+            candidates.append({
+                "title":       title,
+                "description": desc,
+                "url":         a.get("url", url),
+                "source":      name,
+                "published":   a.get("published", ""),
+                "category":    "smartphone",
+                "_score":      score,
+            })
+
+    # Sort by score
+    candidates.sort(key=lambda x: x["_score"], reverse=True)
+
+    # Enrich top candidates with specs and return first unused one
+    for story in candidates[:15]:
+        title = story["title"]
+        print(f"[Launch][{story['source']}] {title[:70]} (score={story['_score']})")
+
+        # Fetch specs from GSMArena
+        gsm_specs = get_specs(title)
+
+        # Fetch specs from official page
+        official_specs = fetch_official_page_specs(story.get("url", ""))
+
+        # Combine both spec sources
+        combined_specs = ""
+        if gsm_specs:
+            combined_specs += "=== GSMArena Specs ===\n" + gsm_specs + "\n\n"
+        if official_specs:
+            combined_specs += "=== Official Source Data ===\n" + official_specs
+
+        story["specs"]       = combined_specs or "Use your full knowledge of this device."
+        story["rss_context"] = get_rss_context([title.split()[0], title.split()[-1]])
+
+        return story
+
+    # Fallback: if no launch stories found, fall back to regular breaking news
+    print("[Launch] No fresh launch stories found — falling back to breaking news picker")
+    return None
+
 def detect_cat(title):
     tl = title.lower()
     for cat, data in CAT.items():
@@ -1198,13 +1426,37 @@ def fix_bold(text):
 # ================================================================
 # v14: TITLE GENERATOR — clickbait-honest, numbered, SEO-optimised
 # ================================================================
-def generate_seo_title(story, is_search):
-    """Groq generates a CTR-optimised H1 title with number hook."""
+def generate_seo_title(story, is_search=False):
+    """Groq generates a CTR-optimised H1 title.
+    For news/single reviews (is_search=False): full review format — NO 'Top 5'.
+    For search/buying guides (is_search=True): Top 5 / Best / Comparison format."""
     try:
         client = Groq(api_key=GROQ_API_KEY)
         cat    = story.get("category", "smartphone")
         topic  = story.get("search_topic") or story.get("title", "")
         year   = datetime.datetime.now().year
+
+        if is_search:
+            # Search/buying guide articles — use "Top 5 / Best" format
+            format_options = (
+                f"  'Top 5 Best [Product] Under ₹[Price] India {year} — Tested & Ranked'\n"
+                f"  '[Product A] vs [Product B] India {year}: Which One Wins?\n"
+                f"  'Best [Feature] [Category] India {year}: Top 7 Picks Tested'\n"
+                f"  'Top 5 [Category] India {year} — Honest Buying Guide'\n"
+            )
+            number_rule = "- Must contain a NUMBER: Top 5, Top 10, Best 7, etc.\n"
+        else:
+            # Single phone / product review — use full review format, NO "Top 5"
+            format_options = (
+                f"  '[Phone Name] Full Review India {year}: Full Specs, Camera Test & Is It Worth Buying?'\n"
+                f"  '[Phone Name] Review India {year} — [Key Feature] Tested Honestly'\n"
+                f"  '[Phone Name] Full Review India {year}: Honest [Key Feature] & Performance Test'\n"
+                f"  '[Phone Name] India Review {year}: Price, Specs, Camera — Buy or Skip?'\n"
+            )
+            number_rule = (
+                "- Do NOT use 'Top 5', 'Top 10', 'Best 5' etc — this is a SINGLE phone review\n"
+                "- Title must clearly be a single product review, not a list\n"
+            )
 
         prompt = (
             f"You are an India SEO expert. Generate ONE perfect blog title.\n\n"
@@ -1212,16 +1464,13 @@ def generate_seo_title(story, is_search):
             f"Category: {cat.upper()}\n"
             f"Year: {year}\n\n"
             f"TITLE RULES:\n"
-            f"- Must contain a NUMBER: Top 5, Top 10, Best 7, etc.\n"
+            f"{number_rule}"
             f"- Must be clickbait-honest: make it exciting BUT accurate\n"
             f"- Must include primary keyword and India {year}\n"
-            f"- Must be under 65 characters (fits Google title tag)\n"
-            f"- Use power words: Best, Tested, Ranked, Honest, Worth It, Buying Guide\n"
+            f"- Must be under 70 characters (fits Google title tag)\n"
+            f"- Use power words: Full Review, Tested, Honest, Worth Buying, Specs, Camera Test\n"
             f"- Format options (pick the best fit):\n"
-            f"  'Top 5 Best [Product] Under ₹[Price] India {year} — Tested & Ranked'\n"
-            f"  '[Product A] vs [Product B] India {year}: Which One Wins?'\n"
-            f"  'Is [Product] Worth Buying India {year}? Honest Review'\n"
-            f"  'Best [Feature] [Category] India {year}: Top 7 Picks Tested'\n\n"
+            f"{format_options}\n"
             f"Output ONLY the title text. No quotes. No explanation."
         )
         r = client.chat.completions.create(
@@ -1788,8 +2037,23 @@ SPECS_BOX_HTML = """<div style="border:1px solid #ddd;padding:14px;margin:10px 0
 # ── Buying guide structure rules ──────────────────────────────────
 BUYING_GUIDE_STRUCTURE = """
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-MANDATORY ARTICLE STRUCTURE v16 — TOP 5 / BEST 5 BUYING GUIDES
+MANDATORY ARTICLE STRUCTURE v25 — TOP 5 / BEST 5 BUYING GUIDES
+Reference style: Wired "Best Android Phones" — each phone is its OWN deep standalone section
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CRITICAL STRUCTURE RULE (Wired style):
+• Every phone gets its OWN complete section — like a full mini review
+• DO NOT mix multiple phones under one section (NO "Design and Build Quality" with Oppo, Samsung, OnePlus all under it)
+• Each phone = one H2 + its own H3 subsections (Design, Display, Performance, Camera, Battery, Price, Verdict)
+• Think: if you removed one phone's section, the rest of the article should still make perfect sense
+
+H3 HEADING RULE (CRITICAL):
+• H3 headings must be DESCRIPTIVE — they describe what the section covers, never ask a question
+• ✅ "<h3>Oppo Find X9 Ultra Design and Build — Glass Back, Curved Edges, IP68</h3>"
+• ✅ "<h3>Samsung S26 Display — 6.2-inch Dynamic AMOLED, 120Hz, 2600 Nits</h3>"
+• ❌ NEVER: "<h3>Oppo Find X9 Ultra Design — Premium Feel or Not?</h3>"
+• ❌ NEVER: "<h3>Samsung S26 Display — How Does It Compare?</h3>"
+• ❌ NEVER: ANY H3 containing a "?" — questions go ONLY in the FAQ section
 
 Every Top 5 / Best 5 / Best Under Budget article MUST follow this EXACT structure.
 NO Pros & Cons tables. NO comparison tables. NO side-by-side comparison columns.
@@ -1837,43 +2101,45 @@ IMAGE PLACEHOLDER: <!-- IMAGE PLACEHOLDER: [Product Name] — Add product image 
 QUICK SPECS BOX:
 """ + SPECS_BOX_HTML + """
 
-Now write ALL of the following sections for THIS product IN ORDER.
+CRITICAL: This product's section must be a COMPLETE STANDALONE mini-review.
+Someone who reads ONLY this phone's section must get the full picture.
+DO NOT reference other phones in this section's H3 content (comparisons go inside paragraphs, not headings).
 NO Pros & Cons table. NO comparison table. Just rich narrative prose.
 
 ══════════════════════════════════════════════════
-FOR SMARTPHONES — write these sections for EACH of the 5 phones:
+FOR SMARTPHONES — write these H3 sections for EACH of the 5 phones:
 ══════════════════════════════════════════════════
 
-<h3>[Product] Introduction — Who This Phone Is For and Why It Matters in India 2026</h3>
+<h3>[Product Name] Introduction — Who It Is For and Why It Made This List</h3>
 → 3 paragraphs: who this phone is built for, what problem it solves, why it ranks at this position,
   India market context (launch date, pricing history, availability on Flipkart/Amazon),
   what makes it stand out from every other phone at this price
 
-<h3>[Product] Design and Build Quality — Premium Feel or Budget Compromise?</h3>
+<h3>[Product Name] Design and Build Quality — Materials, IP Rating, Dimensions, Color Options</h3>
 → 3-4 paragraphs: exact thickness (mm) and weight (g), back panel material, IP rating explained,
   Gorilla Glass version, color variants described vividly, button placement, one-hand usability,
   India real-life line: "At X mm it slips into your jeans without the uncomfortable bulk"
 
-<h3>[Product] Display Review — Brightness, HDR, Outdoor Test, Real Usage</h3>
+<h3>[Product Name] Display Review — Panel Type, Brightness, HDR, Outdoor Visibility</h3>
 → 3 paragraphs: panel type (AMOLED/IPS/LTPO), size, resolution, refresh rate Hz,
   peak brightness nits and what it means in Indian outdoor sun,
   HDR10+ or Dolby Vision support on Netflix/YouTube/Prime,
   real verdict: "In Bengaluru afternoon sun — could I read texts without squinting?"
 
-<h3>[Product] Performance Review — Chipset Deep Dive, Benchmarks, Gaming Test</h3>
+<h3>[Product Name] Performance Review — Chipset, Benchmarks, Gaming, Daily Use</h3>
 → 4 paragraphs covering:
   [Chipset] full name, nm process, core layout, GPU name, what makes it different
   [Benchmarks] AnTuTu, Geekbench scores vs named competitors
   [Gaming] BGMI/Free Fire/COD Mobile fps at which settings, temperature after 30min, cooling system
   [Daily Use] app switching speed, RAM management, India scenario: "Instagram → Chrome → BGMI — zero stutter"
 
-<h3>[Product] Battery Life and Charging — Real Usage Test, Screen-On Hours, India Scenarios</h3>
+<h3>[Product Name] Battery Life and Charging — mAh, Screen-On Hours, Fast Charge</h3>
 → 2 paragraphs:
   Para 1: mAh, real screen-on hours, what usage mix (gaming/social/video),
           India real-life: "X mAh = full IPL match + 6hrs college + evening commute = still Y% left"
   Para 2: fast charge wattage, 0→50% time, 0→100% time, wireless charging, charger in box or not
 
-<h3>[Product] Camera Review — Daylight, Night, Portrait, Video, Selfie (Each Tested)</h3>
+<h3>[Product] Camera Review — Daylight, Night, Portrait, Video, Selfie</h3>
 → 5 paragraphs — ONE per test, NEVER merge:
   [Daylight] main sensor MP, aperture, OIS, colour accuracy, dynamic range, real scenario
   [Night] shadow detail, noise, processing time, astrophotography, honest comparison to named rival
@@ -1881,7 +2147,7 @@ FOR SMARTPHONES — write these sections for EACH of the 5 phones:
   [Video] max resolution + fps, OIS verdict (walking video smooth?), slow-mo capability, audio quality
   [Selfie] MP, autofocus, Indian skin tone accuracy, portrait selfie edge detection
 
-<h3>[Product] Connectivity and Audio — 5G Bands, WiFi, Speakers, Sensors, Biometrics</h3>
+<h3>[Product] Connectivity and Audio — 5G Bands, WiFi, Speakers, Biometrics</h3>
 → 2 paragraphs:
   Para 1: 5G band count, WiFi version, BT version, NFC for UPI, USB type, IR blaster
   Para 2: stereo/mono speakers, Dolby Atmos, loudness test, fingerprint type/speed, face unlock
@@ -1890,7 +2156,7 @@ FOR SMARTPHONES — write these sections for EACH of the 5 phones:
 → 1-2 paragraphs: Android version, UI name, bloatware level, top 3 AI features in plain language,
   OS update years and security patch years, why this matters for long-term value
 
-<h3>[Product] Price in India 2026 — All Variants, Launch Offers, No Cost EMI, Best Buy Links</h3>
+<h3>[Product] Price in India 2026 — All Variants, Launch Offers, No Cost EMI</h3>
 → 2 paragraphs + bullet list:
   → All RAM/storage variants with exact ₹ prices
   → Bank offers (HDFC/Axis/SBI/ICICI) and effective price
@@ -2372,7 +2638,9 @@ def groq_draft(story, is_search):
         f"CRITICAL: Use the EXACT H2 text shown below. Replace {{Product}} with the real product name.\n"
         f"Do NOT use clickbait or dramatic hooks as H2 text. H2 must be clean and descriptive.\n"
         f"Personal hooks and commentary go in the first <p> paragraph UNDER the H2, never inside it.\n"
-        f"Under each H2, write H3 question-based subheadings.\n\n"
+        f"Under each H2, write DESCRIPTIVE H3 sub-section headings — NO question marks in H3s.\n"
+        f"H3 format: '[Product Name] [Sub-aspect] — [Short Descriptive Tagline]' (no '?' allowed).\n"
+        f"Question-format H3s are ONLY allowed inside the FAQ section.\n\n"
         f"{sections_as_h2}\n"
         f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
     )
@@ -2532,11 +2800,28 @@ def groq_draft(story, is_search):
 
         prompt = (
             title_instruction +
-            f"Write a world-class smartphone review for Indian readers about: {phone}\n"
-            f"SOURCE: {source}\n"
-            f"REAL SPECS (use exact numbers only — never 'latest Snapdragon' or 'fast charging'):\n"
-            f"{specs}\n"
-            f"DESCRIPTION: {desc}\n\n"
+            f"Write a world-class NEW LAUNCH smartphone review for Indian readers about: {phone}\n"
+            f"SOURCE: {source}\n\n"
+            f"━━━ OFFICIAL LAUNCH SPECS (use EXACT numbers — never invent, never say 'latest Snapdragon') ━━━\n"
+            f"{specs}\n\n"
+            f"DESCRIPTION / LAUNCH CONTEXT: {desc}\n\n"
+
+            "━━━ ARTICLE CONTEXT — THIS IS A NEW LAUNCH REVIEW ━━━\n"
+            "This phone JUST launched in India. Write as Mallikarjun R who attended the launch event\n"
+            "or got a review unit on Day 1. The reader wants to know:\n"
+            "  (a) What exactly is this phone — full official specs explained\n"
+            "  (b) How does it compare to its closest rivals at the same price\n"
+            "  (c) Is it worth buying — clear honest verdict\n"
+            "Tone: confident, knowledgeable, India-specific. Like iQOO 15R review on technewsai.me.\n\n"
+
+            "━━━ HEADING FORMAT RULES (CRITICAL) ━━━\n"
+            "• H2 section headings: <h2>[Phone Name] [Section] — [Short Tagline]</h2>\n"
+            "  ✅ '<h2>Samsung Galaxy S26 Design and Build — Slim, Glass, IP68 Tested</h2>'\n"
+            "  ✅ '<h2>iQOO Neo 10 Display Review — 144Hz AMOLED, 5000 Nits, Bengaluru Sun Test</h2>'\n"
+            "• H3 sub-section headings: DESCRIPTIVE only — NO question marks\n"
+            "  ✅ '<h3>iQOO Neo 10 Daylight Camera — 50MP Main, OIS, Natural Colours</h3>'\n"
+            "  ❌ NEVER: '<h3>Is the Camera Good?</h3>' or any H3 with '?'\n"
+            "Question H3s are FORBIDDEN everywhere except the FAQ section.\n\n"
 
             "━━━ ARTICLE STRUCTURE — FOLLOW EXACTLY ━━━\n\n"
 
@@ -2549,10 +2834,11 @@ def groq_draft(story, is_search):
             "  STYLE: 'Most phones at ₹40,000 in India promise flagship cameras — very few deliver.\n"
             "  The [Phone] aims to be the exception. Whether it succeeds is what this review is about.'\n"
             "  NOT: 'The [Phone] is a new smartphone with great features and good performance.'\n"
-            "Para 2 — India launch context + review methodology:\n"
-            "  India launch date, starting price ₹, where to buy (Flipkart/Amazon/brand store).\n"
+            "Para 2 — India launch context + official specs angle:\n"
+            "  India launch date (exact), starting price ₹, where to buy (Flipkart/Amazon/brand store).\n"
+            "  All storage/RAM variants with exact ₹ prices.\n"
             "  How you tested it: how many days, what scenarios (BGMI, commute, camera, calls).\n"
-            "  Note any India-specific differences vs global version (different battery, bands, etc).\n\n"
+            "  Note any India-specific differences vs global version (different battery, bands, price).\n\n"
 
             "══ STEP 3: QUICK SPECS BOX (exact numbers — no vague descriptions) ══\n"
             + SPECS_BOX_HTML + "\n\n"
@@ -3019,10 +3305,10 @@ def run_article(story, is_search, label, atype, log):
 # ================================================================
 def main():
     print("=======================================================")
-    print(" TECH NEWS WITH AI - AUTO BLOG v23.0")
-    print(" Daily:  Article 1 — Smartphone full review (new launch)")
-    print("         Article 2 — Smartphone full review (different phone)")
-    print("         Article 3 — Top Google search topic (mobile only)")
+    print(" TECH NEWS WITH AI - AUTO BLOG v26.0")
+    print(" Article 1 — NEW LAUNCH Smartphone review (official brand RSS first)")
+    print(" Article 2 — NEW LAUNCH Smartphone review (different phone, same day)")
+    print(" Article 3 — Top Google search topic (buying guide / Top 5)")
     print(" Weekly: 1 trending Laptop/Earphones/Headphones/AirPods/")
     print("         PowerBank/Smartwatch review (replaces Article 3)")
     print(" technewsai.me — Mallikarjun R, Bengaluru")
@@ -3035,11 +3321,14 @@ def main():
     # Suggest old posts to update (SEO refresh)
     suggest_old_updates(log, days_threshold=30)
 
-    # ── Article 1 — Smartphone full product review #1 ──
+    # ── Article 1 — NEW LAUNCH Smartphone full product review #1 ──
     try:
-        s1 = pick_news_story(log)
+        s1 = pick_launch_story(log)
+        if not s1:
+            print("[Article 1] No launch story found — trying breaking news fallback...")
+            s1 = pick_news_story(log)
         if s1:
-            run_article(s1, False, "ARTICLE 1: SMARTPHONE REVIEW", "news", log)
+            run_article(s1, False, "ARTICLE 1: NEW LAUNCH SMARTPHONE REVIEW", "news", log)
             log = load_log()
             used_in_run.add(s1.get("title", ""))
             used_in_run.add(s1.get("search_topic", ""))
@@ -3049,11 +3338,14 @@ def main():
     except Exception as e:
         print("Article 1 failed: " + str(e))
 
-    # ── Article 2 — Smartphone full product review #2 (different phone) ──
+    # ── Article 2 — NEW LAUNCH Smartphone full product review #2 (different phone) ──
     try:
-        s2 = pick_news_story(log, exclude_titles=used_in_run)
+        s2 = pick_launch_story(log, exclude_titles=used_in_run)
+        if not s2:
+            print("[Article 2] No second launch story found — trying breaking news fallback...")
+            s2 = pick_news_story(log, exclude_titles=used_in_run)
         if s2:
-            run_article(s2, False, "ARTICLE 2: SMARTPHONE REVIEW", "news", log)
+            run_article(s2, False, "ARTICLE 2: NEW LAUNCH SMARTPHONE REVIEW", "news", log)
             log = load_log()
             used_in_run.add(s2.get("title", ""))
             used_in_run.add(s2.get("search_topic", ""))
