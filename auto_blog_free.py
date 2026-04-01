@@ -1,81 +1,47 @@
-# TECH NEWS WITH AI - AUTO BLOG v26.0
-# v26 — LATEST LAUNCH FOCUS (Articles 1 & 2 = brand-new smartphone launches only)
+# TECH NEWS WITH AI - AUTO BLOG v27.0
+# v27 — GUARANTEED SINGLE-PHONE REVIEWS EVERY DAY + WEB SCRAPING FALLBACK
 #
-#   NEW: OFFICIAL BRAND RSS PRIORITY
-#     - Articles 1 & 2 now use pick_launch_story() — ONLY picks phones that just launched
-#     - Official brand feeds (Samsung, OnePlus, Nothing, iQOO, OPPO, etc.) scanned FIRST
-#     - Launch keywords REQUIRED: "launched", "announced", "first sale", "price revealed"
-#     - Non-launch stories (deals, rumours, comparisons) are REJECTED for Articles 1 & 2
+#   DAILY SCHEDULE (3 articles):
+#     Article 1 — NEW LAUNCH Smartphone full product review (brand-new phone only)
+#     Article 2 — NEW LAUNCH Smartphone full product review (different phone, same day)
+#     Article 3 — SINGLE trending smartphone full product review
+#                 (if no trending single phone found → top-searched smartphones buying guide)
 #
-#   NEW: RICH SPEC FETCHING
-#     - fetch_official_page_specs(url): scrapes specs from the story's own source URL
-#     - GSMArena spec fetch + official page fetch combined for maximum spec data
-#     - Specs injected directly into the review prompt with "OFFICIAL LAUNCH DATA" label
+#   v27 CHANGES vs v26:
 #
-#   NEW: LAUNCH REVIEW PROMPT STYLE
-#     - Prompt now says "This phone JUST launched in India — write a launch day review"
-#     - Includes India launch date, first sale date, and official price from source
-#     - "Here is what the spec sheet does not tell you" — hands-on angle even for launch reviews
+#   CHANGE 1: NO IMAGES AUTO-UPLOADED
+#     - Script NEVER uploads or injects any images
+#     - Only <!-- IMAGE PLACEHOLDER --> comments are inserted
+#     - All images pasted manually by Mallikarjun in Blogger
 #
-# v25 fixes (kept):
-#   FIX 1: Single review titles — no "Top 5" in news articles
-#   FIX 2: No question H3s outside FAQ
-#   FIX 3: Wired-style per-phone sections in Top 5 guides
+#   CHANGE 2: ARTICLE 3 = ALWAYS SINGLE PHONE FULL REVIEW
+#     - Article 3 no longer defaults to "Top 5" buying guides
+#     - pick_article3_single_review() picks ONE trending phone for a full review
+#     - Only falls back to buying guide if absolutely no single phone can be found
+#     - Same review style as Articles 1 & 2 (full product review, not a list)
+#
+#   CHANGE 3: WEB SCRAPING FALLBACK FOR LAUNCHES
+#     - When RSS feeds are dry (no new launches today), script now scrapes:
+#       → GSMArena new phones page (latest reviews + launches)
+#       → 91Mobiles launches page
+#       → Smartprix latest phones
+#     - This ensures Articles 1 & 2 always have a real phone to review
+#     - No hardcoded fallback phone lists — all data comes from live web scraping
+#
+#   CHANGE 4: ARTICLE 3 USES is_search=False
+#     - Article 3 generates as a full single product review
+#     - NOT a buying guide / not a Top 5 list
+#     - Same review structure as iQOO 15R on technewsai.me
+#
+#   FROM v26 (kept):
+#     - Official brand RSS feeds scanned first for Articles 1 & 2
+#     - GSMArena + official page spec fetching
+#     - Launch day review tone and structure
+#     - Author bio + Also Read box on every article
+#     - Google Indexing API ping after every post
+#
+#
 # technewsai.me - Mallikarjun R, Bengaluru
-#   - Mandatory COMPARISON TABLE vs 2 named rivals (iPhone 17 / Samsung S26 / Pixel 10)
-#   - Mandatory REAL-LIFE USAGE section (BGMI fps, battery drain, heating test)
-#   - Mandatory PROS & CONS table (for news/review articles only)
-#   - Strong opinion + clear verdict: "best camera phone of 2026 — but not for video"
-#   SEO:
-#   - Long-tail keyword strategy: model name + "camera test", "battery India", "gaming"
-#   - FAQ: comparison questions vs named rivals, not generic
-#   - Image ALT text suggestions with every placeholder comment
-#   SCHEDULE (new):
-#   - Daily:  2 smartphone full product reviews (new launches / trending / current)
-#           + 1 top Google search topic (mobile phones only)
-#   - Weekly: 1 trending product from Laptops/Powerbank/AirPods/Headphones/Smartwatch
-#   - Total: 3 articles per day
-#   ADSENSE:
-#   - Original human-voice content enforced
-#   - No thin content, no spec-only sections, no bullets-only sections
-# technewsai.me - Mallikarjun R, Bengaluru
-# ================================================================
-# SCHEDULE:
-#   Daily   → 2 Smartphone full product reviews (new launches/trending)
-#           + 1 Google search topic (mobile phones only)
-#   Weekly  → 1 trending: Laptop / Earphones / Headphones / AirPods / PowerBank / Smartwatch
-# ================================================================
-# PROCESS:
-#   Step 1: Fetch from 65+ official RSS feeds
-#   Step 2: AUTO-GENERATE live search topics from RSS headlines (Groq)
-#   Step 3: Groq generates clickbait-honest SEO title with number
-#   Step 4: Groq writes 4000+ word draft (bullets + tables)
-#   Step 5: Groq rewrites as Mallikarjun R (human voice)
-#   Step 6: Inject FAQ schema, image blocks, social share, footer
-#   Step 7: Ping Google Indexing API + post to Blogger via email
-# ================================================================
-# v14 NEW FEATURES (ADSENSE + TRAFFIC UPGRADE):
-#
-#   ADSENSE APPROVAL:
-#   - Original content guarantee enforced in every prompt
-#   - No thin content — min 4000 words, every section rich
-#   - Proper HTML structure (no broken tags, no markdown)
-#   - Mobile-friendly: short paragraphs, <p> max 3 sentences
-#   - Fast-load: no inline heavy CSS, clean Blogger-safe HTML
-#   - AdSense-ready ad slot comments injected between sections
-#
-#   SEO & TRAFFIC:
-#   - Groq generates CTR-optimised clickbait-honest title (with numbers)
-#   - Long-tail keywords auto-injected from RSS trends per category
-#   - JSON-LD FAQ Schema markup in every post (Google ranking boost)
-#   - Image placeholder blocks (1200px Google Discover-ready + alt text)
-#   - Social share block: WhatsApp, Telegram, Reddit, Quora links
-#   - Google Indexing API ping after every post (instant crawl request)
-#   - Old blog update suggester: flags posts >30 days for refresh
-#
-#   ENGAGEMENT:
-#   - Trending AI/tech angle injected into topics daily
-#   - All 26 traffic tips wired into prompts and HTML structure
 # ================================================================
 
 import os  # must be first — keys below read from environment
@@ -877,7 +843,154 @@ def fetch_official_page_specs(url):
         return ""
 
 
-def pick_launch_story(log, exclude_titles=None):
+
+# ================================================================
+# v27: WEB SCRAPING FALLBACK — for when RSS feeds have no new launches
+# Scrapes live pages directly to find recently launched phones
+# Used ONLY when RSS feeds return nothing for Articles 1 & 2
+# ================================================================
+
+def scrape_gsmarena_new_phones(max_results=10):
+    """
+    Scrapes GSMArena's daily news / latest phone reviews page
+    to find phones that were just launched or reviewed.
+    Returns list of story dicts compatible with pick_launch_story().
+    """
+    results = []
+    urls_to_try = [
+        "https://www.gsmarena.com/news.php3",
+        "https://www.gsmarena.com/search.php3?chk5G=selected&sAvailabilities=1&YearMade=2025-2026",
+    ]
+    for page_url in urls_to_try:
+        try:
+            r = requests.get(page_url, headers=HEADERS, timeout=10)
+            if r.status_code != 200:
+                continue
+            # Extract article titles and links from GSMArena news page
+            # Pattern: article links with title text
+            articles = re.findall(
+                r'<a[^>]+href="(https://www\.gsmarena\.com/[^"]+\.php)"[^>]*>\s*([^<]{20,120})\s*</a>',
+                r.text
+            )
+            for link, title in articles:
+                title = title.strip()
+                if not title or len(title) < 20:
+                    continue
+                tl = title.lower()
+                # Must be about a phone (not accessories/tablets)
+                if not any(kw in tl for kw in CAT["smartphone"]["detect"]):
+                    continue
+                # Must have a launch signal
+                if not any(lk in tl for lk in LAUNCH_KEYWORDS):
+                    continue
+                # Must NOT be a rumour
+                if any(ex in tl for ex in EXCLUDE_KEYWORDS):
+                    continue
+                results.append({
+                    "title":       title,
+                    "description": f"GSMArena: {title}",
+                    "url":         link,
+                    "source":      "GSMArena (scraped)",
+                    "published":   datetime.datetime.now().isoformat(),
+                    "category":    "smartphone",
+                    "_score":      4,
+                })
+            if results:
+                break
+        except Exception as e:
+            print(f"[GSMArena Scrape] Failed: {e}")
+    print(f"[GSMArena Scrape] Found {len(results)} candidates")
+    return results[:max_results]
+
+
+def scrape_91mobiles_launches(max_results=10):
+    """
+    Scrapes 91Mobiles recently launched / upcoming phones page.
+    Returns list of story dicts compatible with pick_launch_story().
+    """
+    results = []
+    urls_to_try = [
+        "https://www.91mobiles.com/phones/recently-launched",
+        "https://www.91mobiles.com/hub/new-mobile-phones/",
+    ]
+    for page_url in urls_to_try:
+        try:
+            r = requests.get(page_url, headers=HEADERS, timeout=10)
+            if r.status_code != 200:
+                continue
+            # Extract phone names from page text
+            text = re.sub(r"<[^>]+>", " ", r.text)
+            text = re.sub(r"\s+", " ", text)
+            # Look for phone-like patterns (Brand + model + optional numbers)
+            phone_patterns = re.findall(
+                r'\b((?:Samsung|OnePlus|Realme|Xiaomi|Redmi|POCO|iQOO|Vivo|OPPO|Nothing|'
+                r'Motorola|Nokia|Honor|Infinix|Tecno|Google Pixel|Apple iPhone)\s+'
+                r'[A-Za-z0-9][A-Za-z0-9\s\+]{3,30}?)'
+                r'(?=\s+(?:launched|review|price|specs|announced|available|\₹|\d{4,}))',
+                text, re.IGNORECASE
+            )
+            seen = set()
+            for name in phone_patterns:
+                name = name.strip()
+                if name in seen or len(name) < 10:
+                    continue
+                seen.add(name)
+                title = f"{name} Review — Price in India, Specs, Camera Test 2026"
+                results.append({
+                    "title":       title,
+                    "description": f"Recently launched: {name}",
+                    "url":         page_url,
+                    "source":      "91Mobiles (scraped)",
+                    "published":   datetime.datetime.now().isoformat(),
+                    "category":    "smartphone",
+                    "_score":      3,
+                })
+                if len(results) >= max_results:
+                    break
+            if results:
+                break
+        except Exception as e:
+            print(f"[91Mobiles Scrape] Failed: {e}")
+    print(f"[91Mobiles Scrape] Found {len(results)} candidates")
+    return results[:max_results]
+
+
+def scrape_smartprix_launches(max_results=10):
+    """
+    Scrapes Smartprix latest phone news for launch stories.
+    """
+    results = []
+    try:
+        r = requests.get("https://www.smartprix.com/bytes/category/mobiles/",
+                         headers=HEADERS, timeout=10)
+        if r.status_code != 200:
+            return []
+        articles = re.findall(
+            r'<a[^>]+href="(https://www\.smartprix\.com/bytes/[^"]+)"[^>]*>\s*([^<]{20,120})\s*</a>',
+            r.text
+        )
+        for link, title in articles:
+            title = title.strip()
+            tl = title.lower()
+            if not any(kw in tl for kw in CAT["smartphone"]["detect"]):
+                continue
+            if any(ex in tl for ex in EXCLUDE_KEYWORDS):
+                continue
+            results.append({
+                "title":       title,
+                "description": f"Smartprix: {title}",
+                "url":         link,
+                "source":      "Smartprix (scraped)",
+                "published":   datetime.datetime.now().isoformat(),
+                "category":    "smartphone",
+                "_score":      3,
+            })
+    except Exception as e:
+        print(f"[Smartprix Scrape] Failed: {e}")
+    print(f"[Smartprix Scrape] Found {len(results)} candidates")
+    return results[:max_results]
+
+
     """
     Picks a GENUINELY NEW LAUNCHED smartphone story for Articles 1 & 2.
 
@@ -988,8 +1101,38 @@ def pick_launch_story(log, exclude_titles=None):
 
         return story
 
-    # Fallback: if no launch stories found, fall back to regular breaking news
-    print("[Launch] No fresh launch stories found — falling back to breaking news picker")
+    # ── v27 FALLBACK: RSS found nothing — scrape live web pages for recent launches ──
+    print("[Launch] RSS found no launch stories — switching to LIVE WEB SCRAPING fallback...")
+
+    scraped_all = []
+    scraped_all += scrape_gsmarena_new_phones(max_results=8)
+    scraped_all += scrape_91mobiles_launches(max_results=8)
+    scraped_all += scrape_smartprix_launches(max_results=6)
+
+    # Deduplicate and filter already-used
+    seen_scraped = set()
+    for story in scraped_all:
+        title = story.get("title", "")
+        if title in used_titles or title in seen_scraped or len(title) < 20:
+            continue
+        seen_scraped.add(title)
+
+        print(f"[Launch-Scraped][{story['source']}] {title[:70]}")
+
+        # Enrich with specs
+        gsm_specs      = get_specs(title)
+        official_specs = fetch_official_page_specs(story.get("url", ""))
+        combined_specs = ""
+        if gsm_specs:
+            combined_specs += "=== GSMArena Specs ===\n" + gsm_specs + "\n\n"
+        if official_specs:
+            combined_specs += "=== Source Page Data ===\n" + official_specs
+
+        story["specs"]       = combined_specs or "Use your full knowledge of this device."
+        story["rss_context"] = get_rss_context([title.split()[0], title.split()[-1]])
+        return story
+
+    print("[Launch] Web scraping also found nothing — caller will handle final fallback")
     return None
 
 def detect_cat(title):
@@ -1303,7 +1446,119 @@ def pick_news_story(log, exclude_titles=None):
                 return a
     return None
 
-def pick_search_story(log, used_in_run):
+def pick_article3_single_review(log, used_in_run):
+    """
+    v27: Article 3 = ALWAYS a single trending smartphone full product review.
+    Priority:
+      1. Trending/popular phone from RSS (not already reviewed in Articles 1 & 2)
+      2. Web scraped trending phone from GSMArena / 91Mobiles
+      3. Groq-generated trending phone name based on current RSS headlines
+      4. Fallback only: "top searched smartphones" buying guide
+
+    Returns a story dict with is_search=False so run_article writes a full review.
+    """
+    print("\n[Article3] Picking SINGLE trending smartphone for full product review...")
+    used_titles = {e.get("title", "") for e in log}
+    used_titles |= used_in_run
+
+    # ── Step 1: Find a trending single phone from RSS breaking news ──
+    breaking = fetch_breaking_news(log, max_results=30)
+    for story in breaking:
+        title = story.get("title", "")
+        if title in used_titles:
+            continue
+        cat = story.get("category", "smartphone")
+        if cat != "smartphone":
+            continue
+        tl = title.lower()
+        # REJECT list articles, comparisons, buying guides
+        list_signals = ["top 3", "top 5", "top 10", "best 5", "best phones",
+                        "buying guide", "vs ", " vs", "comparison", "ranked",
+                        "best under", "budget phones", "phones under"]
+        if any(s in tl for s in list_signals):
+            continue
+        # Must look like a single phone review/launch
+        single_signals = ["review", "launched", "price in india", "hands on",
+                         "first look", "unboxing", "full specs", "announced",
+                         "specifications", "available", "goes on sale"]
+        if not any(s in tl for s in single_signals):
+            continue
+        # Enrich with specs
+        print(f"[Article3][RSS] Single phone: {title[:65]}")
+        gsm_specs = get_specs(title)
+        official_specs = fetch_official_page_specs(story.get("url", ""))
+        combined_specs = ""
+        if gsm_specs:
+            combined_specs += "=== GSMArena Specs ===\n" + gsm_specs + "\n\n"
+        if official_specs:
+            combined_specs += "=== Source Data ===\n" + official_specs
+        return {
+            "title":       title,
+            "description": story.get("description", ""),
+            "url":         story.get("url", ""),
+            "source":      story.get("source", "RSS"),
+            "published":   story.get("published", datetime.datetime.now().isoformat()),
+            "category":    "smartphone",
+            "specs":       combined_specs or "Use your full knowledge of this device.",
+            "rss_context": get_rss_context([title.split()[0]]),
+        }
+
+    # ── Step 2: Try web scraped phones (GSMArena / 91Mobiles) ──
+    print("[Article3] RSS found no single trending phone — trying web scraping...")
+    scraped = scrape_gsmarena_new_phones(max_results=10) + scrape_91mobiles_launches(max_results=5)
+    for story in scraped:
+        title = story.get("title", "")
+        if title in used_titles or len(title) < 20:
+            continue
+        print(f"[Article3][Scraped] {title[:65]}")
+        gsm_specs = get_specs(title)
+        story["specs"] = ("=== GSMArena Specs ===\n" + gsm_specs) if gsm_specs else "Use your full knowledge."
+        story["rss_context"] = get_rss_context([title.split()[0]])
+        return story
+
+    # ── Step 3: Ask Groq which phone is trending right now ──
+    print("[Article3] Scraping found nothing — asking Groq for trending phone...")
+    try:
+        from groq import Groq
+        client = Groq(api_key=GROQ_API_KEY)
+        headlines = fetch_rss_headlines_for_cat("smartphone", max_headlines=20)
+        year = datetime.datetime.now().year
+        prompt = (
+            f"You are an India tech expert. Based on these today's headlines:\n"
+            f"{chr(10).join(headlines[:15])}\n\n"
+            f"Pick ONE single smartphone that Indian buyers are most searching for right now in {year}.\n"
+            f"It must be a specific model (e.g. 'Samsung Galaxy S25 FE' not just 'Samsung phone').\n"
+            f"It must be recently launched or trending in India.\n"
+            f"Respond ONLY with the exact model name, nothing else. No explanation."
+        )
+        r = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=30, temperature=0.5,
+        )
+        phone_name = r.choices[0].message.content.strip().strip('"').strip("'")
+        if len(phone_name) > 8 and phone_name not in used_titles:
+            print(f"[Article3][Groq] Trending phone: {phone_name}")
+            gsm_specs = get_specs(phone_name)
+            return {
+                "title":       f"{phone_name} Full Review India {year} — Price, Camera, Battery Tested",
+                "description": f"Full review of {phone_name} for Indian buyers.",
+                "url":         "",
+                "source":      "Groq Trend Picker",
+                "published":   datetime.datetime.now().isoformat(),
+                "category":    "smartphone",
+                "specs":       ("=== GSMArena Specs ===\n" + gsm_specs) if gsm_specs else "Use your full knowledge.",
+                "rss_context": get_rss_context([phone_name.split()[0]]),
+            }
+    except Exception as e:
+        print(f"[Article3][Groq] Failed: {e}")
+
+    # ── Step 4: Last resort fallback — buying guide (not preferred) ──
+    print("[Article3] All single-phone methods failed — falling back to buying guide topic")
+    return None   # caller will fall back to pick_search_story()
+
+
+
     print("\n[Search] Building hybrid topic pool (breaking + dynamic RSS + static backup)...")
 
     used_titles  = {e.get("title","")        for e in log}
@@ -3305,12 +3560,12 @@ def run_article(story, is_search, label, atype, log):
 # ================================================================
 def main():
     print("=======================================================")
-    print(" TECH NEWS WITH AI - AUTO BLOG v26.0")
-    print(" Article 1 — NEW LAUNCH Smartphone review (official brand RSS first)")
+    print(" TECH NEWS WITH AI - AUTO BLOG v27.0")
+    print(" Article 1 — NEW LAUNCH Smartphone review (brand RSS + web scraping)")
     print(" Article 2 — NEW LAUNCH Smartphone review (different phone, same day)")
-    print(" Article 3 — Top Google search topic (buying guide / Top 5)")
-    print(" Weekly: 1 trending Laptop/Earphones/Headphones/AirPods/")
-    print("         PowerBank/Smartwatch review (replaces Article 3)")
+    print(" Article 3 — SINGLE TRENDING Smartphone full product review")
+    print("             (fallback only: top-searched buying guide)")
+    print(" NO IMAGES AUTO-UPLOADED — paste manually in Blogger")
     print(" technewsai.me — Mallikarjun R, Bengaluru")
     print("=======================================================")
 
@@ -3325,8 +3580,15 @@ def main():
     try:
         s1 = pick_launch_story(log)
         if not s1:
-            print("[Article 1] No launch story found — trying breaking news fallback...")
+            print("[Article 1] No launch story found (RSS + scraping) — trying breaking news fallback...")
             s1 = pick_news_story(log)
+            # Filter to single phone reviews only for Article 1
+            if s1:
+                tl = s1.get("title", "").lower()
+                list_words = ["top 5", "top 3", "best phones", "buying guide", "vs "]
+                if any(w in tl for w in list_words):
+                    print("[Article 1] Breaking news was a list article — skipping, finding another...")
+                    s1 = None
         if s1:
             run_article(s1, False, "ARTICLE 1: NEW LAUNCH SMARTPHONE REVIEW", "news", log)
             log = load_log()
@@ -3344,6 +3606,12 @@ def main():
         if not s2:
             print("[Article 2] No second launch story found — trying breaking news fallback...")
             s2 = pick_news_story(log, exclude_titles=used_in_run)
+            if s2:
+                tl = s2.get("title", "").lower()
+                list_words = ["top 5", "top 3", "best phones", "buying guide", "vs "]
+                if any(w in tl for w in list_words):
+                    print("[Article 2] Breaking news was a list article — skipping...")
+                    s2 = None
         if s2:
             run_article(s2, False, "ARTICLE 2: NEW LAUNCH SMARTPHONE REVIEW", "news", log)
             log = load_log()
@@ -3355,22 +3623,31 @@ def main():
     except Exception as e:
         print("Article 2 failed: " + str(e))
 
-    # ── Article 3 — Top Google search topic (mobile phones only)
-    #               OR weekly Laptop/Earphones/Headphones/AirPods/PowerBank/Smartwatch ──
+    # ── Article 3 — v27: SINGLE TRENDING Smartphone full product review ──
+    # Always tries to write a SINGLE phone full review (same style as Articles 1 & 2)
+    # Only falls back to buying guide if absolutely no single phone found
     try:
-        s3 = pick_search_story(log, used_in_run)
+        s3 = pick_article3_single_review(log, used_in_run)
         if s3:
-            cat3 = s3.get("category", "smartphone")
-            label3 = "ARTICLE 3: SEARCH TOPIC" if cat3 == "smartphone" else f"ARTICLE 3: WEEKLY {cat3.upper()} REVIEW"
-            run_article(s3, True, label3, "search", log)
+            # is_search=False → generates full single product review, NOT a list
+            run_article(s3, False, "ARTICLE 3: TRENDING SMARTPHONE FULL REVIEW", "news", log)
             success += 1
+        else:
+            # Last-resort fallback: search topic / buying guide
+            print("[Article 3] No single trending phone found — running buying guide fallback...")
+            s3_guide = pick_search_story(log, used_in_run)
+            if s3_guide:
+                cat3 = s3_guide.get("category", "smartphone")
+                label3 = "ARTICLE 3: SEARCH TOPIC" if cat3 == "smartphone" else f"ARTICLE 3: WEEKLY {cat3.upper()} REVIEW"
+                run_article(s3_guide, True, label3, "search", log)
+                success += 1
     except Exception as e:
         print("Article 3 failed: " + str(e))
 
     print("\n=======================================================")
     print(f"DONE! {success}/3 articles posted!")
     print("Next steps:")
-    print("  → Add real product images (1200x628px) to placeholders")
+    print("  → PASTE real product images manually in Blogger (1200x628px)")
     print("  → Fact-check all ₹ prices and exact specs")
     print("  → Check comparison table rivals are correct")
     print("  → Submit sitemap in Google Search Console")
