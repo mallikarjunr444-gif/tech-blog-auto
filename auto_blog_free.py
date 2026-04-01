@@ -991,6 +991,7 @@ def scrape_smartprix_launches(max_results=10):
     return results[:max_results]
 
 
+def pick_launch_story(log, exclude_titles=None):
     """
     Picks a GENUINELY NEW LAUNCHED smartphone story for Articles 1 & 2.
 
@@ -3254,8 +3255,10 @@ def groq_draft(story, is_search):
             "✓ Brand names hyperlinked to technewsai.me only\n"
             "Write now:"
         )
+    # v27: Use llama-3.1-8b-instant for draft (higher free-tier TPM limits)
+    # Human rewrite with 70b will handle quality upgrade in Step 2
     r = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="llama-3.1-8b-instant",
         messages=[{"role": "user", "content": prompt}],
         max_tokens=6000, temperature=0.7,
     )
@@ -3351,8 +3354,10 @@ def human_rewrite(draft, story):
         + draft
     )
 
+    # v27: Use llama-3.1-8b-instant — free tier has 30k TPM vs 70b's 12k TPM
+    # The groq_draft already built a solid structured draft; 8b rewrites voice/tone
     r = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="llama-3.1-8b-instant",
         messages=[{"role": "user", "content": prompt}],
         max_tokens=5000, temperature=0.88,
     )
@@ -3444,6 +3449,10 @@ def run_article(story, is_search, label, atype, log):
     draft = groq_draft(story, is_search)
     w1    = len(re.sub(r"<[^>]+>","",draft).split())
     print("Draft: " + str(w1) + " words")
+
+    # v27: Sleep 65s between draft and rewrite to reset Groq TPM window (free tier = 12k TPM)
+    print("Waiting 65s for Groq TPM reset before rewrite...")
+    time.sleep(65)
 
     # Step 2 — Human rewrite
     print("Step 2: Human rewrite as Mallikarjun R...")
@@ -3561,10 +3570,9 @@ def run_article(story, is_search, label, atype, log):
 def main():
     print("=======================================================")
     print(" TECH NEWS WITH AI - AUTO BLOG v27.0")
-    print(" Article 1 — NEW LAUNCH Smartphone review (brand RSS + web scraping)")
-    print(" Article 2 — NEW LAUNCH Smartphone review (different phone, same day)")
-    print(" Article 3 — SINGLE TRENDING Smartphone full product review")
-    print("             (fallback only: top-searched buying guide)")
+    print(" ALTERNATING SCHEDULE (2 articles/day to save Groq tokens):")
+    print(" Day A — Article 1: New launch review + Article 2: New launch review")
+    print(" Day B — Article 1: New launch review + Article 2: Top searched buying guide")
     print(" NO IMAGES AUTO-UPLOADED — paste manually in Blogger")
     print(" technewsai.me — Mallikarjun R, Bengaluru")
     print("=======================================================")
@@ -3576,18 +3584,23 @@ def main():
     # Suggest old posts to update (SEO refresh)
     suggest_old_updates(log, days_threshold=30)
 
-    # ── Article 1 — NEW LAUNCH Smartphone full product review #1 ──
+    # ── Determine today's schedule: Day A or Day B ──
+    # Day A = even day of year → 2 launch reviews
+    # Day B = odd day of year  → 1 launch review + 1 top-searched buying guide
+    day_of_year = datetime.datetime.now().timetuple().tm_yday
+    is_day_a    = (day_of_year % 2 == 0)   # even = Day A
+    schedule    = "A (2 launch reviews)" if is_day_a else "B (1 launch + 1 buying guide)"
+    print(f"\n📅 Today is Day {schedule}")
+
+    # ── Article 1 — NEW LAUNCH Smartphone full product review (EVERY day) ──
     try:
         s1 = pick_launch_story(log)
         if not s1:
-            print("[Article 1] No launch story found (RSS + scraping) — trying breaking news fallback...")
+            print("[Article 1] No launch story (RSS + scraping) — trying breaking news...")
             s1 = pick_news_story(log)
-            # Filter to single phone reviews only for Article 1
             if s1:
                 tl = s1.get("title", "").lower()
-                list_words = ["top 5", "top 3", "best phones", "buying guide", "vs "]
-                if any(w in tl for w in list_words):
-                    print("[Article 1] Breaking news was a list article — skipping, finding another...")
+                if any(w in tl for w in ["top 5", "top 3", "best phones", "buying guide"]):
                     s1 = None
         if s1:
             run_article(s1, False, "ARTICLE 1: NEW LAUNCH SMARTPHONE REVIEW", "news", log)
@@ -3595,63 +3608,59 @@ def main():
             used_in_run.add(s1.get("title", ""))
             used_in_run.add(s1.get("search_topic", ""))
             success += 1
-            print("Waiting 40s before Article 2...")
-            time.sleep(40)
+            print("Waiting 45s before Article 2...")
+            time.sleep(45)
+        else:
+            print("[Article 1] No story found — skipping.")
     except Exception as e:
         print("Article 1 failed: " + str(e))
 
-    # ── Article 2 — NEW LAUNCH Smartphone full product review #2 (different phone) ──
-    try:
-        s2 = pick_launch_story(log, exclude_titles=used_in_run)
-        if not s2:
-            print("[Article 2] No second launch story found — trying breaking news fallback...")
-            s2 = pick_news_story(log, exclude_titles=used_in_run)
+    # ── Article 2 — Depends on schedule ──
+    if is_day_a:
+        # DAY A: Second new launch smartphone review
+        print("\n[Day A] Article 2 = Second new launch smartphone review")
+        try:
+            s2 = pick_launch_story(log, exclude_titles=used_in_run)
+            if not s2:
+                print("[Article 2] No second launch — trying single trending phone...")
+                s2 = pick_article3_single_review(log, used_in_run)
+            if not s2:
+                print("[Article 2] Still nothing — trying breaking news...")
+                s2 = pick_news_story(log, exclude_titles=used_in_run)
+                if s2:
+                    tl = s2.get("title", "").lower()
+                    if any(w in tl for w in ["top 5", "top 3", "best phones", "buying guide"]):
+                        s2 = None
             if s2:
-                tl = s2.get("title", "").lower()
-                list_words = ["top 5", "top 3", "best phones", "buying guide", "vs "]
-                if any(w in tl for w in list_words):
-                    print("[Article 2] Breaking news was a list article — skipping...")
-                    s2 = None
-        if s2:
-            run_article(s2, False, "ARTICLE 2: NEW LAUNCH SMARTPHONE REVIEW", "news", log)
-            log = load_log()
-            used_in_run.add(s2.get("title", ""))
-            used_in_run.add(s2.get("search_topic", ""))
-            success += 1
-            print("Waiting 40s before Article 3...")
-            time.sleep(40)
-    except Exception as e:
-        print("Article 2 failed: " + str(e))
-
-    # ── Article 3 — v27: SINGLE TRENDING Smartphone full product review ──
-    # Always tries to write a SINGLE phone full review (same style as Articles 1 & 2)
-    # Only falls back to buying guide if absolutely no single phone found
-    try:
-        s3 = pick_article3_single_review(log, used_in_run)
-        if s3:
-            # is_search=False → generates full single product review, NOT a list
-            run_article(s3, False, "ARTICLE 3: TRENDING SMARTPHONE FULL REVIEW", "news", log)
-            success += 1
-        else:
-            # Last-resort fallback: search topic / buying guide
-            print("[Article 3] No single trending phone found — running buying guide fallback...")
-            s3_guide = pick_search_story(log, used_in_run)
-            if s3_guide:
-                cat3 = s3_guide.get("category", "smartphone")
-                label3 = "ARTICLE 3: SEARCH TOPIC" if cat3 == "smartphone" else f"ARTICLE 3: WEEKLY {cat3.upper()} REVIEW"
-                run_article(s3_guide, True, label3, "search", log)
+                run_article(s2, False, "ARTICLE 2: NEW LAUNCH SMARTPHONE REVIEW", "news", log)
                 success += 1
-    except Exception as e:
-        print("Article 3 failed: " + str(e))
+            else:
+                print("[Article 2] No story found — skipping.")
+        except Exception as e:
+            print("Article 2 (Day A) failed: " + str(e))
+    else:
+        # DAY B: Top searched smartphones buying guide
+        print("\n[Day B] Article 2 = Top searched smartphones buying guide")
+        try:
+            s2_guide = pick_search_story(log, used_in_run)
+            if s2_guide:
+                # Force smartphone buying guide category
+                s2_guide["category"] = "smartphone"
+                run_article(s2_guide, True, "ARTICLE 2: TOP SEARCHED SMARTPHONES BUYING GUIDE", "search", log)
+                success += 1
+            else:
+                print("[Article 2] No buying guide topic found — skipping.")
+        except Exception as e:
+            print("Article 2 (Day B) failed: " + str(e))
 
     print("\n=======================================================")
-    print(f"DONE! {success}/3 articles posted!")
+    print(f"DONE! {success}/2 articles posted today!")
     print("Next steps:")
     print("  → PASTE real product images manually in Blogger (1200x628px)")
     print("  → Fact-check all ₹ prices and exact specs")
-    print("  → Check comparison table rivals are correct")
     print("  → Submit sitemap in Google Search Console")
     print("  → Share on WhatsApp & Telegram channels")
+    print(f"  → Tomorrow will be Day {'B' if is_day_a else 'A'}")
     print("Visit: https://www.technewsai.me")
     print("=======================================================")
 
