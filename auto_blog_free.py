@@ -3346,7 +3346,7 @@ def groq_draft(story, is_search):
     r = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=7000, temperature=0.72,
+        max_tokens=5000, temperature=0.72,
     )
     return r.choices[0].message.content
 
@@ -3451,7 +3451,7 @@ def human_rewrite(draft, story):
     r = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=6000, temperature=0.88,
+        max_tokens=4500, temperature=0.88,
     )
     return r.choices[0].message.content
 
@@ -3541,6 +3541,10 @@ def run_article(story, is_search, label, atype, log):
     draft = groq_draft(story, is_search)
     w1    = len(re.sub(r"<[^>]+>","",draft).split())
     print("Draft: " + str(w1) + " words")
+
+    # TPM cooldown — free tier = 12,000 tokens/min, wait for bucket reset
+    import time; time.sleep(65)
+    print("[TPM] 65s Groq cooldown done...")
 
     # Step 2 — Human rewrite
     print("Step 2: Human rewrite as Mallikarjun R...")
@@ -3854,6 +3858,10 @@ def run_article_v28(story, is_search, label, atype, article_type, log):
     draft = groq_draft(story, is_search)
     w1 = len(re.sub(r"<[^>]+>","",draft).split())
     print(f"Draft: {w1} words")
+
+    # TPM cooldown — free tier = 12,000 tokens/min, wait for bucket reset
+    import time; time.sleep(65)
+    print("[TPM] 65s Groq cooldown done...")
 
     # Step 2 — Human rewrite (max tokens)
     print("Step 2: Human rewrite as Mallikarjun R...")
