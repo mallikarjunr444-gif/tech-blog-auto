@@ -21,7 +21,7 @@ jobs:
 
       - name: Install packages
         run: |
-          pip install groq requests
+          pip install cerebras-cloud-sdk requests
 
       - name: Restore post log
         uses: actions/cache@v4
@@ -33,11 +33,11 @@ jobs:
 
       - name: Run Auto Blog
         env:
-          GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
+          CEREBRAS_API_KEY:   ${{ secrets.CEREBRAS_API_KEY }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           NEWS_API_KEY:       ${{ secrets.NEWS_API_KEY }}
         run: |
-          python auto_blog_free.py 2>&1 | tee run_output.txt
+          python auto_blog_v30.py 2>&1 | tee run_output.txt
 
       - name: Verify posts
         run: |
@@ -58,3 +58,5 @@ jobs:
         with:
           path: posted_articles.json
           key: posted-log-${{ github.run_id }}
+
+
