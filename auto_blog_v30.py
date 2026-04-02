@@ -2984,7 +2984,7 @@ def groq_draft(story, is_search):
         )
 
     r = client.chat.completions.create(
-        model="llama-3.3-70b",
+        model="llama3.3-70b",
         messages=[{"role": "user", "content": prompt}],
         max_tokens=6000, temperature=0.72,
     )
@@ -3087,7 +3087,7 @@ def human_rewrite(draft, story):
     )
 
     r = client.chat.completions.create(
-        model="llama-3.3-70b",
+        model="llama3.3-70b",
         messages=[{"role": "user", "content": prompt}],
         max_tokens=5000, temperature=0.88,
     )
