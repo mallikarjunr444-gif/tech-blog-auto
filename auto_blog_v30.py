@@ -2919,35 +2919,31 @@ def pick_top5_phones(topic, cat, ctx):
 def groq_draft(story, is_search):
     client   = Cerebras(api_key=CEREBRAS_API_KEY)
     cat      = story.get("category", "smartphone")
-    struct   = CAT.get(cat, CAT["smartphone"])
     year     = datetime.datetime.now().year
 
     seo_title = story.get("seo_title", "")
     title_line = f"USE THIS EXACT H1: <h1>{seo_title}</h1>\n\n" if seo_title else ""
-
-    # Compact section list
-    sections_list = struct["sections"]
-    sections_str  = " | ".join(s.split("—")[0].strip() for s in sections_list)
 
     if is_search:
         topic = story.get("search_topic", story.get("title", ""))
         ctx   = (story.get("rss_context") or "")[:400]
         prompt = (
             title_line +
-            f"You are Mallikarjun R, Indian tech blogger, Bengaluru. Write a 4500-word HTML article for:\n"
-            f"TOPIC: {topic}\n"
+            f"You are Mallikarjun R, 19-year-old CSE student and tech blogger from Bengaluru, India.\n"
+            f"Write a 4500-word HTML buying guide for Indians searching: \"{topic}\"\n"
             f"LIVE DATA: {ctx}\n\n"
             "RULES:\n"
-            "- HTML only (h1 h2 h3 p table ul li strong). No markdown ever.\n"
-            "- India-specific: ₹ prices, Flipkart/Amazon, Jio/Airtel 5G bands, India launch dates.\n"
+            "- HTML only. No markdown ever. No **bold** — use <strong>.\n"
+            "- NO comparison tables. NO pros/cons tables. Pure prose only.\n"
+            "- India-specific: ₹ prices, Flipkart/Amazon clickable links, Jio/Airtel 5G bands.\n"
             "- Real numbers every section: mAh, Hz, MP, nits, AnTuTu, fps, grams.\n"
-            "- Compare named rivals in every section (inline prose, not table-only).\n"
             "- Personal 14-day test narrative woven throughout.\n"
-            "- No AI phrases: seamlessly, cutting-edge, robust, leverage, delve, game-changer.\n"
-            "- No markdown bold (**text**) — use <strong>text</strong>.\n"
-            "- H3 headings: descriptive only, NO question marks (except inside FAQ section).\n"
+            "- Named rival comparisons in prose (not tables).\n"
+            "- Internal links: use <a href=\"https://www.technewsai.me/search/label/Smartphones\">Smartphones</a>, "
+            "<a href=\"https://www.technewsai.me/search/label/Laptops\">Laptops</a> etc. naturally in text.\n"
+            "- No AI filler: seamlessly, cutting-edge, robust, leverage, game-changer.\n"
+            "- H3 headings: descriptive only, NO question marks (except FAQ section).\n"
             "- End with 10-question FAQ in H3 format.\n"
-            f"SECTIONS TO COVER: {sections_str}\n"
             "Write now:"
         )
     else:
@@ -2957,29 +2953,99 @@ def groq_draft(story, is_search):
 
         prompt = (
             title_line +
-            f"You are Mallikarjun R, Indian tech blogger, Bengaluru. Write a 4500-word HTML smartphone review.\n"
-            f"PHONE: {phone}\n"
+            f"You are Mallikarjun R — 19-year-old CSE student, tech blogger from Bengaluru, India.\n"
+            f"Write a 5000-word in-depth HTML smartphone review for: {phone}\n"
             f"SPECS: {specs}\n"
             f"CONTEXT: {desc}\n\n"
-            "STRUCTURE (follow in order, all as H2 sections):\n"
-            f"{sections_str}\n\n"
-            "RULES:\n"
-            "- HTML only (h1 h2 h3 p table ul li strong). No markdown ever.\n"
-            "- H2 format: <h2>[Phone Name] [Section] — [Opinionated Tagline]</h2>\n"
-            "- H3 format: descriptive label only, NO question marks (except FAQ).\n"
-            "- Every spec = experienced + judged (not just stated). Real India scenarios.\n"
-            "- India: ₹ prices, Flipkart/Amazon, Jio/Airtel 5G bands, India battery vs global.\n"
-            "- Real numbers per section: mAh, Hz, MP, nits, AnTuTu score, fps, grams, mm.\n"
-            "- Named rival comparison in every section (inline prose).\n"
-            "- 14-day personal test narrative throughout (BGMI fps, commute battery, market camera).\n"
-            "- Pros/Cons table with SPECIFIC honest points.\n"
-            "- Quick Specs box near top.\n"
-            "- Comparison table vs 2 named rivals.\n"
-            "- No AI filler: seamlessly, cutting-edge, robust, leverage, delve, game-changer.\n"
-            "- No markdown bold — use <strong>.\n"
-            "- Strong opinionated Final Verdict (buy or skip — never neutral).\n"
-            f"- End with 10-question FAQ (H3 format, India-specific, mention {phone}).\n"
-            "- Links: ONLY to www.technewsai.me — no external sites.\n"
+
+            "━━━ WRITING STYLE (match exactly) ━━━\n"
+            "Write like a real person who tested this phone for 14 days in India.\n"
+            "Personal. Opinionated. Specific numbers. India scenarios (BGMI, Hotstar, commute, market photography).\n"
+            "Every spec = experienced and judged, not just stated.\n"
+            "Long sentence → Long sentence → One short punchy verdict. Repeat.\n"
+            "Banned words: seamlessly, cutting-edge, robust, leverage, delve, game-changer, overall, solid.\n"
+            "No markdown. No **bold**. Use <strong>. HTML only.\n\n"
+
+            "━━━ STRUCTURE (follow in exact order) ━━━\n\n"
+
+            "1. H1 TITLE (use pre-generated title exactly)\n\n"
+
+            "2. INTRO — 2 paragraphs, NO H2 heading\n"
+            "   Para 1: Who is this phone for? What Indian buyer problem does it solve? Name price bracket + rival.\n"
+            "   Para 2: India launch date, where to buy, how you tested it (days, scenarios).\n\n"
+
+            "3. H2: Price in India — All Variants and Offers\n"
+            "   List all variants with ₹ prices as bullet points.\n"
+            "   Under each variant add a clickable buying link:\n"
+            "   <a href=\"https://www.amazon.in/s?k={phone}+buy\" rel=\"nofollow\" target=\"_blank\">Buy on Amazon India</a> | "
+            "<a href=\"https://www.flipkart.com/search?q={phone}\" rel=\"nofollow\" target=\"_blank\">Buy on Flipkart</a>\n"
+            "   Mention bank offers (HDFC/Axis/SBI), No Cost EMI, best value variant recommendation.\n\n"
+
+            "4. H2: Design and Build Quality\n"
+            "   Exact thickness mm, weight g, back material, frame material.\n"
+            "   Color options described vividly. IP rating in plain language.\n"
+            "   One honest design weakness. Short verdict sentence.\n\n"
+
+            "5. H2: Display\n"
+            "   Panel type, size, resolution, Hz — as one opening sentence.\n"
+            "   Outdoor brightness test in Bengaluru sun. Netflix HDR verdict. Gaming smoothness.\n"
+            "   One named rival comparison in prose. Short verdict.\n\n"
+
+            "6. H2: Performance\n"
+            "   Exact chipset name + nm process. AnTuTu score. Geekbench numbers.\n"
+            "   BGMI test: settings, stable fps, temperature after 40 minutes.\n"
+            "   Daily use: app switching, RAM management, India scenario.\n\n"
+
+            "7. H2: Camera\n"
+            "   Five sub-sections as H3 (Daylight, Night, Portrait, Video, Selfie).\n"
+            "   Each H3: real test result, honest verdict. No question marks in H3.\n"
+            "   Overall camera verdict at end.\n\n"
+
+            "8. H2: Battery Life and Charging\n"
+            "   mAh + real screen-on hours. India real-life drain log (8am to 11pm).\n"
+            "   Charging W, 0-100% time, charger in box or not.\n\n"
+
+            "9. H2: Real-Life 14-Day Test\n"
+            "   5 paragraphs: Week 1 impressions, BGMI deep-dive, battery drain log Day 7,\n"
+            "   camera in India conditions (market, chai stall, hostel), Week 2 reality check.\n\n"
+
+            "10. H2: Connectivity and Audio\n"
+            "    5G bands India (list exact: n1,n3,n28,n40,n77,n78). WiFi, BT, NFC for UPI.\n"
+            "    Speaker verdict. Fingerprint speed. Face unlock.\n\n"
+
+            "11. H2: Software and AI Features\n"
+            "    Android version + UI. Bloatware count. Top 3 AI features explained plainly.\n"
+            "    Update years — why it matters for Indians keeping phones 3+ years.\n\n"
+
+            "12. H2: Who Should Buy and Who Should Avoid\n"
+            "    Para 1 (Buy if): Specific user profile + real scenarios.\n"
+            "    Para 2 (Avoid if): Specific alternative recommended with ₹ price.\n\n"
+
+            "13. H2: Final Verdict\n"
+            "    Para 1: One confident sentence — buy or skip + strongest reason.\n"
+            "    Para 2: Perfect buyer profile + who should look elsewhere (name rival).\n"
+            "    Para 3: 'My final pick: [Phone]. Here is exactly why I would put my own money on it.'\n\n"
+
+            "14. H2: FAQ — 10 Questions Indians Actually Search\n"
+            "    Use H3 for each question (ONLY place question marks are allowed).\n"
+            "    Each answer: 50-70 words, specific, opinionated.\n\n"
+
+            "━━━ INTERNAL LINKS (weave naturally into text) ━━━\n"
+            "Use these links naturally inside paragraphs — not as a list:\n"
+            "<a href=\"https://www.technewsai.me/search/label/Smartphones\">Smartphones</a>\n"
+            "<a href=\"https://www.technewsai.me/search/label/Laptops\">Laptops</a>\n"
+            "<a href=\"https://www.technewsai.me/search/label/Earphones\">Earphones</a>\n"
+            "<a href=\"https://www.technewsai.me/search/label/Headphones\">Headphones</a>\n"
+            "<a href=\"https://www.technewsai.me/\">Tech News With AI</a>\n\n"
+
+            "━━━ CRITICAL RULES ━━━\n"
+            "- NO comparison tables anywhere\n"
+            "- NO pros/cons tables anywhere\n"
+            "- NO specs sheet tables — all specs woven into prose\n"
+            "- NO markdown (no **, no ##, no --)\n"
+            "- Strong opinionated Final Verdict — never neutral\n"
+            f"- Mention {phone} exact name in every H2 heading\n"
+            "- All external links: rel=\"nofollow\" target=\"_blank\"\n"
             "Write now:"
         )
 
