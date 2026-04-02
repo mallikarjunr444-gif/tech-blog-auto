@@ -1394,6 +1394,53 @@ def should_post_cat(log, cat):
 # ================================================================
 # STORY PICKERS
 # ================================================================
+def pick_launch_story(log, exclude_titles=None):
+    """
+    Pick a new smartphone LAUNCH story from RSS feeds.
+    Prioritises articles with LAUNCH_KEYWORDS and excludes EXCLUDE_KEYWORDS.
+    Used for Day 1 and Day 2 of the 3-day review cycle.
+    """
+    print("\n[Launch] Fetching new smartphone launch stories from RSS feeds...")
+    used_titles = {e.get("title", "") for e in log}
+    if exclude_titles:
+        used_titles = used_titles | set(exclude_titles)
+
+    # Step 1: Scan breaking news for launch articles
+    breaking = fetch_breaking_news(log)
+    for story in breaking:
+        title = story.get("title", "")
+        tl = title.lower()
+        if title in used_titles:
+            continue
+        if any(ex in tl for ex in EXCLUDE_KEYWORDS):
+            continue
+        if any(lk in tl for lk in LAUNCH_KEYWORDS):
+            story["specs"]    = get_specs(title)
+            story["category"] = story.get("category") or detect_cat(title)
+            print(f"[Launch][Breaking] {title[:65]}")
+            return story
+
+    # Step 2: Scan ALL_RSS for launch keywords
+    feeds = ALL_RSS[:]
+    random.shuffle(feeds)
+    for name, url in feeds[:30]:
+        for a in fetch_rss(name, url):
+            tl = a["title"].lower()
+            if a["title"] in used_titles:
+                continue
+            if any(ex in tl for ex in EXCLUDE_KEYWORDS):
+                continue
+            if any(lk in tl for lk in LAUNCH_KEYWORDS):
+                a["specs"]    = get_specs(a["title"])
+                a["category"] = detect_cat(a["title"]) or "smartphone"
+                print(f"[Launch][RSS] {a['title'][:65]}")
+                return a
+
+    # Step 3: Fallback to pick_news_story (non-list, non-guide)
+    print("[Launch][Fallback] No pure launch found — falling back to news story...")
+    return pick_news_story(log, exclude_titles=exclude_titles)
+
+
 def pick_news_story(log, exclude_titles=None):
     print("\n[News] Fetching live breaking news from RSS feeds...")
     used_titles = {e.get("title","") for e in log}
