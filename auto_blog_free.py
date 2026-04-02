@@ -1,5 +1,5 @@
-# TECH NEWS WITH AI - AUTO BLOG v28.0
-# v28 — ONE ARTICLE PER DAY · MAX TOKEN QUALITY · ADSENSE APPROVAL BUILD
+# TECH NEWS WITH AI - AUTO BLOG v30.0
+# v30 — CEREBRAS API · UNLIMITED FREE TPM · LLAMA 3.3 70B QUALITY
 #
 # ================================================================
 # WHY v28 — AdSense "Low value content" fix
@@ -40,7 +40,7 @@
 
 import os  # must be first — keys below read from environment
 
-GROQ_API_KEY       = os.environ.get("GROQ_API_KEY", "")
+CEREBRAS_API_KEY   = os.environ.get("CEREBRAS_API_KEY", "")  # cerebras.ai — free, unlimited TPM
 NEWS_API_KEY       = os.environ.get("NEWS_API_KEY", "673bca5ceab54fa8bb7ed0344c8f6d13")
 BLOGGER_POST_EMAIL = "mallikarjunr444.technewswithai6361@blogger.com"
 GMAIL_ADDRESS      = "mallikarjunr444@gmail.com"
@@ -670,9 +670,9 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 try:
-    from groq import Groq
+    from cerebras.cloud.sdk import Cerebras
 except ImportError:
-    print("Run: pip install groq")
+    print("Run: pip install cerebras-cloud-sdk")
     sys.exit(1)
 
 HEADERS = {
@@ -1227,8 +1227,8 @@ def generate_dynamic_topics(cat, log, used_combined, count=8):
     Returns list of {"t": "...", "k": ["...", "..."], "sections": [...]} dicts.
     """
     try:
-        from groq import Groq
-        client = Groq(api_key=GROQ_API_KEY)
+        from cerebras.cloud.sdk import Cerebras
+        client = Cerebras(api_key=CEREBRAS_API_KEY)
 
         headlines = fetch_rss_headlines_for_cat(cat, max_headlines=25)
         if not headlines:
@@ -1335,7 +1335,7 @@ def generate_dynamic_topics(cat, log, used_combined, count=8):
         )
 
         r = client.chat.completions.create(
-            model="llama-3.1-8b-instant",  # fast+cheap for topic generation
+            model="llama3.1-8b",  # Cerebras fast model
             messages=[{"role": "user", "content": prompt}],
             max_tokens=1500,
             temperature=0.75,
@@ -1560,8 +1560,8 @@ def pick_article3_single_review(log, used_in_run):
     # ── Step 3: Ask Groq which phone is trending right now ──
     print("[Article3] Scraping found nothing — asking Groq for trending phone...")
     try:
-        from groq import Groq
-        client = Groq(api_key=GROQ_API_KEY)
+        from cerebras.cloud.sdk import Cerebras
+        client = Cerebras(api_key=CEREBRAS_API_KEY)
         headlines = fetch_rss_headlines_for_cat("smartphone", max_headlines=20)
         year = datetime.datetime.now().year
         prompt = (
@@ -1573,7 +1573,7 @@ def pick_article3_single_review(log, used_in_run):
             f"Respond ONLY with the exact model name, nothing else. No explanation."
         )
         r = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model="llama3.1-8b",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=30, temperature=0.5,
         )
@@ -1727,7 +1727,7 @@ def generate_seo_title(story, is_search=False):
     For news/single reviews (is_search=False): full review format — NO 'Top 5'.
     For search/buying guides (is_search=True): Top 5 / Best / Comparison format."""
     try:
-        client = Groq(api_key=GROQ_API_KEY)
+        client = Cerebras(api_key=CEREBRAS_API_KEY)
         cat    = story.get("category", "smartphone")
         topic  = story.get("search_topic") or story.get("title", "")
         year   = datetime.datetime.now().year
@@ -1770,7 +1770,7 @@ def generate_seo_title(story, is_search=False):
             f"Output ONLY the title text. No quotes. No explanation."
         )
         r = client.chat.completions.create(
-            model="llama-3.1-8b-instant",  # fast+cheap for short title task
+            model="llama3.1-8b",  # fast+cheap for short title task
             messages=[{"role": "user", "content": prompt}],
             max_tokens=80, temperature=0.8,
         )
@@ -2882,7 +2882,7 @@ def pick_top5_phones(topic, cat, ctx):
     Without this, the AI defaults to writing about 1 phone repeatedly.
     """
     try:
-        client = Groq(api_key=GROQ_API_KEY)
+        client = Cerebras(api_key=CEREBRAS_API_KEY)
         year   = datetime.datetime.now().year
         prompt = (
             f"You are an India smartphone expert. For this buying guide topic, "
@@ -2900,7 +2900,7 @@ def pick_top5_phones(topic, cat, ctx):
             f'[{{"name": "Brand Model Name", "price": "₹XX,XXX", "best_for": "one use case"}}, ...]'
         )
         r = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model="llama3.1-8b",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=300, temperature=0.5,
         )
@@ -2917,445 +2917,83 @@ def pick_top5_phones(topic, cat, ctx):
 
 
 def groq_draft(story, is_search):
-    client   = Groq(api_key=GROQ_API_KEY)
+    client   = Cerebras(api_key=CEREBRAS_API_KEY)
     cat      = story.get("category", "smartphone")
     struct   = CAT.get(cat, CAT["smartphone"])
-
-    # Build the section-to-H2 instruction — each section becomes a mandatory H2
-    sections_list = struct["sections"]
-    # Strip leading "N. " numbering for cleaner H2 text; keep the full description as guide
-    pat = re.compile(r"^\d+\.\s*")
-    sections_as_h2 = "\n".join(
-        "  <h2 id=\"section-" + str(i+1) + "\">" + pat.sub("", s.split("—")[0]).strip() + "</h2>  "
-        + "<-- H2 " + str(i+1) + " of " + str(len(sections_list))
-        + " | details: " + (s.split("—")[1].strip() if "—" in s else s)
-        for i, s in enumerate(sections_list)
-    )
-
-    cat_label  = cat.upper()
-    link_rules = build_internal_link_instructions(cat)
-
-    # Build longtail keywords from live context
-    ctx_text    = story.get("rss_context", "")
-    topic_text  = story.get("search_topic") or story.get("title", "")
-    longtail_kw = build_longtail_keywords(cat, ctx_text, topic_text)
-    kw_list     = "\n".join(f"  • {k}" for k in longtail_kw)
-
-    rules_with_kw = WRITING_RULES.replace(
-        "[LONGTAIL_KEYWORDS_PLACEHOLDER]", kw_list
-    )
+    year     = datetime.datetime.now().year
 
     seo_title = story.get("seo_title", "")
-    title_instruction = (
-        f'USE THIS EXACT H1 TITLE (already SEO-optimised):\n<h1>{seo_title}</h1>\n\n'
-        if seo_title else
-        f"Generate H1 title: number hook + primary keyword + India + year. Max 65 chars.\n\n"
-    )
+    title_line = f"USE THIS EXACT H1: <h1>{seo_title}</h1>\n\n" if seo_title else ""
 
-    # Category-specific H2 section block shown prominently
-    section_block = (
-        f"━━━ CATEGORY: {cat_label} — MANDATORY {len(sections_list)} H2 SECTIONS ━━━\n"
-        f"Write ALL sections below IN ORDER as H2 headings.\n"
-        f"Do NOT skip, reorder, or merge any section.\n"
-        f"CRITICAL: Use the EXACT H2 text shown below. Replace {{Product}} with the real product name.\n"
-        f"Do NOT use clickbait or dramatic hooks as H2 text. H2 must be clean and descriptive.\n"
-        f"Personal hooks and commentary go in the first <p> paragraph UNDER the H2, never inside it.\n"
-        f"Under each H2, write DESCRIPTIVE H3 sub-section headings — NO question marks in H3s.\n"
-        f"H3 format: '[Product Name] [Sub-aspect] — [Short Descriptive Tagline]' (no '?' allowed).\n"
-        f"Question-format H3s are ONLY allowed inside the FAQ section.\n\n"
-        f"{sections_as_h2}\n"
-        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-    )
+    # Compact section list
+    sections_list = struct["sections"]
+    sections_str  = " | ".join(s.split("—")[0].strip() for s in sections_list)
 
     if is_search:
-        topic = story["search_topic"]
-        ctx   = story.get("rss_context", "")
-        if " vs " in topic.lower():
-            mode = (
-                "VS COMPARISON — FULL PRODUCT DEEP-DIVE FORMAT.\n"
-                "CRITICAL STRUCTURE RULES:\n"
-                "- Do NOT compare products side by side in the same paragraph.\n"
-                "- Do NOT use any Pros & Cons tables anywhere.\n"
-                "- Do NOT use any comparison tables or side-by-side columns.\n"
-                "- Do NOT mix both products in the same section.\n"
-                "\n"
-                "MANDATORY STRUCTURE:\n"
-                "1. INTRO (3 paragraphs, no H2): Paint the buyer dilemma, why this comparison matters in India 2026, what this article covers.\n"
-                "\n"
-                "2. PRODUCT A — Full Deep-Dive (use the first product name as H2):\n"
-                "   <h2>[Product A Name] — Full Review</h2>\n"
-                "   IMAGE PLACEHOLDER comment immediately after H2\n"
-                "   Quick Specs Box\n"
-                "   Then write ALL category H3 sections for Product A ONLY (Design, Display, Performance, Battery, Camera, Connectivity, Software, Price, Who Should Buy)\n"
-                "   Each H3 section: 2-4 full prose paragraphs with real specs, India real-life translation, honest trade-offs.\n"
-                "\n"
-                "3. TRANSITION LINE between the two products (mandatory).\n"
-                "\n"
-                "4. PRODUCT B — Full Deep-Dive (use the second product name as H2):\n"
-                "   <h2>[Product B Name] — Full Review</h2>\n"
-                "   IMAGE PLACEHOLDER comment immediately after H2\n"
-                "   Quick Specs Box\n"
-                "   Then write ALL category H3 sections for Product B ONLY (same structure as Product A)\n"
-                "\n"
-                "5. FINAL VERDICT (H2): 3-4 rich prose paragraphs declaring a winner, use-case recommendations, price context, Mallikarjun's personal pick.\n"
-                "   End with: 'My final verdict: [Product Name]. Here is why I would put my own money on it.'\n"
-                "   CTA link to category label page.\n"
-                "   NO verdict table. NO comparison table. Pure prose only.\n"
-                "\n"
-                "6. FAQ (H2, id=faq): 7 question H3s Indians search about this comparison. FAQ comes AFTER Final Verdict.\n"
-            )
-        elif "under" in topic.lower() or "best" in topic.lower() or "top" in topic.lower():
-            # ── Pick 5 real phone names BEFORE writing ──
-            phones_list = pick_top5_phones(topic, cat, ctx)
-            phones_block = ""
-            if phones_list:
-                phone_lines = "\n".join(
-                    f"  Phone {i+1}: {p['name']} — {p.get('price','₹??')} — Best for: {p.get('best_for','all-round')}"
-                    for i, p in enumerate(phones_list)
-                )
-                # Build SEO keyword block: each exact model name must appear in article
-                kw_model_lines = "\n".join(
-                    f"  • {p['name']} review India {datetime.datetime.now().year}"
-                    for p in phones_list
-                )
-                phones_block = (
-                    f"\n━━━ MANDATORY: WRITE ABOUT THESE EXACT 5 PHONES — NO SUBSTITUTIONS ━━━\n"
-                    f"You MUST write a complete full section for EACH of these 5 phones:\n"
-                    f"{phone_lines}\n\n"
-                    f"CRITICAL RULES:\n"
-                    f"• Phone 1 = H2 heading with #1 ranking\n"
-                    f"• Phone 2 = H2 heading with #2 ranking\n"
-                    f"• Continue for all 5 phones\n"
-                    f"• NEVER replace any of these 5 with a different phone\n"
-                    f"• NEVER write only 1 phone and call it a Top 5 guide\n"
-                    f"• Each phone gets its OWN complete section: Intro, Design, Display, Performance, Battery, Camera, Price\n"
-                    f"• The exact model names below MUST appear in H2 headings for SEO:\n"
-                    f"{kw_model_lines}\n"
-                    f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-                )
-            mode = (
-                "TOP 5 BUYING GUIDE.\n"
-                "- Write about EXACTLY the 5 phones listed above — no substitutions.\n"
-                "- Each phone gets a COMPLETE full-section deep-dive (not a paragraph).\n"
-                "- Follow the MANDATORY ARTICLE STRUCTURE v16 below EXACTLY for every phone.\n"
-                "- Every phone gets ALL category-specific H3 sections written in full prose.\n"
-                "- Add Quick Specs box for every phone.\n"
-                "- Add IMAGE PLACEHOLDER immediately after each phone H2 heading.\n"
-                "- Add transition line between each phone.\n"
-                "- NO Pros & Cons table anywhere in the article.\n"
-                "- NO comparison table anywhere in the article.\n"
-                "- Final Verdict section is written as rich prose paragraphs — NO table.\n"
-                "- FAQ section comes AFTER the Final Verdict.\n"
-                + phones_block
-            )
-        else:
-            mode = (
-                "EXPERT GUIDE.\n"
-                "- Answer the search question completely with real data.\n"
-                "- Recommend 3-5 specific products with India prices.\n"
-                "- Add specs box and Pros & Cons for each recommended product.\n"
-                "- Practical India advice throughout.\n"
-            )
-
-        # Choose structure template based on article type
-        if " vs " in topic.lower():
-            structure_block = VS_COMPARISON_STRUCTURE
-        else:
-            structure_block = BUYING_GUIDE_STRUCTURE
-
+        topic = story.get("search_topic", story.get("title", ""))
+        ctx   = (story.get("rss_context") or "")[:400]
         prompt = (
-            title_instruction +
-            "Write a comprehensive SEO-optimised guide for Indians searching: '" + topic + "'\n\n"
-            "ARTICLE TYPE: " + mode + "\n\n"
-            "REAL DATA FROM RSS AND REVIEW SOURCES:\n"
-            + (ctx or "Use your latest India market 2026 knowledge.") + "\n\n"
-            + section_block
-            + structure_block + "\n\n"
-            + rules_with_kw + "\n\n"
-            + link_rules + "\n\n"
-
-            "━━━ KEYWORD PLACEMENT STRATEGY (mandatory for Google ranking) ━━━\n"
-            "Primary keyword: '" + topic + "'\n"
-            "• Primary keyword MUST appear in: H1 title, first 100 words of intro, at least 3 H2 headings, final verdict\n"
-            "• Each phone's EXACT model name (e.g. 'Nothing Phone 4a Pro') must appear in:\n"
-            "  → That phone's H2 heading\n"
-            "  → First sentence of that phone's intro paragraph\n"
-            "  → That phone's specs box\n"
-            "  → FAQ section (at least 1 question mentioning the exact model)\n"
-            "• This ensures when someone Googles 'Nothing Phone 4a Pro review India' — YOUR article ranks\n\n"
-
-            "━━━ STRONG INTRODUCTION HOOK (mandatory — Acknowledge → Gap → Promise) ━━━\n"
-            "Para 1 (Acknowledge): Start with what the Indian buyer already knows — the struggle of choosing\n"
-            "  a phone in this price range with too many options. Make them feel seen.\n"
-            "  Example: 'If you've been scrolling through Flipkart for the past week trying to pick a phone\n"
-            "  under ₹30,000 — you already know the problem. The specs sheets all look identical.\n"
-            "  The reviews contradict each other. And everyone seems to have a different favourite.'\n"
-            "Para 2 (Gap): Subtly reveal what most comparisons miss — real India daily use testing.\n"
-            "  Example: 'Most comparison articles test phones in controlled environments. None of them\n"
-            "  ran BGMI for 40 minutes in a Bengaluru summer. None tested the camera at a Sunday market.\n"
-            "  That is exactly what I did — for every phone in this list.'\n"
-            "Para 3 (Promise + all 5 named): Name all 5 phones with one punchy line each.\n"
-            "  Example: '#1 is the camera king. #3 is the gaming beast. #5 will genuinely surprise you.'\n"
-            "  Then: 'Let's start with the top pick.'\n\n"
-
-            "SEO FINAL CHECKLIST:\n"
-            "✓ Primary keyword '" + topic + "' in H1 title (exact match)\n"
-            "✓ Primary keyword in first 50 words of intro\n"
-            "✓ Each phone's exact model name in its own H2 heading\n"
-            "✓ Acknowledge→Gap→Promise 3-para intro hook BEFORE Table of Contents\n"
-            "✓ FAQ: first question = exact primary keyword as a question\n"
-            "✓ FAQ: one question per phone model (e.g. 'Is Nothing Phone 4a Pro worth buying India 2026?')\n"
-            "✓ Real ₹ prices with Flipkart/Amazon India availability\n"
-            "✓ h1 h2 h3 p ul li — HTML only, NEVER markdown\n"
-            "✓ <strong> for specs, prices, key data\n"
-            "✓ Brand names hyperlinked to technewsai.me label pages only\n"
-            "✓ ORIGINAL content — no copy, no thin filler\n"
+            title_line +
+            f"You are Mallikarjun R, Indian tech blogger, Bengaluru. Write a 4500-word HTML article for:\n"
+            f"TOPIC: {topic}\n"
+            f"LIVE DATA: {ctx}\n\n"
+            "RULES:\n"
+            "- HTML only (h1 h2 h3 p table ul li strong). No markdown ever.\n"
+            "- India-specific: ₹ prices, Flipkart/Amazon, Jio/Airtel 5G bands, India launch dates.\n"
+            "- Real numbers every section: mAh, Hz, MP, nits, AnTuTu, fps, grams.\n"
+            "- Compare named rivals in every section (inline prose, not table-only).\n"
+            "- Personal 14-day test narrative woven throughout.\n"
+            "- No AI phrases: seamlessly, cutting-edge, robust, leverage, delve, game-changer.\n"
+            "- No markdown bold (**text**) — use <strong>text</strong>.\n"
+            "- H3 headings: descriptive only, NO question marks (except inside FAQ section).\n"
+            "- End with 10-question FAQ in H3 format.\n"
+            f"SECTIONS TO COVER: {sections_str}\n"
             "Write now:"
         )
     else:
-        # ── SMARTPHONE PRODUCT REVIEW — World-class quality (The Hindu / TechRadar style) ──
-        year   = datetime.datetime.now().year
-        phone  = story.get("title", "[Phone]")
-        source = story.get("source", "")
-        specs  = story.get("specs") or "Use your full knowledge of this device — include all exact specs."
-        desc   = story.get("description", "")
+        phone = story.get("title", "[Phone]")
+        specs = (story.get("specs") or "Use full knowledge of this device.")[:600]
+        desc  = (story.get("description") or "")[:200]
 
         prompt = (
-            title_instruction +
-            f"Write a world-class NEW LAUNCH smartphone review for Indian readers about: {phone}\n"
-            f"SOURCE: {source}\n\n"
-            f"━━━ OFFICIAL LAUNCH SPECS (use EXACT numbers — never invent, never say 'latest Snapdragon') ━━━\n"
-            f"{specs}\n\n"
-            f"DESCRIPTION / LAUNCH CONTEXT: {desc}\n\n"
-
-            "━━━ ARTICLE CONTEXT — THIS IS A NEW LAUNCH REVIEW ━━━\n"
-            "This phone JUST launched in India. Write as Mallikarjun R who attended the launch event\n"
-            "or got a review unit on Day 1. The reader wants to know:\n"
-            "  (a) What exactly is this phone — full official specs explained\n"
-            "  (b) How does it compare to its closest rivals at the same price\n"
-            "  (c) Is it worth buying — clear honest verdict\n"
-            "Tone: confident, knowledgeable, India-specific. Like iQOO 15R review on technewsai.me.\n\n"
-
-            "━━━ HEADING FORMAT RULES (CRITICAL) ━━━\n"
-            "• H2 section headings: <h2>[Phone Name] [Section] — [Short Tagline]</h2>\n"
-            "  ✅ '<h2>Samsung Galaxy S26 Design and Build — Slim, Glass, IP68 Tested</h2>'\n"
-            "  ✅ '<h2>iQOO Neo 10 Display Review — 144Hz AMOLED, 5000 Nits, Bengaluru Sun Test</h2>'\n"
-            "• H3 sub-section headings: DESCRIPTIVE only — NO question marks\n"
-            "  ✅ '<h3>iQOO Neo 10 Daylight Camera — 50MP Main, OIS, Natural Colours</h3>'\n"
-            "  ❌ NEVER: '<h3>Is the Camera Good?</h3>' or any H3 with '?'\n"
-            "Question H3s are FORBIDDEN everywhere except the FAQ section.\n\n"
-
-            "━━━ ARTICLE STRUCTURE — FOLLOW EXACTLY ━━━\n\n"
-
-            "══ STEP 1: H1 TITLE (use pre-generated title exactly) ══\n\n"
-
-            "══ STEP 2: NARRATIVE INTRO (2 paragraphs — NO H2 — storytelling only) ══\n"
-            "Para 1 — Set up the STORY, not the specs:\n"
-            "  Who is this phone for? What Indian buyer dilemma does it solve?\n"
-            "  Name the exact price bracket and which phone it challenges.\n"
-            "  STYLE: 'Most phones at ₹40,000 in India promise flagship cameras — very few deliver.\n"
-            "  The [Phone] aims to be the exception. Whether it succeeds is what this review is about.'\n"
-            "  NOT: 'The [Phone] is a new smartphone with great features and good performance.'\n"
-            "Para 2 — India launch context + official specs angle:\n"
-            "  India launch date (exact), starting price ₹, where to buy (Flipkart/Amazon/brand store).\n"
-            "  All storage/RAM variants with exact ₹ prices.\n"
-            "  How you tested it: how many days, what scenarios (BGMI, commute, camera, calls).\n"
-            "  Note any India-specific differences vs global version (different battery, bands, price).\n\n"
-
-            "══ STEP 3: QUICK SPECS BOX (exact numbers — no vague descriptions) ══\n"
-            + SPECS_BOX_HTML + "\n\n"
-
-            "══ STEP 4: BODY — Write all sections below in order ══\n\n"
-
-            "── [Phone] Design and Build — [One opinionated tagline] ──\n"
-            "Para 1: Open with the MOST SURPRISING physical detail. Describe what you see and feel:\n"
-            "  Exact thickness mm (compare: 'iPhone 17 Pro Max is 8.75mm — this is Xmm').\n"
-            "  Weight g. Back material texture. Frame material. Button placement feel.\n"
-            "  Something specific: 'Run your thumb along the edge and you'll notice [something]'.\n"
-            "Para 2: Color options — describe them vividly. Which one stands out and why.\n"
-            "  IP rating in plain language ('survived my monsoon commute without a worry').\n"
-            "  One-hand use verdict. Pocket fit.\n"
-            "Para 3: ONE honest weakness in design. Name it directly.\n"
-            "  End with short verdict sentence: 'I like it. More people will like it than expected.'\n\n"
-
-            "── [Phone] Display — [One opinionated tagline] ──\n"
-            "Para 1: Panel type, size, resolution, Hz — all as ONE sentence opening.\n"
-            "  Then: what it's like to actually use. 'I fired up 2K video and the picture was [verdict]'.\n"
-            "  Peak nits number + outdoor test verdict: 'In Bengaluru afternoon sun [result]'.\n"
-            "Para 2: HDR support on Netflix/YouTube — does it actually trigger? Verdict.\n"
-            "  Touch sampling Hz — does BGMI/gaming feel smooth?\n"
-            "  Compare display to one named rival: 'Colors aren't quite as rich as [rival] but at ₹X less, that's reasonable'.\n"
-            "End: One punchy verdict sentence.\n\n"
-
-            "── [Phone] Performance — [One opinionated tagline] ──\n"
-            "Para 1: EXACT chipset name (e.g. Snapdragon 7 Gen 4, NOT 'latest Snapdragon') + nm process.\n"
-            "  AnTuTu score number. Geekbench single + multi-core numbers.\n"
-            "  'Scores X% higher than [last year's chip] and X% behind [flagship chip]'.\n"
-            "Para 2: BGMI test — at which settings, stable fps number, temperature after 40 minutes.\n"
-            "  Frame drops? Cooling system effectiveness?\n"
-            "Para 3: Daily use — app switching, RAM management, India scenario ('Instagram → Chrome → BGMI — zero stutter').\n"
-            "  Is it fast enough for the price? Clear verdict.\n\n"
-
-            "── [Phone] Camera — [One opinionated tagline] ──\n"
-            "Write FIVE separate mini-sections (do NOT merge):\n"
-            "  [Daylight] — Sensor size/MP, aperture, OIS yes/no. One sentence real result.\n"
-            "    'Daylight shots at a weekend market delivered [specific verdict]. Dynamic range [verdict]'.\n"
-            "  [Night] — Night mode: shadow detail, noise level, processing time. Honest result.\n"
-            "    Compare: 'Better/worse than [named rival] at night — here is why'.\n"
-            "  [Portrait] — Edge detection (test with hair and glasses). Bokeh: natural or over-processed?\n"
-            "    'Portrait selfie for an Indian wedding: [specific result]'.\n"
-            "  [Video] — Max resolution + fps. OIS test: walk while recording, result? Slow-mo fps.\n"
-            "    Clear verdict: 'Good for social media. Not the one for professional video'.\n"
-            "  [Selfie] — MP, autofocus. Indian skin tone accuracy — no over-smoothing?\n"
-            "    'For Instagram and video calls, [verdict]'.\n"
-            "End the whole camera section with ONE overall verdict:\n"
-            "  'This is the best camera at ₹X' OR 'Good stills, but [rival] wins at night'.\n\n"
-
-            "── [Phone] Battery Life — [One opinionated tagline] ──\n"
-            "Para 1: mAh + real screen-on hours from test.\n"
-            "  India real-life: 'From 8am to 11pm with BGMI, Hotstar, Instagram, 2hrs calls — Y% left'.\n"
-            "  Note India-specific battery if different from global version.\n"
-            "Para 2: Fast charging W. 0→50% time. 0→100% time. Charger in box or not?\n"
-            "  Wireless charging — yes/no? If no, call it out honestly.\n"
-            "  'Compared to [rival]'s Xmin charge time, this takes Ymin — [verdict]'.\n\n"
-
-            "── [Phone] Unique Feature Deep-Dive ──\n"
-            "Every phone has ONE feature that makes it different from all others at this price.\n"
-            "Find it (Glyph Matrix, massive battery, periscope zoom, foldable hinge, AI eraser, etc).\n"
-            "Write 2 FULL paragraphs:\n"
-            "  Para 1: What is it? How does it actually work in daily India life?\n"
-            "    Give specific real use case: 'I set it to flash when my Swiggy order arrives —\n"
-            "    turns out that's actually useful in a noisy hostel'.\n"
-            "  Para 2: Is it a gimmick or genuinely useful? Honest verdict.\n"
-            "    'Nothing about it feels bolted on. It earns its place.'\n\n"
-
-            "── [Phone] 14-Day Real-Life Test — The Honest India Field Report ──\n"
-            "This is the most important section. Write 5 full paragraphs. NO other review site has this.\n"
-            "Para 1 — Week 1 first impressions: How the phone felt on Day 1. Setup time. First thing that impressed\n"
-            "  or disappointed. What changed by Day 3 after getting used to it.\n"
-            "Para 2 — Gaming deep-dive: BGMI at which settings (low/medium/high/ultra), exact fps (stable or drops?),\n"
-            "  temperature after 40 min in a closed room vs Bengaluru afternoon heat.\n"
-            "  Frame drop moments: was it during smoke grenades? Loading screens? Be specific.\n"
-            "Para 3 — Battery real drain log (Day 7 test): 100% at 8am →\n"
-            "  after 40min BGMI = X%, after 1hr commute scrolling = X%, after 1hr Hotstar = X%,\n"
-            "  after 30min camera = X%. What was left at 11pm? Any day it died before midnight?\n"
-            "Para 4 — Camera in unpredictable India conditions: Sunday market midday (harsh sun, moving subjects),\n"
-            "  a dimly lit chai stall at night (no tripod, one hand), a video call in a hostel WiFi room.\n"
-            "  What worked. What failed. Be honest.\n"
-            "Para 5 — Week 2 reality check: Has anything annoyed you? Any bug that appeared after a week?\n"
-            "  Any feature you stopped using because it was useless? Any feature you use every single day?\n\n"
-
-            "── [Phone] India Variant Differences — What You Actually Get in India ──\n"
-            "CRITICAL SECTION — many phones ship with different specs in India vs global. Verify and write:\n"
-            "Para 1: Battery capacity — same as global or different? (e.g. Nothing Phone 3a had 5400mAh India vs 5080mAh global)\n"
-            "  Charger in box or not? Charging speed different from global?\n"
-            "Para 2: 5G bands India supports — list exact bands: n1, n3, n5, n8, n28, n40, n41, n77, n78\n"
-            "  Which Indian operators (Airtel/Jio/Vi) get 5G with this phone in major cities?\n"
-            "Para 3: India price vs US/UK price — is India getting a good deal or paying a premium?\n"
-            "  India launch date vs global launch date — did India get it at the same time?\n\n"
-
-            "── [Phone] vs Competition — Comparison Table ──\n"
-            "Open with 1 sentence: 'At ₹X, this phone competes directly with [Rival 1] and [Rival 2]'.\n"
-            "Then this table (fill with REAL rival specs — never invent):\n"
-            "<table style='width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;'>\n"
-            "<tr style='background:#f5f5f5;'>"
-            "<th style='padding:10px;border:1px solid #ddd;text-align:left;'>Feature</th>"
-            "<th style='padding:10px;border:1px solid #ddd;text-align:left;'>[This Phone]</th>"
-            "<th style='padding:10px;border:1px solid #ddd;text-align:left;'>[Rival 1]</th>"
-            "<th style='padding:10px;border:1px solid #ddd;text-align:left;'>[Rival 2]</th>"
-            "</tr>\n"
-            "<!-- Rows: Price ₹ | Display | Chipset | Main Camera | Battery | Charging W | IP Rating | Weight -->\n"
-            "</table>\n"
-            "After table: 2 sentences — where [Phone] wins + where it loses. Be specific.\n\n"
-
-            "── Connectivity and Audio ──\n"
-            "5G bands (list India-supported bands, not just '5G supported').\n"
-            "WiFi version. Bluetooth version. NFC for UPI payments — yes/no?\n"
-            "USB-C type. Stereo or mono speakers. Dolby Atmos — real test result.\n"
-            "Fingerprint: in-display or side-mounted? Speed verdict. Face unlock accuracy.\n\n"
-
-            "── Software and AI Features ──\n"
-            "Android version + UI name. Bloatware level (count pre-installed apps honestly).\n"
-            "Top 3 AI features — explain in plain language what they do, not just names.\n"
-            "OS update years + security patches — why this matters for India buyers keeping phones 3+ years.\n\n"
-
-            "── Price in India 2026 ──\n"
-            "All variants with exact ₹ prices (8GB/128GB, 12GB/256GB etc).\n"
-            "Bank offers (HDFC/Axis/SBI) + effective price after discount.\n"
-            "No Cost EMI: '₹X = ₹Y/month for 12 months'.\n"
-            "Where to buy. Which variant is the best value and why.\n\n"
-
-            "── Pros and Cons (based on real testing) ──\n"
-            "<table style='width:100%;border-collapse:collapse;margin:12px 0;font-size:14px;'>\n"
-            "<tr><th style='padding:10px;width:50%;border:1px solid #ddd;background:#f9f9f9;text-align:left;'>✅ What We Liked</th>"
-            "<th style='padding:10px;width:50%;border:1px solid #ddd;background:#f9f9f9;text-align:left;'>❌ What Needs Work</th></tr>\n"
-            "<tr><td style='padding:12px;border:1px solid #ddd;vertical-align:top;line-height:1.8;'>\n"
-            "• [Specific pro with reason — e.g. 'Glyph Matrix is actually useful, not a gimmick']\n"
-            "• [Specific pro 2 — e.g. '5,000-nit display handles Bengaluru sun without squinting']\n"
-            "• [Specific pro 3]\n• [Specific pro 4]\n"
-            "</td><td style='padding:12px;border:1px solid #ddd;vertical-align:top;line-height:1.8;'>\n"
-            "• [Specific con with reason — e.g. 'No wireless charging is a miss at ₹40,000']\n"
-            "• [Specific con 2 — e.g. 'Video stabilisation loses to Pixel 10a in low light']\n"
-            "• [Specific con 3]\n"
-            "</td></tr></table>\n\n"
-
-            "── Who Should Buy and Who Should Avoid ──\n"
-            "Para 1 (Buy if): Specific user profile. Name real scenarios.\n"
-            "  'If you want a phone that stands out at college, lasts two days, and handles BGMI at high\n"
-            "   settings — this is your answer.'\n"
-            "Para 2 (Avoid if): Specific cases where a named alternative is better.\n"
-            "  'If 4K video for YouTube is your priority, the [Rival] at ₹X more is the smarter buy.'\n\n"
-
-            "── Final Verdict (STRONG OPINION — mandatory) ──\n"
-            "DECLARE a clear position. Use this format:\n"
-            "  Para 1: One confident sentence declaring buy or skip + strongest reason.\n"
-            "  Para 2: Who it's perfect for + who should look elsewhere (name alternative).\n"
-            "  Para 3: 'My final pick: [Phone Name]. Here is exactly why I would put my own money on it.'\n"
-            "NEVER write a neutral verdict. Take a clear, justified stance.\n\n"
-
-            f"── FAQ — 10 Questions Indians Actually Search ──\n"
-            f"<h2 id='faq'>FAQ — {phone} India {year}: Your Questions Answered</h2>\n"
-            "Use question-format H3s ONLY in this section. Each answer: 50-70 words, specific, opinionated.\n"
-            f"  <h3>Is {phone} worth buying in India {year}?</h3>\n"
-            f"  <h3>How does {phone} compare to [Rival 1] in India?</h3>\n"
-            f"  <h3>Does {phone} overheat during BGMI in 2026?</h3>\n"
-            f"  <h3>What is the real battery life of {phone} in everyday India use?</h3>\n"
-            f"  <h3>How is {phone} camera in low light and night mode?</h3>\n"
-            f"  <h3>Does {phone} support 5G on Airtel and Jio in India?</h3>\n"
-            f"  <h3>Which variant of {phone} should I buy — 8GB or 12GB?</h3>\n"
-            f"  <h3>Is {phone} good for photography at Indian weddings and markets?</h3>\n"
-            f"  <h3>Does {phone} have NFC for UPI payments in India?</h3>\n"
-            f"  <h3>Should I wait for a price drop or buy {phone} now in India?</h3>\n\n"
-
-            + rules_with_kw + "\n\n"
-            + link_rules + "\n\n"
-
-            "━━━ FINAL QUALITY CHECKS ━━━\n"
-            "✓ EVERY spec has a meaning — no bare numbers without real-life context\n"
-            "✓ EVERY section has an inline comparison to a NAMED rival phone\n"
-            "✓ Unique feature gets a 2-paragraph deep-dive\n"
-            "✓ India-specific battery/bands/availability noted\n"
-            "✓ Pros & Cons table filled with SPECIFIC, honest points\n"
-            "✓ Comparison table filled with REAL rival specs (not invented)\n"
-            "✓ Final verdict takes a clear stance — not neutral\n"
-            "✓ 4500+ words total\n"
-            "✓ HTML only — no markdown\n"
-            "✓ Brand names hyperlinked to technewsai.me only\n"
+            title_line +
+            f"You are Mallikarjun R, Indian tech blogger, Bengaluru. Write a 4500-word HTML smartphone review.\n"
+            f"PHONE: {phone}\n"
+            f"SPECS: {specs}\n"
+            f"CONTEXT: {desc}\n\n"
+            "STRUCTURE (follow in order, all as H2 sections):\n"
+            f"{sections_str}\n\n"
+            "RULES:\n"
+            "- HTML only (h1 h2 h3 p table ul li strong). No markdown ever.\n"
+            "- H2 format: <h2>[Phone Name] [Section] — [Opinionated Tagline]</h2>\n"
+            "- H3 format: descriptive label only, NO question marks (except FAQ).\n"
+            "- Every spec = experienced + judged (not just stated). Real India scenarios.\n"
+            "- India: ₹ prices, Flipkart/Amazon, Jio/Airtel 5G bands, India battery vs global.\n"
+            "- Real numbers per section: mAh, Hz, MP, nits, AnTuTu score, fps, grams, mm.\n"
+            "- Named rival comparison in every section (inline prose).\n"
+            "- 14-day personal test narrative throughout (BGMI fps, commute battery, market camera).\n"
+            "- Pros/Cons table with SPECIFIC honest points.\n"
+            "- Quick Specs box near top.\n"
+            "- Comparison table vs 2 named rivals.\n"
+            "- No AI filler: seamlessly, cutting-edge, robust, leverage, delve, game-changer.\n"
+            "- No markdown bold — use <strong>.\n"
+            "- Strong opinionated Final Verdict (buy or skip — never neutral).\n"
+            f"- End with 10-question FAQ (H3 format, India-specific, mention {phone}).\n"
+            "- Links: ONLY to www.technewsai.me — no external sites.\n"
             "Write now:"
         )
+
     r = client.chat.completions.create(
-        model="llama-3.1-8b-instant",  # 131k TPM free tier — no rate limit issues
+        model="llama-3.3-70b",
         messages=[{"role": "user", "content": prompt}],
         max_tokens=6000, temperature=0.72,
     )
     return r.choices[0].message.content
 
 
-# ================================================================
-# STEP 2: HUMAN REWRITE — Mallikarjun R voice (v12)
-# ================================================================
+
 def human_rewrite(draft, story):
-    client = Groq(api_key=GROQ_API_KEY)
+    client = Cerebras(api_key=CEREBRAS_API_KEY)
     cat    = story.get("category", "smartphone")
     labels = ", ".join(CAT.get(cat, CAT["smartphone"])["labels"])
     link_rules = build_internal_link_instructions(cat)
@@ -3449,9 +3087,9 @@ def human_rewrite(draft, story):
     )
 
     r = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="llama-3.3-70b",
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=4000, temperature=0.88,
+        max_tokens=5000, temperature=0.88,
     )
     return r.choices[0].message.content
 
@@ -3541,11 +3179,6 @@ def run_article(story, is_search, label, atype, log):
     draft = groq_draft(story, is_search)
     w1    = len(re.sub(r"<[^>]+>","",draft).split())
     print("Draft: " + str(w1) + " words")
-
-    # TPM cooldown: 70b model has 12k TPM limit — wait 65s for bucket reset
-    import time
-    print("[TPM] Waiting 65s for Groq TPM reset before 70b rewrite...")
-    time.sleep(65)
 
     # Step 2 — Human rewrite
     print("Step 2: Human rewrite as Mallikarjun R...")
@@ -3717,7 +3350,7 @@ def main():
     }
 
     print("=======================================================")
-    print(f" TECH NEWS WITH AI - AUTO BLOG v28.0")
+    print(f" TECH NEWS WITH AI - AUTO BLOG v30.0")
     print(f" {today}")
     print(f" TODAY: {day_labels[a_type]}")
     print(f" ONE article — full daily Groq token budget")
@@ -3859,11 +3492,6 @@ def run_article_v28(story, is_search, label, atype, article_type, log):
     draft = groq_draft(story, is_search)
     w1 = len(re.sub(r"<[^>]+>","",draft).split())
     print(f"Draft: {w1} words")
-
-    # TPM cooldown: 70b model has 12k TPM limit — wait 65s for bucket reset
-    import time
-    print("[TPM] Waiting 65s for Groq TPM reset before 70b rewrite...")
-    time.sleep(65)
 
     # Step 2 — Human rewrite (max tokens)
     print("Step 2: Human rewrite as Mallikarjun R...")
