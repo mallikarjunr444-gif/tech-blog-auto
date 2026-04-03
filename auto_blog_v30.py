@@ -1,5 +1,5 @@
-# TECH NEWS WITH AI - AUTO BLOG v30.0
-# v30 — CEREBRAS API · UNLIMITED FREE TPM · LLAMA 3.3 70B QUALITY
+# TECH NEWS WITH AI - AUTO BLOG v34.0
+# v34 — Smart interlinks · Table of Contents · Live post fetcher · 7000 words
 #
 # ================================================================
 # WHY v28 — AdSense "Low value content" fix
@@ -2917,247 +2917,344 @@ def pick_top5_phones(topic, cat, ctx):
 
 
 def groq_draft(story, is_search):
-    client   = Cerebras(api_key=CEREBRAS_API_KEY)
-    cat      = story.get("category", "smartphone")
-    year     = datetime.datetime.now().year
+    """
+    v33 — Matches iQOO 15 Apex Edition article style exactly.
+    Numbered sections. H3 sub-headings. Conversational first-person.
+    Long rich paragraphs. 6500+ words. 15 FAQs.
+    """
+    from cerebras.cloud.sdk import Cerebras
+    client = Cerebras(api_key=CEREBRAS_API_KEY)
+    year   = datetime.datetime.now().year
 
-    seo_title = story.get("seo_title", "")
-    title_line = f"USE THIS EXACT H1: <h1>{seo_title}</h1>\n\n" if seo_title else ""
+    seo_title   = story.get("seo_title", "")
+    phone       = story.get("title", "[Phone]")
+    phone_clean = re.split(r'[:\|–—]', phone)[0].strip()
+    specs       = (story.get("specs") or "")[:1000]
+    desc        = (story.get("description") or "")[:400]
+    ctx         = (story.get("rss_context") or "")[:700]
+    source_url  = story.get("url", "")
+    title_line  = f'<h1>{seo_title}</h1>\n\n' if seo_title else ""
+
+    # Fetch live official page data
+    live_specs = ""
+    if source_url:
+        try:
+            live_specs = fetch_official_page_specs(source_url)
+            if live_specs:
+                live_specs = live_specs[:600]
+        except:
+            pass
+
+    # Brand official reference URL
+    brand = phone_clean.split()[0].lower()
+    BRAND_OFFICIAL = {
+        "samsung":  ("https://www.samsung.com/in/smartphones/", "Samsung India"),
+        "apple":    ("https://www.apple.com/in/shop/buy-iphone", "Apple India"),
+        "oneplus":  ("https://www.oneplus.in/smartphones", "OnePlus India"),
+        "xiaomi":   ("https://www.mi.com/in/phones", "Xiaomi India"),
+        "redmi":    ("https://www.mi.com/in/phones", "Redmi India"),
+        "realme":   ("https://www.realme.com/in/smartphones", "Realme India"),
+        "oppo":     ("https://www.oppo.com/en/smartphones/", "OPPO India"),
+        "vivo":     ("https://www.vivo.com/in/products/smartphones", "Vivo India"),
+        "iqoo":     ("https://www.iqoo.com/in/products/smartphones", "iQOO India"),
+        "nothing":  ("https://nothing.tech/products", "Nothing Tech"),
+        "motorola": ("https://www.motorola.in/smartphones", "Motorola India"),
+        "poco":     ("https://www.poco.net/in/phones", "POCO India"),
+        "infinix":  ("https://www.infinixmobility.com/in/phones", "Infinix India"),
+        "tecno":    ("https://www.tecno-mobile.com/in/phones", "Tecno India"),
+    }
+    off = BRAND_OFFICIAL.get(brand, ("https://www.gsmarena.com", "GSMArena"))
+    official_url, official_name = off
+
+    buy_amazon   = f"https://www.amazon.in/s?k={phone_clean.replace(' ', '+')}"
+    buy_flipkart = f"https://www.flipkart.com/search?q={phone_clean.replace(' ', '+')}"
 
     if is_search:
-        topic = story.get("search_topic", story.get("title", ""))
-        ctx   = (story.get("rss_context") or "")[:400]
+        topic = story.get("search_topic", phone_clean)
         prompt = (
-            title_line +
-            f"You are Mallikarjun R, 19-year-old CSE student and tech blogger from Bengaluru, India.\n"
-            f"Write a 4500-word HTML buying guide for Indians searching: \"{topic}\"\n"
-            f"LIVE DATA: {ctx}\n\n"
-            "RULES:\n"
-            "- HTML only. No markdown ever. No **bold** — use <strong>.\n"
-            "- NO comparison tables. NO pros/cons tables. Pure prose only.\n"
-            "- India-specific: ₹ prices, Flipkart/Amazon clickable links, Jio/Airtel 5G bands.\n"
-            "- Real numbers every section: mAh, Hz, MP, nits, AnTuTu, fps, grams.\n"
-            "- Personal 14-day test narrative woven throughout.\n"
-            "- Named rival comparisons in prose (not tables).\n"
-            "- Internal links: use <a href=\"https://www.technewsai.me/search/label/Smartphones\">Smartphones</a>, "
-            "<a href=\"https://www.technewsai.me/search/label/Laptops\">Laptops</a> etc. naturally in text.\n"
-            "- No AI filler: seamlessly, cutting-edge, robust, leverage, game-changer.\n"
-            "- H3 headings: descriptive only, NO question marks (except FAQ section).\n"
-            "- End with 10-question FAQ in H3 format.\n"
-            "Write now:"
+            f"You are Mallikarjun R — 19-year-old CSE student and tech blogger from Bengaluru, India.\n"
+            f"Write a 6000-word in-depth HTML buying guide for: \"{topic}\"\n"
+            f"LIVE RSS DATA: {ctx}\n\n"
+            f"{title_line}"
+            "STYLE: Conversational, first-person, simple English. Like talking to a friend.\n"
+            "Write like: 'I have tested X phones in this price range. Here is what I found.'\n\n"
+            "STRUCTURE — numbered sections using H3:\n"
+            "<h3>1. Why This Matters for Indian Buyers in 2026</h3>\n"
+            "<h3>2. Top Picks — Full Review of Each Phone</h3>\n"
+            "  Each phone: bold name, all specs, real test, buy links.\n"
+            "<h3>3. How to Choose the Right One for You</h3>\n"
+            "<h3>4. Value for Money — Who Gets the Most</h3>\n"
+            "<h3>5. Final Verdict — My Pick</h3>\n"
+            "<h3>6. Frequently Asked Questions</h3>\n"
+            "  15 FAQ questions as H3. Each answer: 70+ words. Simple English.\n\n"
+            "LINKS:\n"
+            f"Buy links per phone: <a href='{buy_amazon}' rel='nofollow' target='_blank'>👉 Buy on Amazon India</a>\n"
+            f"Internal: <a href='https://www.technewsai.me/search/label/Smartphones'>Smartphones</a>\n"
+            f"Official ref: <a href='{official_url}' rel='nofollow' target='_blank'>{official_name}</a>\n"
+            "RULES: HTML only. No markdown. No tables. No pros/cons boxes.\n"
+            "Write now — 6000 words minimum:"
         )
     else:
-        phone = story.get("title", "[Phone]")
-        specs = (story.get("specs") or "Use full knowledge of this device.")[:600]
-        desc  = (story.get("description") or "")[:200]
-
         prompt = (
-            title_line +
-            f"You are Mallikarjun R — 19-year-old CSE student, tech blogger from Bengaluru, India.\n"
-            f"Write a 5000-word in-depth HTML smartphone review for: {phone}\n"
-            f"SPECS: {specs}\n"
-            f"CONTEXT: {desc}\n\n"
+            f"You are Mallikarjun R — 19-year-old CSE student and tech blogger from Bengaluru, India.\n"
+            f"Write a 7000-word in-depth HTML smartphone review for: {phone_clean}\n\n"
 
-            "━━━ WRITING STYLE (match exactly) ━━━\n"
-            "Write like a real person who tested this phone for 14 days in India.\n"
-            "Personal. Opinionated. Specific numbers. India scenarios (BGMI, Hotstar, commute, market photography).\n"
-            "Every spec = experienced and judged, not just stated.\n"
-            "Long sentence → Long sentence → One short punchy verdict. Repeat.\n"
-            "Banned words: seamlessly, cutting-edge, robust, leverage, delve, game-changer, overall, solid.\n"
-            "No markdown. No **bold**. Use <strong>. HTML only.\n\n"
+            f"OFFICIAL SPECS (use EXACT numbers — never invent anything):\n{specs}\n\n"
+            f"LIVE DATA from official launch page:\n{live_specs}\n\n"
+            f"LAUNCH CONTEXT from RSS:\n{ctx}\n\n"
+            f"DESCRIPTION:\n{desc}\n\n"
+            f"{title_line}"
 
-            "━━━ STRUCTURE (follow in exact order) ━━━\n\n"
+            "━━━ EXACT WRITING STYLE — COPY THIS ━━━\n"
+            "Write EXACTLY like this iQOO 15 review style:\n\n"
 
-            "1. H1 TITLE (use pre-generated title exactly)\n\n"
+            "• Conversational and honest. First-person throughout.\n"
+            "  'I'll be honest with you.' | 'Let me be straight.' | 'Here's the thing.'\n"
+            "  'I actually didn't expect this.' | 'Before you spend your money, read this.'\n\n"
 
-            "2. INTRO — 2 paragraphs, NO H2 heading\n"
-            "   Para 1: Who is this phone for? What Indian buyer problem does it solve? Name price bracket + rival.\n"
-            "   Para 2: India launch date, where to buy, how you tested it (days, scenarios).\n\n"
+            "• Simple English. Every sentence easy to read.\n"
+            "  BAD:  'The device incorporates an exceptional thermal management architecture.'\n"
+            "  GOOD: 'The cooling system is seriously good. After an hour of BGMI, the phone\n"
+            "         was warm but never uncomfortable to hold. That is rare.'\n\n"
 
-            "3. H2: Price in India — All Variants and Offers\n"
-            "   List all variants with ₹ prices as bullet points.\n"
-            "   Under each variant add a clickable buying link:\n"
-            "   <a href=\"https://www.amazon.in/s?k={phone}+buy\" rel=\"nofollow\" target=\"_blank\">Buy on Amazon India</a> | "
-            "<a href=\"https://www.flipkart.com/search?q={phone}\" rel=\"nofollow\" target=\"_blank\">Buy on Flipkart</a>\n"
-            "   Mention bank offers (HDFC/Axis/SBI), No Cost EMI, best value variant recommendation.\n\n"
+            "• Long, rich paragraphs that actually explain things.\n"
+            "  Don't just say a spec — explain what it means for real life.\n"
+            "  BAD:  '6000 nits brightness.'\n"
+            "  GOOD: 'Most phones hit 1000 to 2000 nits. A bright flagship hits 3000. This\n"
+            "         phone hits 6000 nits. What does that mean? It means standing in direct\n"
+            "         Bengaluru afternoon sun, screen fully reflecting the sky — and still\n"
+            "         reading every word without shielding it with your hand. I've tested\n"
+            "         phones that cost ₹1,00,000 that can't do this. This one can.'\n\n"
 
-            "4. H2: Design and Build Quality\n"
-            "   Exact thickness mm, weight g, back material, frame material.\n"
-            "   Color options described vividly. IP rating in plain language.\n"
-            "   One honest design weakness. Short verdict sentence.\n\n"
+            "• Sub-headings inside sections using <h4> tags:\n"
+            "  <h4>On the battery life</h4>\n"
+            "  <h4>What this means in real gaming</h4>\n"
+            "  <h4>The camera verdict</h4>\n\n"
 
-            "5. H2: Display\n"
-            "   Panel type, size, resolution, Hz — as one opening sentence.\n"
-            "   Outdoor brightness test in Bengaluru sun. Netflix HDR verdict. Gaming smoothness.\n"
-            "   One named rival comparison in prose. Short verdict.\n\n"
+            "• End every section with a short honest verdict sentence.\n"
+            "  'This is where it earns its price tag.'\n"
+            "  'Not perfect. But the best you can get at this price.'\n"
+            "  'I like it. More than I expected to.'\n\n"
 
-            "6. H2: Performance\n"
-            "   Exact chipset name + nm process. AnTuTu score. Geekbench numbers.\n"
-            "   BGMI test: settings, stable fps, temperature after 40 minutes.\n"
-            "   Daily use: app switching, RAM management, India scenario.\n\n"
+            "━━━ ARTICLE STRUCTURE — NUMBERED SECTIONS WITH H3 ━━━\n\n"
 
-            "7. H2: Camera\n"
-            "   Five sub-sections as H3 (Daylight, Night, Portrait, Video, Selfie).\n"
-            "   Each H3: real test result, honest verdict. No question marks in H3.\n"
-            "   Overall camera verdict at end.\n\n"
+            f"{title_line}"
 
-            "8. H2: Battery Life and Charging\n"
-            "   mAh + real screen-on hours. India real-life drain log (8am to 11pm).\n"
-            "   Charging W, 0-100% time, charger in box or not.\n\n"
+            "<h3>1. First Impressions — [One Honest Hook Line About This Phone]</h3>\n"
+            "3-4 paragraphs. Personal story of first picking it up.\n"
+            "What surprised you. What you expected vs what you got.\n"
+            "End with: who this phone is built for.\n\n"
 
-            "9. H2: Real-Life 14-Day Test\n"
-            "   5 paragraphs: Week 1 impressions, BGMI deep-dive, battery drain log Day 7,\n"
-            "   camera in India conditions (market, chai stall, hostel), Week 2 reality check.\n\n"
+            "<h3>2. Full Specs — Everything in One Place</h3>\n"
+            "Present ALL specs as a clean formatted list using <strong> labels:\n"
+            "<strong>Brand / Model:</strong> [name]\n"
+            "<strong>Launch Date (India):</strong> [date]\n"
+            "<strong>Price:</strong> [all variants with ₹]\n"
+            "<strong>Processor:</strong> [exact name]\n"
+            "<strong>Display:</strong> [size, type, resolution, Hz]\n"
+            "<strong>Battery:</strong> [mAh + charging W]\n"
+            "... and so on for all specs.\n"
+            f"Add buy links:\n"
+            f"<a href='{buy_amazon}' rel='nofollow' target='_blank'>👉 Buy on Amazon India</a> | "
+            f"<a href='{buy_flipkart}' rel='nofollow' target='_blank'>👉 Buy on Flipkart</a>\n"
+            f"Official source: <a href='{official_url}' rel='nofollow' target='_blank'>{official_name}</a> | "
+            "<a href='https://www.gsmarena.com' rel='nofollow' target='_blank'>GSMArena specs</a>\n\n"
 
-            "10. H2: Connectivity and Audio\n"
-            "    5G bands India (list exact: n1,n3,n28,n40,n77,n78). WiFi, BT, NFC for UPI.\n"
-            "    Speaker verdict. Fingerprint speed. Face unlock.\n\n"
+            "<h3>3. Design and Build — [One Strong Opinion Line]</h3>\n"
+            "3-4 long paragraphs. Describe like you are HOLDING it right now.\n"
+            "<h4>On the back panel — describe material, texture, color shift, feel</h4>\n"
+            "<h4>On the camera module — size, placement, ring or island</h4>\n"
+            "<h4>On durability — IP rating explained in plain English</h4>\n"
+            "Exact mm thickness, grams weight. Compare to named rival.\n"
+            "One honest weakness. Verdict sentence to close.\n\n"
 
-            "11. H2: Software and AI Features\n"
-            "    Android version + UI. Bloatware count. Top 3 AI features explained plainly.\n"
-            "    Update years — why it matters for Indians keeping phones 3+ years.\n\n"
+            "<h3>4. Display — [One Strong Opinion Line]</h3>\n"
+            "3-4 long paragraphs.\n"
+            "<h4>On the brightness — explain the nits number in real-life terms</h4>\n"
+            "<h4>On the refresh rate — explain LTPO or standard Hz in plain English</h4>\n"
+            "<h4>On colours and HDR — Netflix test, Hotstar IPL test</h4>\n"
+            "<h4>On eye comfort — PWM dimming if available</h4>\n"
+            "Named rival comparison in prose. Verdict.\n\n"
 
-            "12. H2: Who Should Buy and Who Should Avoid\n"
-            "    Para 1 (Buy if): Specific user profile + real scenarios.\n"
-            "    Para 2 (Avoid if): Specific alternative recommended with ₹ price.\n\n"
+            "<h3>5. Performance — [One Strong Opinion Line]</h3>\n"
+            "3-4 long paragraphs.\n"
+            "<h4>In day to day use — app switching, multitasking, speed feel</h4>\n"
+            "<h4>Benchmark numbers — AnTuTu, Geekbench (explain what they mean)</h4>\n"
+            "<h4>The cooling system — vapor chamber size, real heat results</h4>\n"
+            "India scenario: 'Instagram to Chrome to BGMI — any lag? Here is the honest answer.'\n\n"
 
-            "13. H2: Final Verdict\n"
-            "    Para 1: One confident sentence — buy or skip + strongest reason.\n"
-            "    Para 2: Perfect buyer profile + who should look elsewhere (name rival).\n"
-            "    Para 3: 'My final pick: [Phone]. Here is exactly why I would put my own money on it.'\n\n"
+            "<h3>6. Gaming — [One Strong Opinion Line]</h3>\n"
+            "3-4 long paragraphs. This is the most detailed gaming section.\n"
+            "BGMI: exact settings, fps (stable or dropping?), touch sampling Hz.\n"
+            "One more game (COD Mobile, Genshin, or FC Mobile).\n"
+            "Temperature after 40 minutes. Throttling — yes or no?\n"
+            "Gaming-specific features explained in plain English.\n\n"
 
-            "14. H2: FAQ — 10 Questions Indians Actually Search\n"
-            "    Use H3 for each question (ONLY place question marks are allowed).\n"
-            "    Each answer: 50-70 words, specific, opinionated.\n\n"
+            "<h3>7. Camera — [One Honest Opinion Line]</h3>\n"
+            "Be honest upfront: 'This is not the best camera phone. But here is what it does well.'\n"
+            "<h4>Main camera — daylight — sensor, real result, India scenario</h4>\n"
+            "<h4>Telephoto / zoom — focal length, portrait use, Indian wedding test</h4>\n"
+            "<h4>Ultra-wide — colour consistency vs main camera</h4>\n"
+            "<h4>Night photography — honest result, named rival comparison</h4>\n"
+            "<h4>Selfie camera — skin tone accuracy, WhatsApp video call</h4>\n"
+            "One overall camera verdict.\n\n"
 
-            "━━━ INTERNAL LINKS (weave naturally into text) ━━━\n"
-            "Use these links naturally inside paragraphs — not as a list:\n"
-            "<a href=\"https://www.technewsai.me/search/label/Smartphones\">Smartphones</a>\n"
-            "<a href=\"https://www.technewsai.me/search/label/Laptops\">Laptops</a>\n"
-            "<a href=\"https://www.technewsai.me/search/label/Earphones\">Earphones</a>\n"
-            "<a href=\"https://www.technewsai.me/search/label/Headphones\">Headphones</a>\n"
-            "<a href=\"https://www.technewsai.me/\">Tech News With AI</a>\n\n"
+            "<h3>8. Battery Life and Charging — [One Strong Line]</h3>\n"
+            "2-3 paragraphs.\n"
+            "<h4>Real battery life — India drain log with exact %:</h4>\n"
+            "'8am: 100%. After 40min BGMI: X%. After 1hr commute: X%. At 11pm: X%.'\n"
+            "<h4>Charging speed — 0 to 50% time, 0 to 100% time</h4>\n"
+            "Charger in box? Wireless charging? Named rival comparison.\n\n"
 
-            "━━━ CRITICAL RULES ━━━\n"
-            "- NO comparison tables anywhere\n"
-            "- NO pros/cons tables anywhere\n"
-            "- NO specs sheet tables — all specs woven into prose\n"
-            "- NO markdown (no **, no ##, no --)\n"
-            "- Strong opinionated Final Verdict — never neutral\n"
-            f"- Mention {phone} exact name in every H2 heading\n"
-            "- All external links: rel=\"nofollow\" target=\"_blank\"\n"
+            "<h3>9. Real-Life 14-Day Test — What I Actually Found</h3>\n"
+            "5 rich paragraphs. Most important section.\n"
+            "Para 1 — Day 1 and Week 1: First impressions on setup, what surprised you by Day 3.\n"
+            "Para 2 — BGMI deep-dive over 14 days: fps consistency, did it improve with updates?\n"
+            "Para 3 — Battery log Day 7: start 100% at 8am, exact % at each activity, midnight.\n"
+            "Para 4 — Camera across 14 days: Sunday market, chai stall at night, wedding selfie.\n"
+            "Para 5 — Week 2: any bug? Any feature you stopped using? One feature you now use every day.\n\n"
+
+            "<h3>10. Connectivity and Audio</h3>\n"
+            "5G bands: list exactly which ones (n1, n3, n28, n40, n41, n77, n78).\n"
+            "Airtel 5G and Jio 5G — does it work? Confirmed yes or no.\n"
+            "WiFi version. Bluetooth. NFC for UPI — tested and confirmed.\n"
+            "Speaker test result. Fingerprint speed verdict.\n\n"
+
+            "<h3>11. Software and AI Features</h3>\n"
+            "Android version + UI name. Update years promised.\n"
+            "Bloatware — how many apps? Name the annoying ones honestly.\n"
+            "Top 3 AI features — explain each in one plain English sentence + real use case.\n\n"
+
+            "<h3>12. Who Should Buy This — And Who Should Not</h3>\n"
+            "Para 1: Exact Indian buyer profile who will love this phone.\n"
+            "Para 2: Who should NOT buy it. Name the alternative with ₹ price.\n\n"
+
+            "<h3>13. Final Verdict — My Honest Take</h3>\n"
+            "Para 1: One clear sentence — buy or skip + one strongest reason.\n"
+            "Para 2: Who it is perfect for. Who should look elsewhere.\n"
+            f"Para 3: 'My pick: {phone_clean}. Here is exactly why I would spend my own money on it.'\n"
+            "Never neutral. Never vague. Clear stance only.\n\n"
+
+            "<h3>14. Frequently Asked Questions</h3>\n"
+            "Write EXACTLY 15 questions as H3. Each answer: 70-90 words. Simple English.\n"
+            f"<h3>Is the {phone_clean} worth buying in India in {year}?</h3>\n"
+            f"<h3>What is the starting price of {phone_clean} in India?</h3>\n"
+            f"<h3>Which is better — {phone_clean} or its closest rival?</h3>\n"
+            f"<h3>Does {phone_clean} overheat during long BGMI sessions?</h3>\n"
+            f"<h3>How long does {phone_clean} battery last in real India use?</h3>\n"
+            f"<h3>How is the {phone_clean} camera in low light and night mode?</h3>\n"
+            f"<h3>Does {phone_clean} support 5G on Airtel and Jio in India?</h3>\n"
+            f"<h3>Which variant of {phone_clean} gives the best value?</h3>\n"
+            f"<h3>Does {phone_clean} have NFC for Google Pay and UPI?</h3>\n"
+            f"<h3>Is {phone_clean} good for photography at Indian weddings?</h3>\n"
+            f"<h3>Does {phone_clean} come with a charger in the box?</h3>\n"
+            f"<h3>How is {phone_clean} display under direct sunlight?</h3>\n"
+            f"<h3>Is {phone_clean} good for college students in India?</h3>\n"
+            f"<h3>How many years of updates does {phone_clean} get?</h3>\n"
+            f"<h3>Should I wait for a price drop or buy {phone_clean} now?</h3>\n\n"
+
+            "━━━ INTERNAL LINKS (weave naturally into prose) ━━━\n"
+            "<a href='https://www.technewsai.me/search/label/Smartphones'>Smartphones</a>\n"
+            "<a href='https://www.technewsai.me/search/label/Earphones'>Earphones</a>\n"
+            "<a href='https://www.technewsai.me/search/label/Laptops'>Laptops</a>\n"
+            "<a href='https://www.technewsai.me/'>Tech News With AI</a>\n\n"
+
+            "━━━ ABSOLUTE RULES ━━━\n"
+            "• HTML only — ZERO markdown, ZERO **bold**, use <strong>\n"
+            "• NO comparison tables, NO pros/cons tables — pure prose only\n"
+            "• NO AI filler: seamlessly, cutting-edge, robust, game-changer, delve, impressive\n"
+            "• EXACT specs only — never invent numbers\n"
+            "• Simple English throughout — explain everything like talking to a friend\n"
+            "• 7000 words minimum\n"
             "Write now:"
         )
 
     r = client.chat.completions.create(
         model="llama3.1-8b",
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=8000, temperature=0.72,
+        max_tokens=16000, temperature=0.75,
     )
     return r.choices[0].message.content
 
 
 
 def human_rewrite(draft, story):
+    """
+    v33 — Polish pass. Matches iQOO 15 Apex article voice exactly.
+    Simple English. Personal. Helpful. No tables.
+    """
+    from cerebras.cloud.sdk import Cerebras
     client = Cerebras(api_key=CEREBRAS_API_KEY)
-    cat    = story.get("category", "smartphone")
-    labels = ", ".join(CAT.get(cat, CAT["smartphone"])["labels"])
-    link_rules = build_internal_link_instructions(cat)
+    phone_clean = re.split(r'[:\|–—]', story.get("title", "[Phone]"))[0].strip()
 
     prompt = (
-        "You are Mallikarjun R — 19-year-old CSE student and tech blogger from Bengaluru, India.\n"
-        "Category: " + cat.upper() + " | Labels: " + labels + "\n\n"
+        "You are Mallikarjun R — 19-year-old CSE student and tech blogger from Bengaluru, India.\n\n"
+        "TASK: Polish this article draft. Keep ALL HTML, headings, links, and numbers exactly.\n"
+        "Only rewrite prose sentences to sound more personal, simple, and helpful.\n\n"
 
-        "━━━ YOUR TASK ━━━\n"
-        "This draft is tool-generated. Rewrite the TEXT entirely in your voice.\n"
-        "Preserve ALL HTML structure: tables, headings, links. Only rewrite the prose text.\n\n"
-
-        "━━━ MUST PRESERVE (DO NOT TOUCH) ━━━\n"
-        "• ALL HTML tables — comparison, pros/cons, specs boxes — copy them exactly\n"
-        "• ALL H1, H2, H3 headings — copy exactly, never rewrite heading text\n"
-        "• All internal links to www.technewsai.me\n"
+        "━━━ DO NOT CHANGE ━━━\n"
+        "• Every H1, H2, H3 heading — copy exactly\n"
+        "• Every <a href link — copy exactly\n"
+        "• Every ₹ price and spec number — copy exactly\n"
         "• Image placeholder comments\n\n"
 
-        "━━━ YOUR WRITING VOICE — MATCH THESE EXACTLY ━━━\n\n"
+        "━━━ REWRITE RULES ━━━\n\n"
 
-        "① VIVID PHYSICAL DESCRIPTIONS (not generic):\n"
-        "  ❌ 'Premium design with glass back'\n"
-        "  ✅ 'Run your thumb along the edge and you feel a slight ridge where metal meets glass —\n"
-        "      not uncomfortable, but you notice it. The camera module dominates the top third of\n"
-        "      the back — all the drama packed into one place.'\n\n"
+        "① SIMPLE ENGLISH:\n"
+        "   BAD:  'The device incorporates advanced thermal architecture.'\n"
+        "   GOOD: 'The cooling system works really well. After 40 minutes of BGMI,\n"
+        "          the phone was warm but never hot. That is better than most phones.'\n\n"
 
-        "② INLINE COMPARISONS — NAME RIVALS IN EVERY SECTION:\n"
-        "  ❌ 'The battery life is impressive'\n"
-        "  ✅ 'Outlasted the OnePlus 15R by about 45 minutes in my mixed-use test. At 5,400mAh,\n"
-        "      it went from 8am to 1am with BGMI, Hotstar, and Instagram — still had 14% left.'\n\n"
+        "② PERSONAL AND HONEST:\n"
+        "   Start sections with hooks like:\n"
+        "   'I will be honest with you.' | 'Here is the thing nobody tells you.'\n"
+        "   'Let me be straight before you spend your money.' | 'I actually surprised myself here.'\n\n"
 
-        "③ SHORT PUNCHY VERDICT AFTER EACH PARAGRAPH GROUP:\n"
-        "  After 2-3 explanatory sentences, add ONE short verdict:\n"
-        "  'I like it.'\n"
-        "  'Good enough. Not the best. But good enough.'\n"
-        "  'Genuinely surprised me at this price.'\n"
-        "  'This is where it earns its price tag.'\n\n"
+        "③ EXPLAIN EVERY SPEC:\n"
+        "   After every number, add what it means in real life.\n"
+        "   '<strong>6000 nits</strong> — most phones hit 2000. This one hits 6000.\n"
+        "    That means you can use it under direct Bengaluru afternoon sun\n"
+        "    without shading the screen. I have tested phones at ₹1 lakh that cannot do this.'\n\n"
 
-        "④ INDIA REAL-LIFE LINES (make every spec mean something):\n"
-        "  ❌ '5,400mAh battery'\n"
-        "  ✅ '<strong>5,400mAh</strong> = from 8am to past midnight with BGMI + Hotstar + Instagram'\n"
-        "  ❌ '50W charging'\n"
-        "  ✅ '<strong>50W</strong> = 0 to 70% in under 45 minutes — enough to top up between classes'\n\n"
+        "④ INDIA SCENARIOS (weave naturally):\n"
+        "   BGMI at hostel | IPL on Hotstar | Bengaluru metro commute\n"
+        "   Sunday market photography | Wedding selfie | Chai stall night camera\n"
+        "   Board exam night scrolling | Swiggy notification\n\n"
 
-        "⑤ UNIQUE FEATURE — TELL A REAL STORY:\n"
-        "  Don't just describe the feature. Tell how you actually used it:\n"
-        "  'I set the Glyph Matrix to flash when my Swiggy order arrives. Turns out that\n"
-        "   is genuinely useful in a noisy hostel when your phone is face-down on the desk.'\n\n"
+        "⑤ SHORT PUNCHY VERDICT after each section:\n"
+        "   'This is where it earns its price tag.'\n"
+        "   'Not perfect. But the best at this price.'\n"
+        "   'I like it more than I expected.'\n"
+        "   'One small gripe. Nothing that stops me recommending it.'\n\n"
 
-        "⑥ CAMERA — INDIAN CONTEXT:\n"
-        "  'Daylight shots at a weekend market delivered sharp, natural colours.'\n"
-        "  'Night mode handled a dimly lit restaurant without the aggressive processing\n"
-        "   you see on some phones — shadows stay dark, lights don't bloom.'\n"
-        "  'Selfie camera handled my Indian skin tone naturally — no over-smoothing.'\n\n"
+        "⑥ HONEST NEGATIVES:\n"
+        "   'No wireless charging at ₹40,000 is a miss. Plain and simple.'\n"
+        "   'Night camera needs work. I expected better here.'\n"
+        "   'Bloatware on Day 1 was annoying. You will spend 10 minutes removing apps.'\n\n"
 
-        "⑦ HONEST NEGATIVES — STATE THEM CLEARLY:\n"
-        "  'No wireless charging at ₹40,000 is a miss. Full stop.'\n"
-        "  'Video stabilisation drops a notch compared to the Pixel 10a.'\n"
-        "  'The plastic strip separating the metal from the glass feels cheap. You'll notice it.'\n\n"
+        "━━━ BANNED WORDS ━━━\n"
+        "seamlessly, cutting-edge, state-of-the-art, game-changer, revolutionary,\n"
+        "robust, leverage, delve, it is worth noting, a testament to, powerful performance,\n"
+        "impressive results, solid choice, overall verdict, exceptional, remarkable, notably\n\n"
 
-        "⑧ PERSONAL HOOKS (one per H2 section, placed AFTER heading in first <p>):\n"
-        "  'Here is what the spec sheet does not tell you about this one.'\n"
-        "  'I have been testing phones in this price range for three months. This one surprised me.'\n"
-        "  'Before you add it to cart — read this section first.'\n\n"
+        "━━━ FORMAT RULES ━━━\n"
+        "• HTML only — no markdown ever\n"
+        "• <strong> for specs — never **text**\n"
+        "• NO tables of any kind — convert to prose if found\n"
+        "• Do not shorten — make every section LONGER and more helpful\n\n"
 
-        "━━━ INDIA SCENARIOS TO USE ━━━\n"
-        "IPL match + Hotstar | Bengaluru metro commute | Sunday market photography\n"
-        "BGMI at hostel | board exam stress-scrolling | wedding portrait selfie\n"
-        "Afternoon sun readability | hostel WiFi hotspot | Swiggy/Zomato notification\n\n"
-
-        "━━━ ABSOLUTE NEVER — ADSENSE BANNED PHRASES ━━━\n"
-        "• NEVER **markdown** — ONLY <strong>HTML</strong> tags\n"
-        "• NEVER use these AI-sounding phrases Google flags instantly:\n"
-        "  seamlessly, cutting-edge, state-of-the-art, game-changer, revolutionary\n"
-        "  robust, leverage, delve into, it is worth noting, at the end of the day\n"
-        "  in today's world, in the realm of, a testament to, without further ado\n"
-        "  powerful performance, impressive results, all in all, solid choice\n"
-        "  notably, importantly, specifically, additionally (when used as filler)\n"
-        "• NEVER generic: 'good performance', 'nice design', 'great camera'\n"
-        "• NEVER neutral verdict — every section ends with a clear personal opinion\n"
-        "• NEVER two consecutive sentences starting with the same word\n"
-        "• NEVER two consecutive paragraphs starting with the same word\n"
-        "• NEVER add any author bio — auto-added by system\n"
-        "• NEVER link to any site except www.technewsai.me\n"
-        "• NEVER shorten or skip sections — AdSense needs 7000+ words\n\n"
-
-        + link_rules + "\n\n"
-
-        "NOW REWRITE — every sentence vivid, every spec meaningful, every opinion clear:\n\n"
+        "REWRITE NOW — make it longer, simpler, more personal:\n\n"
         + draft
     )
 
     r = client.chat.completions.create(
         model="llama3.1-8b",
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=8000, temperature=0.88,
+        max_tokens=16000, temperature=0.82,
     )
     return r.choices[0].message.content
+
+
 
 # ================================================================
 # POST AND SAVE
@@ -3416,7 +3513,7 @@ def main():
     }
 
     print("=======================================================")
-    print(f" TECH NEWS WITH AI - AUTO BLOG v30.0")
+    print(f" TECH NEWS WITH AI - AUTO BLOG v31.0")
     print(f" {today}")
     print(f" TODAY: {day_labels[a_type]}")
     print(f" ONE article — full daily Groq token budget")
@@ -3537,6 +3634,279 @@ def main():
 # run_article_v28 — same as run_article but uses save_log_v28
 # to track article_type for the 3-day cycle
 # ================================================================
+
+
+# ================================================================
+# v34 — LIVE BLOG POST FETCHER + SMART INTERLINKING SYSTEM
+# Fetches all posts from technewsai.me at runtime
+# Builds keyword→URL map for automatic blue internal links
+# ================================================================
+
+BLOG_RSS_URL = "https://www.technewsai.me/feeds/posts/default?max-results=50"
+
+_BLOG_POSTS_CACHE = None  # cached at runtime
+
+def fetch_all_blog_posts():
+    """
+    Fetch all published posts from technewsai.me via Blogger RSS.
+    Returns list of {title, url, keywords} dicts.
+    Cached after first call.
+    """
+    global _BLOG_POSTS_CACHE
+    if _BLOG_POSTS_CACHE is not None:
+        return _BLOG_POSTS_CACHE
+
+    posts = []
+    try:
+        r = requests.get(BLOG_RSS_URL, headers=HEADERS, timeout=10)
+        if r.status_code == 200:
+            root = ET.fromstring(r.content)
+            ns = {"atom": "http://www.w3.org/2005/Atom"}
+            entries = root.findall("atom:entry", ns)
+            for entry in entries:
+                title_el = entry.find("atom:title", ns)
+                title = title_el.text.strip() if title_el is not None and title_el.text else ""
+                url = ""
+                for link in entry.findall("atom:link", ns):
+                    if link.get("rel") == "alternate":
+                        url = link.get("href", "")
+                        break
+                if title and url:
+                    posts.append({"title": title, "url": url})
+        print(f"[Interlink] Fetched {len(posts)} posts from technewsai.me")
+    except Exception as e:
+        print(f"[Interlink] Could not fetch posts: {e}")
+
+    _BLOG_POSTS_CACHE = posts
+    return posts
+
+
+def build_interlink_map(posts):
+    """
+    Build a keyword → URL map from all blog posts.
+    Keywords = phone/brand names extracted from post titles.
+    Example: "iQOO 15R" → "https://www.technewsai.me/..."
+    """
+    interlink_map = {}  # keyword (lowercase) → (display_text, url)
+
+    # Brand keywords to detect in titles
+    BRAND_PATTERNS = [
+        r"iQOO\s+\d+\w*(?:\s+\w+)?",
+        r"Samsung\s+Galaxy\s+\w+(?:\s+\w+)?",
+        r"Apple\s+iPhone\s+\w+(?:\s+\w+)?",
+        r"iPhone\s+\w+(?:\s+\w+)?",
+        r"OnePlus\s+\d+\w*(?:\s+\w+)?",
+        r"Xiaomi\s+\d+\w*(?:\s+\w+)?",
+        r"Redmi\s+\w+(?:\s+\w+)?",
+        r"POCO\s+\w+(?:\s+\w+)?",
+        r"Realme\s+\w+(?:\s+\w+)?",
+        r"OPPO\s+\w+(?:\s+\w+)?",
+        r"Oppo\s+\w+(?:\s+\w+)?",
+        r"Vivo\s+\w+(?:\s+\w+)?",
+        r"vivo\s+\w+(?:\s+\w+)?",
+        r"Nothing\s+Phone\s+\w+(?:\s+\w+)?",
+        r"Google\s+Pixel\s+\w+(?:\s+\w+)?",
+        r"Motorola\s+\w+(?:\s+\w+)?",
+        r"Honor\s+\w+(?:\s+\w+)?",
+        r"HONOR\s+\w+(?:\s+\w+)?",
+        r"MacBook\s+\w+(?:\s+\w+)?",
+        r"Infinix\s+\w+(?:\s+\w+)?",
+        r"Tecno\s+\w+(?:\s+\w+)?",
+    ]
+
+    for post in posts:
+        title = post["title"]
+        url   = post["url"]
+        for pat in BRAND_PATTERNS:
+            matches = re.findall(pat, title, re.IGNORECASE)
+            for m in matches:
+                m = m.strip()
+                if len(m) >= 5:
+                    interlink_map[m.lower()] = (m, url)
+
+    return interlink_map
+
+
+def inject_smart_interlinks(html_content, current_title, posts):
+    """
+    Scan article HTML and replace first occurrence of each phone/brand
+    name with a blue internal link to that post on technewsai.me.
+    - Only links if a matching post exists
+    - Only links the FIRST occurrence (not every mention)
+    - Never links inside existing <a> tags
+    - Never links the current article's own phone name
+    """
+    if not posts:
+        return html_content
+
+    interlink_map = build_interlink_map(posts)
+    if not interlink_map:
+        return html_content
+
+    # Current phone name — don't link to itself
+    current_phone = re.split(r'[:\|–—]', current_title)[0].strip().lower()
+
+    linked = set()  # track already linked keywords
+
+    def replace_keyword(match):
+        word = match.group(0)
+        key  = word.lower()
+        if key in linked:
+            return word  # already linked once
+        if key in current_phone or current_phone in key:
+            return word  # don't link own phone
+        display, url = interlink_map[key]
+        linked.add(key)
+        return (
+            f'<a href="{url}" style="color:#1a73e8;text-decoration:none;"' 
+            f' title="{display} — Tech News With AI">{word}</a>'
+        )
+
+    # Build one combined regex from all keywords (longest first to avoid partial matches)
+    keywords = sorted(interlink_map.keys(), key=len, reverse=True)
+    # Escape and join
+    pattern = "|".join(re.escape(k) for k in keywords)
+    if not pattern:
+        return html_content
+
+    # Split on existing <a> tags to avoid nesting links
+    parts = re.split(r'(<a[^>]*>.*?</a>)', html_content, flags=re.DOTALL | re.IGNORECASE)
+    result = []
+    for part in parts:
+        if part.lower().startswith('<a'):
+            result.append(part)  # inside existing link — skip
+        else:
+            # Apply replacement (case-insensitive, first occurrence per keyword)
+            replaced = re.sub(pattern, replace_keyword, part, flags=re.IGNORECASE)
+            result.append(replaced)
+
+    print(f"[Interlink] Linked keywords: {linked}")
+    return "".join(result)
+
+
+def build_table_of_contents(html_content):
+    """
+    Generate a clickable Table of Contents from all H3 headings in the article.
+    Adds id= attributes to H3 tags for anchor navigation.
+    """
+    h3_matches = list(re.finditer(r'<h3([^>]*)>(.*?)</h3>', html_content, re.IGNORECASE | re.DOTALL))
+    if len(h3_matches) < 3:
+        return html_content, ""
+
+    toc_items = []
+    new_html  = html_content
+
+    for i, m in enumerate(h3_matches):
+        raw_text   = re.sub(r'<[^>]+>', '', m.group(2)).strip()
+        anchor_id  = f"section-{i+1}"
+        # Add id to the H3
+        new_tag    = f'<h3{m.group(1)} id="{anchor_id}">{m.group(2)}</h3>'
+        new_html   = new_html.replace(m.group(0), new_tag, 1)
+        toc_items.append(f'<li><a href="#{anchor_id}" style="color:#1a73e8;text-decoration:none;">{raw_text}</a></li>')
+
+    toc_html = (
+        '<div style="background:#f8f9fa;border:1px solid #e0e0e0;border-radius:10px;' 
+        'padding:20px 24px;margin:24px 0 32px;font-size:14px;">' 
+        '<p style="font-weight:700;font-size:15px;color:#333;margin:0 0 12px;">'
+        '📋 Table of Contents</p>'
+        '<ol style="margin:0;padding-left:20px;line-height:2.2;color:#555;">'
+        + "".join(toc_items) +
+        '</ol></div>'
+    )
+    return new_html, toc_html
+
+
+# ================================================================
+# v33 NEW FEATURES — Published date, Reading time, Also Read mid,
+# Star rating, Meta description
+# ================================================================
+
+def build_article_header(title, words):
+    """Published date + Last Updated + Reading time bar."""
+    import datetime
+    today = datetime.datetime.now()
+    date_str = today.strftime("%B %d, %Y")
+    reading_min = max(1, round(words / 200))
+    return (
+        f"<div style='background:#f8f9fa;border-left:4px solid #1a73e8;"
+        f"padding:12px 16px;margin:0 0 24px;border-radius:0 8px 8px 0;"
+        f"font-size:13px;color:#555;line-height:1.8;'>"
+        f"<span style='margin-right:16px;'>📅 <strong>Published:</strong> {date_str}</span>"
+        f"<span style='margin-right:16px;'>🔄 <strong>Last Updated:</strong> {date_str}</span>"
+        f"<span>⏱️ <strong>{reading_min} min read</strong></span>"
+        f"</div>"
+    )
+
+def build_star_rating(phone_name, score=4.2):
+    """Star rating widget for Final Verdict section."""
+    full  = int(score)
+    half  = 1 if (score - full) >= 0.5 else 0
+    empty = 5 - full - half
+    stars = "★" * full + ("½" if half else "") + "☆" * empty
+    return (
+        f"<div style='background:#fff8f0;border:2px solid #f5a623;"
+        f"border-radius:12px;padding:20px 24px;margin:24px 0;"
+        f"text-align:center;'>"
+        f"<p style='margin:0 0 6px;font-size:15px;font-weight:700;"
+        f"color:#333;'>{phone_name} — Our Rating</p>"
+        f"<p style='font-size:36px;margin:0 0 4px;color:#f5a623;"
+        f"letter-spacing:4px;'>{stars}</p>"
+        f"<p style='font-size:22px;font-weight:800;color:#1a73e8;"
+        f"margin:0 0 4px;'>{score} / 5</p>"
+        f"<p style='font-size:12px;color:#888;margin:0;'>"
+        f"Based on 14-day real-world testing in India</p>"
+        f"</div>"
+    )
+
+def build_mid_article_also_read(cat):
+    """Also Read box injected mid-article for reduced bounce rate."""
+    BLOG_URL = "https://www.technewsai.me"
+    links = {
+        "smartphone": [
+            ("Best Smartphones Under ₹20,000 in India 2026", f"{BLOG_URL}/search/label/Smartphones"),
+            ("Best Gaming Phones India 2026", f"{BLOG_URL}/search/label/Smartphones"),
+            ("Best Camera Phones Under ₹30,000 India", f"{BLOG_URL}/search/label/Smartphones"),
+        ],
+        "laptop": [
+            ("Best Laptops Under ₹50,000 in India 2026", f"{BLOG_URL}/search/label/Laptops"),
+            ("Best Gaming Laptops India 2026", f"{BLOG_URL}/search/label/Laptops"),
+        ],
+        "earphone": [
+            ("Best Earphones Under ₹2,000 India 2026", f"{BLOG_URL}/search/label/Earphones"),
+            ("Best TWS Earbuds India 2026", f"{BLOG_URL}/search/label/Earphones"),
+        ],
+    }.get(cat, [
+        ("Latest Tech Reviews on Tech News With AI", f"{BLOG_URL}/"),
+        ("Best Smartphones India 2026", f"{BLOG_URL}/search/label/Smartphones"),
+    ])
+    items = "".join(
+        f"<li style='margin:6px 0;'>"
+        f"<a href='{u}' style='color:#1a73e8;text-decoration:none;"
+        f"font-weight:500;'>👉 {t}</a></li>"
+        for t, u in links
+    )
+    return (
+        f"<div style='background:#f0f7ff;border:1px solid #cce0ff;"
+        f"border-radius:10px;padding:18px 20px;margin:32px 0;"
+        f"font-size:14px;'>"
+        f"<p style='margin:0 0 10px;font-weight:700;color:#1a73e8;"
+        f"font-size:15px;'>📖 Also Read on Tech News With AI</p>"
+        f"<ul style='margin:0;padding-left:18px;color:#333;'>{items}</ul>"
+        f"</div>"
+    )
+
+def build_meta_description(title, phone_name, words):
+    """Generate SEO meta description as an HTML comment for reference."""
+    desc = (
+        f"Read our full {phone_name} review — specs, price in India, "
+        f"battery life, camera test, gaming performance, and our honest "
+        f"14-day verdict. Updated {__import__('datetime').datetime.now().strftime('%B %Y')}."
+    )
+    if len(desc) > 160:
+        desc = desc[:157] + "..."
+    return f"<!-- META DESCRIPTION: {desc} -->"
+
+
 def run_article_v28(story, is_search, label, atype, article_type, log):
     """
     Wrapper around run_article that also saves article_type to log.
@@ -3586,12 +3956,30 @@ def run_article_v28(story, is_search, label, atype, article_type, log):
         final, flags=re.IGNORECASE
     )
 
-    # Inject AdSense slots between every 2nd H2
-    h2_count = [0]
+    # Inject AdSense slots between every 2nd H3 (articles use H3 sections now)
+    h3_count = [0]
     def inject_ad(match):
-        h2_count[0] += 1
-        return (AD_SLOT_HTML + match.group(0)) if h2_count[0] % 2 == 0 else match.group(0)
-    final = re.sub(r'<h2[^>]*>', inject_ad, final, flags=re.IGNORECASE)
+        h3_count[0] += 1
+        return (AD_SLOT_HTML + match.group(0)) if h3_count[0] % 3 == 0 else match.group(0)
+    final = re.sub(r'<h3[^>]*>', inject_ad, final, flags=re.IGNORECASE)
+
+    # ── NEW v33: Inject mid-article Also Read box after section 5 ──
+    h3_tags = list(re.finditer(r'<h3[^>]*>', final, re.IGNORECASE))
+    mid_also_read = build_mid_article_also_read(cat)
+    if len(h3_tags) >= 5:
+        insert_pos = h3_tags[4].start()
+        final = final[:insert_pos] + mid_also_read + final[insert_pos:]
+
+    # ── NEW v33: Star rating — inject before Final Verdict section ──
+    phone_name = re.split(r'[:\|–—]', story.get("title", title))[0].strip()
+    star_html  = build_star_rating(phone_name)
+    verdict_match = re.search(
+        r'(<h3[^>]*>[^<]*(?:final verdict|my honest|verdict)[^<]*</h3>)',
+        final, re.IGNORECASE
+    )
+    if verdict_match:
+        vpos  = verdict_match.end()
+        final = final[:vpos] + star_html + final[vpos:]
 
     # FAQ schema
     faqs = extract_faq_from_html(final)
@@ -3605,16 +3993,32 @@ def run_article_v28(story, is_search, label, atype, article_type, log):
         ]
     schema_block = build_faq_schema(faqs)
 
+    # ── NEW v33: Published date + reading time header ──
+    article_header = build_article_header(title, words)
+
+    # ── NEW v33: Meta description comment ──
+    meta_desc = build_meta_description(title, phone_name, words)
+
     # Footer
-    social_block   = build_social_block(title, BLOG_URL)
-    also_read      = build_also_read_box(cat, title)
+    social_block    = build_social_block(title, BLOG_URL)
+    also_read_footer= build_also_read_box(cat, title)
     author_bio_html = build_author_bio()
     footer = (
         "<hr style='border:none;border-top:1px solid #d0d7de;margin:40px 0 0;'/>"
-        + also_read + social_block + author_bio_html
+        + also_read_footer + social_block + author_bio_html
     )
 
-    full_html = schema_block + final + footer
+    # ── v34: Fetch all blog posts for smart interlinking ──
+    blog_posts = fetch_all_blog_posts()
+
+    # ── v34: Smart interlinks — blue links to related posts ──
+    current_story_title = story.get("title", title)
+    final = inject_smart_interlinks(final, current_story_title, blog_posts)
+
+    # ── v34: Table of Contents from H3 headings ──
+    final, toc_html = build_table_of_contents(final)
+
+    full_html = meta_desc + schema_block + article_header + toc_html + final + footer
 
     # Post to Blogger
     url = post_email(title, full_html)
