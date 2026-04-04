@@ -3456,24 +3456,38 @@ def groq_draft(story, is_search):
             "• 8500 words minimum — each section must be 3-5 full paragraphs minimum\n"
             "• Phone name throughout = EXACTLY: " + phone_clean + "\n\n"
 
+            "━━━ ANTI-REPETITION RULE (CRITICAL) ━━━\n"
+            "NEVER use the same sentence structure or ending phrase more than once.\n"
+            "STRICTLY FORBIDDEN to repeat these fillers even once:\n"
+            "  ✗ 'it's a feature that's hard to find in most phones at this price point'\n"
+            "  ✗ 'a treat to the eyes'\n"
+            "  ✗ 'handling demanding tasks/games with ease'\n"
+            "  ✗ 'providing unparalleled processing power'\n"
+            "  ✗ 'this means that the phone can...'\n"
+            "  ✗ any sentence ending with 'at this price point' more than once per H3\n"
+            "Each sentence must be UNIQUE — say something different every time.\n\n"
+
+            "━━━ SUB-LABEL FORMAT (required inside every H3) ━━━\n"
+            "Every H3 section must use this sub-label structure:\n"
+            "<strong>On the [specific aspect] —</strong>\n"
+            "<p>Para 1 (WHO)...</p>\n"
+            "<p>Para 2 (WHAT)...</p>\n"
+            "<p>Para 3 (WHY/HOW in India)...</p>\n\n"
+            "Example for Display section:\n"
+            "<strong>On the brightness number — 6000 nits</strong>\n"
+            "<p>Most flagship owners in India have squinted at their screen in afternoon sun...</p>\n"
+            "<p>Peak brightness of 6000 nits means the panel pushes three times more light than...</p>\n"
+            "<p>I tested this on a 1pm walk outside a Bengaluru office. Not once did I need...</p>\n\n"
+
             "━━━ DEPTH RULE — MANDATORY FOR EVERY SINGLE SUB-SECTION ━━━\n"
-            "Every <strong>sub-label</strong> block (e.g. 'On the brightness number', "
-            "'In day to day use', 'The cooling system', 'BGMI', etc.) MUST contain "
-            "EXACTLY 3-5 <p> paragraphs. NEVER just 1 or 2.\n\n"
-            "For EVERY sub-section, answer ALL FOUR of these questions in order:\n"
-            "  WHO   — which type of Indian user does this affect and why they care\n"
-            "  WHAT  — the exact spec/feature explained in plain English (no jargon)\n"
-            "  WHY   — why this number/feature matters vs competing phones at this price\n"
-            "  HOW   — real India scenario: BGMI session, Bengaluru sun, commute, EMI math\n\n"
-            "DEPTH EXAMPLES:\n"
-            "❌ WRONG — 1 short paragraph: 'The 6000 nit display is very bright. It is good.'\n"
-            "✅ RIGHT — 4 paragraphs:\n"
-            "  Para 1 (WHO):  'If you have ever squinted at your phone in afternoon Chennai sun...'\n"
-            "  Para 2 (WHAT): 'Peak brightness of 6000 nits means the panel can push more light...'\n"
-            "  Para 3 (WHY):  'Most flagship rivals top out at 3000-4000 nits. That is half...'\n"
-            "  Para 4 (HOW):  'I walked out of a Bengaluru 1pm meeting to check a message...'\n\n"
-            "NEVER write a section with fewer than 3 <p> paragraphs — count them.\n"
-            "If you run out of things to say, add a real India use-case or honest opinion.\n"
+            "Every <strong>sub-label</strong> block MUST contain EXACTLY 3-5 <p> paragraphs. "
+            "NEVER just 1 or 2.\n"
+            "For EVERY sub-section, answer ALL FOUR in order:\n"
+            "  WHO   — which Indian user cares about this and why\n"
+            "  WHAT  — the exact spec explained simply, no jargon\n"
+            "  WHY   — why this matters vs rivals at this price\n"
+            "  HOW   — real India use case (BGMI, Bengaluru sun, Hotstar IPL, commute)\n\n"
+            "NEVER write fewer than 3 <p> paragraphs per sub-label. Count them.\n"
             "Write now:"
         )
 
@@ -3512,9 +3526,19 @@ def human_rewrite(draft, story):
         "ONLY after depth is met: improve sentence flow to sound personal and honest.\n"
         "No AI filler. No corporate tone. Write like you actually used this phone for 14 days.\n\n"
 
-        "BANNED PHRASES: seamlessly, cutting-edge, robust, game-changer, remarkable, "
+        "BANNED PHRASES (delete any occurrence, replace with original observation):\n"
+        "seamlessly, cutting-edge, robust, game-changer, remarkable, "
         "exceptional, it is worth noting, in conclusion, in summary, delve into, "
-        "it goes without saying, state-of-the-art, revolutionize, elevate your experience\n\n"
+        "it goes without saying, state-of-the-art, revolutionize, elevate your experience, "
+        "'a feature that\\'s hard to find in most phones at this price point', "
+        "'handling demanding tasks with ease', "
+        "'a treat to the eyes', "
+        "'providing unparalleled processing', "
+        "any sentence ending with 'at this price point' (unless it\\'s the only one in the article)\n\n"
+
+        "ANTI-REPETITION RULE: Scan every paragraph. "
+        "If the same sentence structure or phrase appears more than once — rewrite it with "
+        "a completely different observation. Every sentence must say something new.\n\n"
 
         "FORMAT: HTML only. No markdown. No **text**. Keep every H3 separate.\n\n"
         "REWRITE NOW:\n\n" + draft
@@ -3525,6 +3549,88 @@ def human_rewrite(draft, story):
         max_tokens=8192, temperature=0.80,
     )
     return r.choices[0].message.content
+
+
+# ================================================================
+# v42 — REPETITION CLEANER + SECTION SEPARATOR FIXER
+# ================================================================
+
+# Phrases the model loops on — remove all but first occurrence
+FILLER_LOOPS = [
+    r"it['\u2019]?s a feature that['\u2019]?s hard to find in most phones at this price(?: point)?",
+    r"it['\u2019]?s a feature that['\u2019]?s hard to find at this price(?: point)?",
+    r"and it['\u2019]?s a feature that['\u2019]?s hard to find",
+    r"this is a significant upgrade over its predecessor",
+    r"it['\u2019]?s a feature that makes it a joy to",
+    r"whether you['\u2019]?re a photographer,? a gamer,? or just someone who wants",
+    r"the mi 12s is the perfect choice",
+    r"this phone is a game.changer in the world of smartphones",
+    r"a treat to the eyes",
+    r"providing unparalleled processing power and efficiency",
+    r"handling demanding (?:tasks|games) with ease",
+]
+
+def clean_repetition(html):
+    """
+    Remove repeated filler loops from AI output.
+    For each banned pattern:
+      - Keep the first sentence that contains it.
+      - Delete every subsequent sentence that contains the same pattern.
+    Also remove any <p> tag that becomes empty after cleaning.
+    """
+    import re as _re
+
+    # Work sentence by sentence inside <p> tags
+    def clean_paragraph(p_content):
+        # Split on sentence boundaries
+        sentences = _re.split(r'(?<=[.!?])\s+', p_content.strip())
+        cleaned = []
+        for sent in sentences:
+            skip = False
+            for pat in FILLER_LOOPS:
+                if pat in seen_patterns:
+                    if _re.search(pat, sent, _re.IGNORECASE):
+                        skip = True
+                        break
+                else:
+                    if _re.search(pat, sent, _re.IGNORECASE):
+                        seen_patterns.add(pat)  # keep first occurrence
+            if not skip:
+                cleaned.append(sent)
+        return ' '.join(cleaned)
+
+    seen_patterns = set()
+
+    def replace_p(m):
+        inner = m.group(1)
+        cleaned_inner = clean_paragraph(inner)
+        if not cleaned_inner.strip():
+            return ''  # drop empty <p>
+        return f'<p>{cleaned_inner}</p>'
+
+    html = _re.sub(r'<p(?:\s[^>]*)?>(.*?)</p>', replace_p, html,
+                   flags=_re.DOTALL | _re.IGNORECASE)
+    return html
+
+
+def fix_section_separators(html):
+    """
+    Convert ——  N. Section Name  artifacts into proper <h3> tags.
+    The llama model sometimes outputs plain-text section markers instead of HTML.
+    Pattern: —— 4. Design and Build — A Masterclass in Minimalism
+    """
+    import re as _re
+
+    # Pattern: optional whitespace + em-dash (—) or (——) + number + dot + text
+    pattern = r'(?:—{1,2}|\u2014{1,2})\s*(\d+)\.\s+([^\n<]{5,120}?)(?=\s*(?:—|\u2014|<h|\Z))'
+
+    def to_h3(m):
+        num  = m.group(1)
+        text = m.group(2).strip().rstrip('—').strip()
+        return f'<h3 style="margin-top:28px;">{num}. {text}</h3>\n'
+
+    html = _re.sub(pattern, to_h3, html)
+    return html
 
 
 # ================================================================
@@ -4190,6 +4296,10 @@ def run_article_v28(story, is_search, label, atype, article_type, log):
     # Clean up AI separator artifacts
     final = final.replace('\u2014\u2014', '')
     final = final.replace('\u2013\u2013', '')
+    # ── v42: Convert plain-text section markers → real <h3> tags ──
+    final = fix_section_separators(final)
+    # ── v42: Remove repeated filler loops ─────────────────────────
+    final = clean_repetition(final)
     # Ensure H3 sections have spacing
     final = final.replace('<h3', '<h3 style="margin-top:28px;"')
 
