@@ -1,5 +1,5 @@
-# TECH NEWS WITH AI - AUTO BLOG v34.0
-# v34 — Smart interlinks · NO TOC · iQOO Apex style · 7000 words · Bold subheadings
+# TECH NEWS WITH AI - AUTO BLOG v35.0
+# v35 — 2026 phones only · 16 sections · CTA · H2+H3 headings · Smart interlinks
 #
 # ================================================================
 # WHY v28 — AdSense "Low value content" fix
@@ -801,6 +801,22 @@ EXCLUDE_KEYWORDS = [
     "best phones list", "top 5", "top 10", "buying guide",
 ]
 
+# Old phone model years — never write reviews for these
+OLD_YEAR_PATTERNS = [
+    r"\b(200[0-9]|201[0-9]|202[0-4])\b",   # years 2000-2024 in title
+]
+
+def is_old_phone(title):
+    """Return True if title mentions a phone year before 2025."""
+    for pat in OLD_YEAR_PATTERNS:
+        m = re.search(pat, title)
+        if m:
+            yr = int(m.group(1))
+            if yr < 2025:
+                return True
+    return False
+
+
 
 def fetch_official_page_specs(url):
     """
@@ -1414,13 +1430,16 @@ def pick_launch_story(log, exclude_titles=None):
             continue
         if any(ex in tl for ex in EXCLUDE_KEYWORDS):
             continue
+        if is_old_phone(title):
+            print(f"[Launch][SKIP-OLD] {title[:60]}")
+            continue
         if any(lk in tl for lk in LAUNCH_KEYWORDS):
             story["specs"]    = get_specs(title)
             story["category"] = story.get("category") or detect_cat(title)
             print(f"[Launch][Breaking] {title[:65]}")
             return story
 
-    # Step 2: Scan ALL_RSS for launch keywords
+    # Step 2: Scan ALL_RSS for launch keywords (2025-2026 only)
     feeds = ALL_RSS[:]
     random.shuffle(feeds)
     for name, url in feeds[:30]:
@@ -1429,6 +1448,8 @@ def pick_launch_story(log, exclude_titles=None):
             if a["title"] in used_titles:
                 continue
             if any(ex in tl for ex in EXCLUDE_KEYWORDS):
+                continue
+            if is_old_phone(a["title"]):
                 continue
             if any(lk in tl for lk in LAUNCH_KEYWORDS):
                 a["specs"]    = get_specs(a["title"])
@@ -3152,8 +3173,15 @@ def groq_draft(story, is_search):
             "<em>If [condition] — <strong>yes. Buy it.</strong></em>\n"
             "Cover 5-6 different buyer profiles honestly.\n\n"
 
-            "<h3>15. FAQ — Real Questions, Real Answers</h3>\n"
-            "15 numbered FAQ questions. Each answer 70-90 words. Simple English.\n"
+            "<h3>15. How to Buy — Best Deals and Where to Get It</h3>\n"
+            "Bank offers (HDFC/Axis/SBI) with exact discount amounts.\n"
+            "No Cost EMI breakdown: '₹X = ₹Y/month for 12 months'.\n"
+            f"<a href=\'{buy_amazon}\' rel=\'nofollow\' target=\'_blank\'>👉 Buy on Amazon India</a> | "
+            f"<a href=\'{buy_flipkart}\' rel=\'nofollow\' target=\'_blank\'>👉 Buy on Flipkart</a>\n"
+            "Best time to buy advice. Price prediction.\n\n"
+
+            "<h3>16. FAQ — Real Questions, Real Answers</h3>\n"
+            "16 numbered FAQ questions. Each answer 70-90 words. Simple English.\n"
             f"1. What is the {phone_clean} price in India?\n"
             f"2. Is the {phone_clean} worth buying in {year}?\n"
             f"3. How does {phone_clean} compare to [closest rival]?\n"
@@ -3989,13 +4017,30 @@ def run_article_v28(story, is_search, label, atype, article_type, log):
     # ── NEW v33: Meta description comment ──
     meta_desc = build_meta_description(title, phone_name, words)
 
+    # ── CTA Block ──
+    cta_block = (
+        "<div style='background:linear-gradient(135deg,#1a73e8,#0d47a1);"
+        "border-radius:12px;padding:28px 24px;margin:40px 0;text-align:center;color:#fff;'>"
+        "<p style='font-size:18px;font-weight:700;margin:0 0 8px;'>📱 Stay Updated on Latest Phone Reviews</p>"
+        "<p style='font-size:14px;margin:0 0 16px;opacity:0.9;'>Get honest reviews of every new smartphone launch in India — before you buy.</p>"
+        "<a href='https://www.technewsai.me/' "
+        "style='background:#fff;color:#1a73e8;padding:10px 24px;border-radius:24px;"
+        "font-weight:700;text-decoration:none;font-size:14px;display:inline-block;margin:4px;'>"
+        "🏠 Visit Tech News With AI</a>"
+        "<a href='https://www.technewsai.me/search/label/Smartphones' "
+        "style='background:rgba(255,255,255,0.15);color:#fff;padding:10px 24px;border-radius:24px;"
+        "font-weight:700;text-decoration:none;font-size:14px;display:inline-block;margin:4px;border:1px solid rgba(255,255,255,0.4);'>"
+        "📲 All Smartphone Reviews</a>"
+        "</div>"
+    )
+
     # Footer
     social_block    = build_social_block(title, BLOG_URL)
     also_read_footer= build_also_read_box(cat, title)
     author_bio_html = build_author_bio()
     footer = (
         "<hr style='border:none;border-top:1px solid #d0d7de;margin:40px 0 0;'/>"
-        + also_read_footer + social_block + author_bio_html
+        + cta_block + also_read_footer + social_block + author_bio_html
     )
 
     # ── v34: Fetch all blog posts for smart interlinking ──
