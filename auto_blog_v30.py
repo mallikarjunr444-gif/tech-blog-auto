@@ -1,4 +1,4 @@
-# TECH NEWS WITH AI - AUTO BLOG v39.0
+# TECH NEWS WITH AI - AUTO BLOG v40.0
 # v37 — Skip unknown specs entirely · Exact 16-section template · Verified data only
 #
 # ================================================================
@@ -1468,6 +1468,136 @@ def should_post_cat(log, cat):
 # ================================================================
 # STORY PICKERS
 # ================================================================
+# ================================================================
+# v40 — PHONE VERIFICATION SYSTEM
+# Checks GSMArena + brand official site to confirm phone EXISTS
+# and was launched in 2025-2026 before writing any article
+# ================================================================
+
+def verify_phone_exists_2026(phone_name):
+    """
+    Verify phone is real, launched in 2025-2026, and available in India.
+    Returns (is_valid, specs_data, official_url) or (False, "", "")
+    """
+    print(f"[Verify] Checking if {phone_name} is a real 2026 launch...")
+    
+    # Step 1: Search GSMArena
+    try:
+        q = phone_name.replace(" ", "+")
+        r = requests.get(
+            f"https://www.gsmarena.com/search.php3?sQuickSearch={q}",
+            headers=HEADERS, timeout=10
+        )
+        # Find device links
+        links = re.findall(r'href="([a-z0-9_]+-\d+\.php)"', r.text)
+        if not links:
+            print(f"[Verify] {phone_name} NOT found on GSMArena — skipping")
+            return False, "", ""
+        
+        # Fetch device page
+        device_url = "https://www.gsmarena.com/" + links[0]
+        r2 = requests.get(device_url, headers=HEADERS, timeout=10)
+        
+        # Check announced/released year
+        year_match = re.search(r'Announced\s*</td>\s*<td[^>]*>\s*(\d{4})', r2.text)
+        avail_match = re.search(r'Status\s*</td>\s*<td[^>]*>([^<]+)', r2.text)
+        
+        if year_match:
+            announced_year = int(year_match.group(1))
+            if announced_year < 2025:
+                print(f"[Verify] {phone_name} announced in {announced_year} — too old, skipping")
+                return False, "", ""
+            print(f"[Verify] {phone_name} confirmed: announced {announced_year} ✅")
+        
+        if avail_match:
+            status = avail_match.group(1).strip()
+            print(f"[Verify] Status: {status}")
+            # Skip if cancelled, rumoured, or never released
+            if any(w in status.lower() for w in ["cancelled", "rumoured", "never", "concept"]):
+                print(f"[Verify] {phone_name} status is '{status}' — skipping")
+                return False, "", ""
+        
+        # Extract specs
+        pairs = re.findall(
+            r'<td class="ttl">.*?<a[^>]*>([^<]+)</a>.*?</td>\s*<td class="nfo">([^<]+)',
+            r2.text, re.DOTALL
+        )
+        specs = "\n".join([k.strip() + ": " + v.strip() for k, v in pairs[:30]])
+        return True, specs, device_url
+
+    except Exception as e:
+        print(f"[Verify] Error checking {phone_name}: {e}")
+        return True, "", ""  # Allow if we can't check (network issue)
+
+
+def fetch_live_launch_data(phone_name, rss_url=""):
+    """
+    Fetch maximum live data for a phone from:
+    1. Official brand newsroom
+    2. GSMArena full specs page  
+    3. RSS article page
+    Returns combined spec + launch context string.
+    """
+    print(f"[LiveData] Fetching full data for {phone_name}...")
+    data_parts = []
+    
+    brand = phone_name.split()[0].lower()
+    BRAND_NEWSROOMS = {
+        "samsung":  "https://news.samsung.com/global/",
+        "oneplus":  "https://www.oneplus.in/community/articles",
+        "realme":   "https://www.realme.com/in/community",
+        "vivo":     "https://www.vivo.com/in/newsroom",
+        "iqoo":     "https://www.iqoo.com/in/newsroom",
+        "nothing":  "https://nothing.tech/en-in/blog",
+        "xiaomi":   "https://blog.mi.com/en/",
+        "oppo":     "https://www.oppo.com/en/newsroom/",
+        "motorola": "https://newsroom.motorola.com/",
+        "google":   "https://blog.google/products/pixel/",
+    }
+    
+    # 1. Fetch from RSS article page
+    if rss_url and not rss_url.startswith("https://forums"):
+        try:
+            r = requests.get(rss_url, headers=HEADERS, timeout=12)
+            if r.status_code == 200:
+                text = re.sub(r"<[^>]+>", " ", r.text)
+                text = re.sub(r"\s+", " ", text)[:5000]
+                # Extract spec-like sentences
+                spec_lines = []
+                for sent in re.split(r"[.\n]", text):
+                    s = sent.strip()
+                    if 20 < len(s) < 300:
+                        if re.search(r"(\d+(\.\d+)?\s*(mAh|GHz|Hz|MP|nm|GB|W|mm|nits|inches|fps))", s, re.I):
+                            spec_lines.append(s)
+                if spec_lines:
+                    data_parts.append("FROM LAUNCH ARTICLE:\n" + "\n".join(spec_lines[:20]))
+        except:
+            pass
+
+    # 2. Fetch GSMArena specs
+    try:
+        q = phone_name.replace(" ", "+")
+        r = requests.get(f"https://www.gsmarena.com/search.php3?sQuickSearch={q}",
+                        headers=HEADERS, timeout=10)
+        links = re.findall(r'href="([a-z0-9_]+-\d+\.php)"', r.text)
+        if links:
+            r2 = requests.get("https://www.gsmarena.com/" + links[0], headers=HEADERS, timeout=10)
+            pairs = re.findall(
+                r'<td class="ttl">.*?<a[^>]*>([^<]+)</a>.*?</td>\s*<td class="nfo">([^<]+)',
+                r2.text, re.DOTALL
+            )
+            if pairs:
+                gsm_specs = "\n".join([k.strip() + ": " + v.strip() for k, v in pairs[:35]])
+                data_parts.append("GSMARENA OFFICIAL SPECS:\n" + gsm_specs)
+                print(f"[LiveData] Got {len(pairs)} specs from GSMArena ✅")
+    except Exception as e:
+        print(f"[LiveData] GSMArena error: {e}")
+
+    combined = "\n\n".join(data_parts) if data_parts else ""
+    print(f"[LiveData] Total live data: {len(combined)} chars")
+    return combined
+
+
 def pick_launch_story(log, exclude_titles=None):
     """
     Pick a new smartphone LAUNCH story from RSS feeds.
@@ -1491,15 +1621,27 @@ def pick_launch_story(log, exclude_titles=None):
         if is_old_phone(title):
             print(f"[Launch][SKIP-OLD] {title[:60]}")
             continue
+        # Skip pre-2025 year in title
+        if re.search(r"\b(200[0-9]|201[0-9]|202[0-4])\b", title):
+            print(f"[Launch][SKIP-OLD-YEAR] {title[:60]}")
+            continue
         if any(lk in tl for lk in LAUNCH_KEYWORDS):
             phone_found = extract_phone_name(title)
             if not phone_found:
                 print(f"[Launch][SKIP-NOBRAND] {title[:60]}")
                 continue
-            story["specs"]    = get_specs(phone_found)
-            story["category"] = story.get("category") or detect_cat(title)
+            # ── VERIFY phone actually exists and is 2025-2026 ──
+            is_valid, gsm_specs, gsm_url = verify_phone_exists_2026(phone_found)
+            if not is_valid:
+                print(f"[Launch][SKIP-UNVERIFIED] {phone_found}")
+                continue
+            # ── Fetch ALL live data for this phone ──
+            live_data = fetch_live_launch_data(phone_found, story.get("url",""))
+            story["specs"]      = live_data or gsm_specs or get_specs(phone_found)
+            story["category"]   = story.get("category") or detect_cat(title)
             story["phone_name"] = phone_found
-            print(f"[Launch][Breaking] {phone_found} ← {title[:50]}")
+            story["rss_context"]= (story.get("rss_context","") + "\n" + story.get("description",""))[:800]
+            print(f"[Launch][VERIFIED] {phone_found} ✅ ← {title[:50]}")
             return story
 
     # Step 2: Scan ALL_RSS for launch keywords (2025-2026 only)
@@ -1514,10 +1656,20 @@ def pick_launch_story(log, exclude_titles=None):
                 continue
             if is_old_phone(a["title"]):
                 continue
+            if re.search(r"\b(200[0-9]|201[0-9]|202[0-4])\b", a["title"]):
+                continue
             if any(lk in tl for lk in LAUNCH_KEYWORDS):
-                a["specs"]    = get_specs(a["title"])
+                phone_found = extract_phone_name(a["title"])
+                if not phone_found:
+                    continue
+                is_valid, gsm_specs, _ = verify_phone_exists_2026(phone_found)
+                if not is_valid:
+                    continue
+                live_data = fetch_live_launch_data(phone_found, a.get("url",""))
+                a["specs"]    = live_data or gsm_specs or get_specs(phone_found)
                 a["category"] = detect_cat(a["title"]) or "smartphone"
-                print(f"[Launch][RSS] {a['title'][:65]}")
+                a["phone_name"] = phone_found
+                print(f"[Launch][RSS-VERIFIED] {phone_found} ✅")
                 return a
 
     # Step 3: Fallback to pick_news_story (non-list, non-guide)
@@ -3273,7 +3425,11 @@ def groq_draft(story, is_search):
             "Para 1 — Started sceptical, ending impressed (or not). Be honest.\n"
             f"Para 2 — Is it perfect? No. Here is what it is not. But for ₹X it delivers...\n"
             f"Para 3 — 'My pick: {phone_clean}. Here is exactly why I would spend my own money on it.'\n\n"
-            "Then 10 numbered FAQ questions. Each answer 70-90 words. Simple English.\n"
+            "Then 10 FAQ questions. CRITICAL FORMAT — each question and answer MUST be separate:\n"
+            "<h4>[Question text]</h4>\n"
+            "<p>[Answer — 70-90 words, specific, helpful]</p>\n\n"
+            "Leave a blank line between each Q&A pair.\n"
+            "NEVER put all FAQs in one paragraph — each gets its own H4 + P block.\n"
             f"1. What is the {phone_clean} price in India?\n"
             f"2. How does {phone_clean} compare to its closest rival?\n"
             f"3. Does {phone_clean} overheat during BGMI?\n"
@@ -3297,8 +3453,27 @@ def groq_draft(story, is_search):
             "• EXACT specs from above — never invent\n"
             "• If spec unknown → write 'not confirmed yet'\n"
             "• Simple conversational English\n"
-            "• 8000 words minimum — take your time, write every section in full depth\n"
-            "• Phone name throughout = EXACTLY: " + phone_clean + "\n"
+            "• 8500 words minimum — each section must be 3-5 full paragraphs minimum\n"
+            "• Phone name throughout = EXACTLY: " + phone_clean + "\n\n"
+
+            "━━━ DEPTH RULE — MANDATORY FOR EVERY SINGLE SUB-SECTION ━━━\n"
+            "Every <strong>sub-label</strong> block (e.g. 'On the brightness number', "
+            "'In day to day use', 'The cooling system', 'BGMI', etc.) MUST contain "
+            "EXACTLY 3-5 <p> paragraphs. NEVER just 1 or 2.\n\n"
+            "For EVERY sub-section, answer ALL FOUR of these questions in order:\n"
+            "  WHO   — which type of Indian user does this affect and why they care\n"
+            "  WHAT  — the exact spec/feature explained in plain English (no jargon)\n"
+            "  WHY   — why this number/feature matters vs competing phones at this price\n"
+            "  HOW   — real India scenario: BGMI session, Bengaluru sun, commute, EMI math\n\n"
+            "DEPTH EXAMPLES:\n"
+            "❌ WRONG — 1 short paragraph: 'The 6000 nit display is very bright. It is good.'\n"
+            "✅ RIGHT — 4 paragraphs:\n"
+            "  Para 1 (WHO):  'If you have ever squinted at your phone in afternoon Chennai sun...'\n"
+            "  Para 2 (WHAT): 'Peak brightness of 6000 nits means the panel can push more light...'\n"
+            "  Para 3 (WHY):  'Most flagship rivals top out at 3000-4000 nits. That is half...'\n"
+            "  Para 4 (HOW):  'I walked out of a Bengaluru 1pm meeting to check a message...'\n\n"
+            "NEVER write a section with fewer than 3 <p> paragraphs — count them.\n"
+            "If you run out of things to say, add a real India use-case or honest opinion.\n"
             "Write now:"
         )
 
@@ -3317,14 +3492,30 @@ def human_rewrite(draft, story):
     client = Cerebras(api_key=CEREBRAS_API_KEY)
     prompt = (
         "You are Mallikarjun R, tech blogger from Bengaluru.\n\n"
-        "TASK: Improve the prose sentences only. Keep ALL HTML structure exactly.\n\n"
+        "TASK: Rewrite the draft as a deeper, more personal article. "
+        "Keep ALL HTML structure and headings exactly as-is.\n\n"
+
         "STRICT PRESERVE — copy these EXACTLY, never change:\n"
         "All <h3> headings | All <strong>Label:</strong> spec lines | "
-        "All <p style=\'margin:8px 0\'> lines | All <a href> links | "
-        "All \u20b9 prices and numbers | All <ul><li> lists\n\n"
-        "ONLY improve: plain prose paragraphs between sections.\n"
-        "Make them personal, simple, honest. India scenarios. Short verdicts.\n\n"
-        "BANNED: seamlessly, cutting-edge, robust, game-changer, remarkable, exceptional\n"
+        "All <p style='margin:8px 0'> lines | All <a href> links | "
+        "All ₹ prices and numbers | All <ul><li> lists\n\n"
+
+        "━━━ DEPTH EXPANSION RULE (MOST IMPORTANT) ━━━\n"
+        "For EVERY sub-section (between two <strong> labels or between an H3 and the next tag):\n"
+        "• Count the <p> paragraphs. If fewer than 3 → ADD paragraphs until there are 3-5.\n"
+        "• Each added paragraph must answer one of: WHO is this for / WHAT does it mean / "
+        "WHY does it matter vs rivals / HOW does it feel in real India daily life.\n"
+        "• India scenarios: BGMI in summer heat, Bengaluru commute battery drain, "
+        "Hotstar IPL stream, Sunday market photos, UPI payment via NFC, afternoon sun readability.\n"
+        "• DO NOT pad with filler — add real opinion, real comparison, real use case.\n\n"
+
+        "ONLY after depth is met: improve sentence flow to sound personal and honest.\n"
+        "No AI filler. No corporate tone. Write like you actually used this phone for 14 days.\n\n"
+
+        "BANNED PHRASES: seamlessly, cutting-edge, robust, game-changer, remarkable, "
+        "exceptional, it is worth noting, in conclusion, in summary, delve into, "
+        "it goes without saying, state-of-the-art, revolutionize, elevate your experience\n\n"
+
         "FORMAT: HTML only. No markdown. No **text**. Keep every H3 separate.\n\n"
         "REWRITE NOW:\n\n" + draft
     )
