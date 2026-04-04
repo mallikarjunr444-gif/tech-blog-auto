@@ -1,4 +1,4 @@
-# TECH NEWS WITH AI - AUTO BLOG v37.0
+# TECH NEWS WITH AI - AUTO BLOG v39.0
 # v37 — Skip unknown specs entirely · Exact 16-section template · Verified data only
 #
 # ================================================================
@@ -684,6 +684,7 @@ HEADERS = {
 # FETCH
 # ================================================================
 def fetch_rss(name, url):
+    """Fetch RSS and filter to 2025-2026 articles only."""
     try:
         r = requests.get(url, headers=HEADERS, timeout=8)
         if r.status_code != 200:
@@ -693,23 +694,50 @@ def fetch_rss(name, url):
         if not items:
             items = root.findall(".//{http://www.w3.org/2005/Atom}entry")
         out = []
-        for item in items[:5]:
+        cutoff = datetime.datetime(2025, 1, 1)
+        for item in items[:10]:
             t = item.find("title")
             title = t.text.strip() if t is not None and t.text else ""
             if len(title) < 20:
                 continue
+
+            # ── Date filter: only 2025-2026 articles ──
+            pub_date = None
+            for tag in ["pubDate", "published", "{http://www.w3.org/2005/Atom}published",
+                        "updated", "{http://www.w3.org/2005/Atom}updated"]:
+                el = item.find(tag)
+                if el is not None and el.text:
+                    raw = el.text.strip()
+                    for fmt in ["%a, %d %b %Y %H:%M:%S %z", "%a, %d %b %Y %H:%M:%S %Z",
+                                "%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%SZ",
+                                "%Y-%m-%d"]:
+                        try:
+                            pub_date = datetime.datetime.strptime(raw[:25], fmt[:len(raw[:25])])
+                            break
+                        except:
+                            pass
+                    if pub_date:
+                        break
+
+            # Skip if older than 2025
+            if pub_date:
+                pub_naive = pub_date.replace(tzinfo=None) if pub_date.tzinfo else pub_date
+                if pub_naive < cutoff:
+                    continue
+            # If no date found, keep it (can't filter)
+
             d = item.find("description")
             if d is None:
                 d = item.find("{http://www.w3.org/2005/Atom}summary")
             desc = ""
             if d is not None and d.text:
-                desc = re.sub(r"<[^>]+>", "", d.text)[:500]
+                desc = re.sub(r"<[^>]+>", "", d.text)[:600]
             l = item.find("link")
             link = l.text.strip() if l is not None and l.text else url
+            pub_str = pub_date.isoformat() if pub_date else datetime.datetime.now().isoformat()
             out.append({"title": title, "description": desc,
-                        "url": link, "source": name,
-                        "published": datetime.datetime.now().isoformat()})
-        return out[:2]
+                        "url": link, "source": name, "published": pub_str})
+        return out[:3]
     except Exception:
         return []
 
@@ -3269,96 +3297,43 @@ def groq_draft(story, is_search):
             "• EXACT specs from above — never invent\n"
             "• If spec unknown → write 'not confirmed yet'\n"
             "• Simple conversational English\n"
-            "• 7500 words minimum\n"
+            "• 8000 words minimum — take your time, write every section in full depth\n"
             "• Phone name throughout = EXACTLY: " + phone_clean + "\n"
             "Write now:"
         )
 
+    print("[Draft] Generating full article — this takes ~2 minutes for quality...")
     r = client.chat.completions.create(
         model="llama3.1-8b",
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=8192, temperature=0.75,
+        max_tokens=8192, temperature=0.72,
     )
     return r.choices[0].message.content
 
 
 
 def human_rewrite(draft, story):
-    """
-    v33 — Polish pass. Matches iQOO 15 Apex article voice exactly.
-    Simple English. Personal. Helpful. No tables.
-    """
     from cerebras.cloud.sdk import Cerebras
     client = Cerebras(api_key=CEREBRAS_API_KEY)
-    phone_clean = re.split(r'[:\|–—]', story.get("title", "[Phone]"))[0].strip()
-
     prompt = (
-        "You are Mallikarjun R — 19-year-old CSE student and tech blogger from Bengaluru, India.\n\n"
-        "TASK: Polish this article draft. Keep ALL HTML, headings, links, and numbers exactly.\n"
-        "Only rewrite prose sentences to sound more personal, simple, and helpful.\n\n"
-
-        "━━━ DO NOT CHANGE ━━━\n"
-        "• Every H1, H2, H3 heading — copy exactly\n"
-        "• Every <a href link — copy exactly\n"
-        "• Every ₹ price and spec number — copy exactly\n"
-        "• Image placeholder comments\n\n"
-
-        "━━━ REWRITE RULES ━━━\n\n"
-
-        "① SIMPLE ENGLISH:\n"
-        "   BAD:  'The device incorporates advanced thermal architecture.'\n"
-        "   GOOD: 'The cooling system works really well. After 40 minutes of BGMI,\n"
-        "          the phone was warm but never hot. That is better than most phones.'\n\n"
-
-        "② PERSONAL AND HONEST:\n"
-        "   Start sections with hooks like:\n"
-        "   'I will be honest with you.' | 'Here is the thing nobody tells you.'\n"
-        "   'Let me be straight before you spend your money.' | 'I actually surprised myself here.'\n\n"
-
-        "③ EXPLAIN EVERY SPEC:\n"
-        "   After every number, add what it means in real life.\n"
-        "   '<strong>6000 nits</strong> — most phones hit 2000. This one hits 6000.\n"
-        "    That means you can use it under direct Bengaluru afternoon sun\n"
-        "    without shading the screen. I have tested phones at ₹1 lakh that cannot do this.'\n\n"
-
-        "④ INDIA SCENARIOS (weave naturally):\n"
-        "   BGMI at hostel | IPL on Hotstar | Bengaluru metro commute\n"
-        "   Sunday market photography | Wedding selfie | Chai stall night camera\n"
-        "   Board exam night scrolling | Swiggy notification\n\n"
-
-        "⑤ SHORT PUNCHY VERDICT after each section:\n"
-        "   'This is where it earns its price tag.'\n"
-        "   'Not perfect. But the best at this price.'\n"
-        "   'I like it more than I expected.'\n"
-        "   'One small gripe. Nothing that stops me recommending it.'\n\n"
-
-        "⑥ HONEST NEGATIVES:\n"
-        "   'No wireless charging at ₹40,000 is a miss. Plain and simple.'\n"
-        "   'Night camera needs work. I expected better here.'\n"
-        "   'Bloatware on Day 1 was annoying. You will spend 10 minutes removing apps.'\n\n"
-
-        "━━━ BANNED WORDS ━━━\n"
-        "seamlessly, cutting-edge, state-of-the-art, game-changer, revolutionary,\n"
-        "robust, leverage, delve, it is worth noting, a testament to, powerful performance,\n"
-        "impressive results, solid choice, overall verdict, exceptional, remarkable, notably\n\n"
-
-        "━━━ FORMAT RULES ━━━\n"
-        "• HTML only — no markdown ever\n"
-        "• <strong> for specs — never **text**\n"
-        "• NO tables of any kind — convert to prose if found\n"
-        "• Do not shorten — make every section LONGER and more helpful\n\n"
-
-        "REWRITE NOW — make it longer, simpler, more personal:\n\n"
-        + draft
+        "You are Mallikarjun R, tech blogger from Bengaluru.\n\n"
+        "TASK: Improve the prose sentences only. Keep ALL HTML structure exactly.\n\n"
+        "STRICT PRESERVE — copy these EXACTLY, never change:\n"
+        "All <h3> headings | All <strong>Label:</strong> spec lines | "
+        "All <p style=\'margin:8px 0\'> lines | All <a href> links | "
+        "All \u20b9 prices and numbers | All <ul><li> lists\n\n"
+        "ONLY improve: plain prose paragraphs between sections.\n"
+        "Make them personal, simple, honest. India scenarios. Short verdicts.\n\n"
+        "BANNED: seamlessly, cutting-edge, robust, game-changer, remarkable, exceptional\n"
+        "FORMAT: HTML only. No markdown. No **text**. Keep every H3 separate.\n\n"
+        "REWRITE NOW:\n\n" + draft
     )
-
     r = client.chat.completions.create(
         model="llama3.1-8b",
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=8192, temperature=0.82,
+        max_tokens=8192, temperature=0.80,
     )
     return r.choices[0].message.content
-
 
 
 # ================================================================
@@ -3449,9 +3424,19 @@ def run_article(story, is_search, label, atype, log):
     print("Draft: " + str(w1) + " words")
 
     # Step 2 — Human rewrite
+    print("Step 2: Waiting 90s before rewrite for quality...")
+    import time; time.sleep(90)
+    print("Step 2: Waiting 90s before rewrite for quality...")
+    import time; time.sleep(90)
     print("Step 2: Human rewrite as Mallikarjun R...")
     human = human_rewrite(draft, story)
     final = fix_bold(human)
+    # Clean up AI separator artifacts
+    final = final.replace('\u2014\u2014', '')
+    final = final.replace('\u2013\u2013', '')
+    # Ensure H3 sections have spacing
+    final = final.replace('<h3', '<h3 style="margin-top:28px;"')
+
 
     # Extract clean title (prefer H1 from output, else use seo_title)
     title = seo_title
@@ -4011,6 +3996,12 @@ def run_article_v28(story, is_search, label, atype, article_type, log):
     print("Step 2: Human rewrite as Mallikarjun R...")
     human = human_rewrite(draft, story)
     final = fix_bold(human)
+    # Clean up AI separator artifacts
+    final = final.replace('\u2014\u2014', '')
+    final = final.replace('\u2013\u2013', '')
+    # Ensure H3 sections have spacing
+    final = final.replace('<h3', '<h3 style="margin-top:28px;"')
+
 
     # Extract clean title
     title = seo_title
