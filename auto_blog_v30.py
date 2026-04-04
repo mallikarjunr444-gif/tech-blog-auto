@@ -1,5 +1,5 @@
-# TECH NEWS WITH AI - AUTO BLOG v35.0
-# v35 — 2026 phones only · 16 sections · CTA · H2+H3 headings · Smart interlinks
+# TECH NEWS WITH AI - AUTO BLOG v37.0
+# v37 — Skip unknown specs entirely · Exact 16-section template · Verified data only
 #
 # ================================================================
 # WHY v28 — AdSense "Low value content" fix
@@ -785,6 +785,36 @@ OFFICIAL_BRAND_RSS = [
     ("PhoneArena",         "https://www.phonearena.com/phones/articles/rss"),
 ]
 
+# Known phone brands for extraction
+PHONE_BRANDS = [
+    "Samsung", "Apple", "iPhone", "OnePlus", "Xiaomi", "Redmi", "POCO",
+    "Realme", "OPPO", "Oppo", "Vivo", "vivo", "iQOO", "Nothing", "Google",
+    "Pixel", "Motorola", "Moto", "Honor", "HONOR", "Infinix", "Tecno",
+    "Lava", "Nokia", "Asus", "ROG", "Sony", "Huawei", "BlackBerry",
+]
+
+def extract_phone_name(title):
+    """
+    Intelligently extract the real phone model name from RSS title.
+    e.g. "The latest AI news: Vivo V70 FE India Launch" → "Vivo V70 FE"
+    e.g. "Samsung Galaxy S26 Review India 2026" → "Samsung Galaxy S26"
+    e.g. "iQOO 15 Apex Edition Full Review" → "iQOO 15 Apex Edition"
+    Returns empty string if no known brand found.
+    """
+    # Pattern: find brand name + model in title
+    for brand in PHONE_BRANDS:
+        # Look for brand anywhere in title
+        pat = rf'\b{re.escape(brand)}\s+[\w\s]+?(?=\s*(?:India|Review|Launch|Price|Full|Specs|Hands|First|Official|Announced|Available|\d{{4}}|$))'
+        m = re.search(pat, title, re.IGNORECASE)
+        if m:
+            name = m.group(0).strip()
+            # Clean trailing words
+            name = re.sub(r'\s+(India|Review|Launch|Price|Full|Specs|Hands|First|Official|\d{4}).*$', '', name, flags=re.IGNORECASE).strip()
+            if len(name) >= 4:
+                return name
+    return ""
+
+
 # Keywords that signal a GENUINE new product launch (not a rumour or deal)
 LAUNCH_KEYWORDS = [
     "launched", "launch", "announced", "official", "price revealed",
@@ -1434,9 +1464,14 @@ def pick_launch_story(log, exclude_titles=None):
             print(f"[Launch][SKIP-OLD] {title[:60]}")
             continue
         if any(lk in tl for lk in LAUNCH_KEYWORDS):
-            story["specs"]    = get_specs(title)
+            phone_found = extract_phone_name(title)
+            if not phone_found:
+                print(f"[Launch][SKIP-NOBRAND] {title[:60]}")
+                continue
+            story["specs"]    = get_specs(phone_found)
             story["category"] = story.get("category") or detect_cat(title)
-            print(f"[Launch][Breaking] {title[:65]}")
+            story["phone_name"] = phone_found
+            print(f"[Launch][Breaking] {phone_found} ← {title[:50]}")
             return story
 
     # Step 2: Scan ALL_RSS for launch keywords (2025-2026 only)
@@ -2939,8 +2974,8 @@ def pick_top5_phones(topic, cat, ctx):
 
 def groq_draft(story, is_search):
     """
-    v34 — Matches iQOO 15 Apex Edition article EXACTLY.
-    Numbered H3 sections. Bold <strong> sub-headings. 7000+ words.
+    v37 — Exact 16-section structure per user template.
+    Verified specs only. Smart phone name extraction. No invented data.
     """
     from cerebras.cloud.sdk import Cerebras
     client = Cerebras(api_key=CEREBRAS_API_KEY)
@@ -2948,24 +2983,34 @@ def groq_draft(story, is_search):
 
     seo_title   = story.get("seo_title", "")
     phone       = story.get("title", "[Phone]")
-    phone_clean = re.split(r'[:\|–—]', phone)[0].strip()
-    specs       = (story.get("specs") or "")[:1000]
-    desc        = (story.get("description") or "")[:400]
+    phone_clean = extract_phone_name(phone)
+    if not phone_clean:
+        parts = re.split(r'[:\|–—]', phone)
+        for part in parts:
+            c = extract_phone_name(part.strip())
+            if c:
+                phone_clean = c
+                break
+    if not phone_clean:
+        phone_clean = re.split(r'[:\|–—]', phone)[0].strip()
+    phone_clean = phone_clean.strip()
+    print(f"[PhoneName] → {phone_clean}")
+
+    specs       = (story.get("specs") or "")[:1200]
+    desc        = (story.get("description") or "")[:500]
     ctx         = (story.get("rss_context") or "")[:700]
     source_url  = story.get("url", "")
-    title_line  = f'<h1>{seo_title}</h1>\n\n' if seo_title else ""
+    title_line  = f'<h1>{seo_title}</h1>\n\n' if seo_title else f'<h1>{phone_clean} Full Review {year}</h1>\n\n'
 
-    # Fetch live data from official launch page
+    # Fetch live specs from official page
     live_specs = ""
     if source_url:
         try:
             live_specs = fetch_official_page_specs(source_url)
-            if live_specs:
-                live_specs = live_specs[:600]
-        except:
-            pass
+            if live_specs: live_specs = live_specs[:800]
+        except: pass
 
-    # Brand official URL
+    # Brand official URLs
     brand = phone_clean.split()[0].lower()
     BRAND_OFFICIAL = {
         "samsung":  ("https://www.samsung.com/in/smartphones/", "Samsung India"),
@@ -2979,9 +3024,13 @@ def groq_draft(story, is_search):
         "iqoo":     ("https://www.iqoo.com/in/products/smartphones", "iQOO India"),
         "nothing":  ("https://nothing.tech/products", "Nothing Tech"),
         "motorola": ("https://www.motorola.in/smartphones", "Motorola India"),
+        "moto":     ("https://www.motorola.in/smartphones", "Motorola India"),
         "poco":     ("https://www.poco.net/in/phones", "POCO India"),
         "infinix":  ("https://www.infinixmobility.com/in/phones", "Infinix India"),
         "tecno":    ("https://www.tecno-mobile.com/in/phones", "Tecno India"),
+        "honor":    ("https://www.hihonor.com/in/", "HONOR India"),
+        "google":   ("https://store.google.com/in/category/phones", "Google Store India"),
+        "pixel":    ("https://store.google.com/in/category/phones", "Google Store India"),
     }
     off = BRAND_OFFICIAL.get(brand, ("https://www.gsmarena.com", "GSMArena"))
     official_url, official_name = off
@@ -2992,225 +3041,236 @@ def groq_draft(story, is_search):
         topic = story.get("search_topic", phone_clean)
         prompt = (
             f"You are Mallikarjun R — 19-year-old CSE student and tech blogger from Bengaluru.\n"
-            f"Write a 6500-word in-depth HTML buying guide for: \"{topic}\"\n"
+            f"Write a 6500-word HTML buying guide for Indians: \"{topic}\"\n"
             f"LIVE DATA: {ctx}\n\n"
             f"{title_line}"
-            "STYLE: Exactly like a personal tech blog. Conversational. First-person. Simple English.\n"
-            "Write like: 'I have tested X phones. Here is what I found. Let me be honest with you.'\n\n"
-            "STRUCTURE — numbered H3 sections:\n"
-            "<h3>1. Why This Matters for Indian Buyers in 2026</h3>\n"
-            "<h3>2. Top Picks — Full Review of Each</h3>\n"
-            "  Each phone: bold name, full specs, real test, buy links.\n"
-            "<h3>3. How to Choose the Right One</h3>\n"
-            "<h3>4. Value for Money</h3>\n"
-            "<h3>5. Final Verdict — My Pick</h3>\n"
-            "<h3>6. FAQ — Real Questions, Real Answers</h3>\n"
-            "  15 FAQ questions numbered 1-15. Each answer 70+ words.\n\n"
-            "SUB-HEADINGS: Use <strong>bold text</strong> on its own line (NOT h4 tags).\n"
-            "RULES: HTML only. No markdown. No tables. No pros/cons boxes.\n"
-            f"Buy links: <a href='{buy_amazon}' rel='nofollow' target='_blank'>Buy on Amazon India</a>\n"
-            "Write now — 6500 words minimum:"
+            "STRUCTURE — 16 numbered H3 sections:\n"
+            "<h3>1. Introduction — Why This Matters</h3>\n"
+            "<h3>2. Top Picks Overview</h3>\n"
+            "<h3>3. Full Specs of Each Phone</h3>\n"
+            "<h3>4. Design and Build</h3>\n"
+            "<h3>5. Display</h3>\n"
+            "<h3>6. Performance</h3>\n"
+            "<h3>7. Gaming</h3>\n"
+            "<h3>8. Camera</h3>\n"
+            "<h3>9. Battery</h3>\n"
+            "<h3>10. Software</h3>\n"
+            "<h3>11. Connectivity</h3>\n"
+            "<h3>12. Comparison</h3>\n"
+            "<h3>13. Price and Where to Buy</h3>\n"
+            "<h3>14. Pros and Cons</h3>\n"
+            "<h3>15. Should You Buy It?</h3>\n"
+            "<h3>16. Final Verdict and FAQ</h3>\n\n"
+            "RULES: HTML only. No markdown. Simple English. Personal voice.\n"
+            "Buy links under section 13:\n"
+            f"<a href='{buy_amazon}' rel='nofollow' target='_blank'>Buy on Amazon India</a>\n"
+            "Write now — 6500 words:"
         )
     else:
         prompt = (
             f"You are Mallikarjun R — 19-year-old CSE student and tech blogger from Bengaluru, India.\n"
-            f"Write a 7500-word in-depth HTML smartphone review for: {phone_clean}\n\n"
+            f"Write a 7500-word in-depth HTML smartphone review.\n\n"
 
-            f"OFFICIAL SPECS — use EXACT numbers, NEVER invent anything:\n{specs}\n\n"
-            f"LIVE LAUNCH PAGE DATA:\n{live_specs}\n\n"
-            f"RSS LAUNCH CONTEXT:\n{ctx}\n\n"
+            f"━━━ PHONE: {phone_clean} ━━━\n\n"
+
+            f"OFFICIAL SPECS FROM GSMARENA (use EXACT numbers — NEVER invent anything):\n{specs}\n\n"
+            f"LIVE DATA from official launch page:\n{live_specs}\n\n"
+            f"LAUNCH CONTEXT from RSS:\n{ctx}\n\n"
             f"DESCRIPTION:\n{desc}\n\n"
-            f"{title_line}"
 
-            "━━━ EXACT STYLE — COPY THIS (reference: iQOO 15 Apex Edition review) ━━━\n\n"
-
-            "NUMBERED SECTIONS: Use <h3> for main section headings like this:\n"
-            "<h3>1. First Impressions — [One Honest Hook Line]</h3>\n"
-            "<h3>2. Full Specs — Everything in One Place</h3>\n"
-            "...and so on.\n\n"
-
-            "SUB-HEADINGS inside sections: Use <strong>bold text</strong> on its own line.\n"
-            "Example:\n"
-            "<strong>On the brightness number — 6000 nits</strong>\n"
-            "  [paragraph about it]\n\n"
-            "<strong>The storage matters too</strong>\n"
-            "  [paragraph about it]\n\n"
-
-            "CAMERA SUB-SECTIONS: Use bullet style with bold:\n"
-            "<ul><li><strong>The Main Camera — Sony IMX921</strong><br/>[full paragraph]</li>\n"
-            "<li><strong>The periscope telephoto — 3x optical</strong><br/>[full paragraph]</li></ul>\n\n"
-
-            "WRITING STYLE — must match exactly:\n"
-            "• 'I'll be honest with you.' | 'Let me be straight.' | 'Here's the thing.'\n"
-            "• Explain every spec in plain English with a real-life comparison.\n"
-            "  BAD:  '6000 nits brightness'\n"
-            "  GOOD: 'Most phones hit 1000-2000 nits. A bright flagship hits 3000. This one hits 6000.\n"
-            "         Standing in direct Bengaluru afternoon sun — you can still read every word.\n"
-            "         I have tested phones at ₹1 lakh that cannot do this.'\n"
-            "• Long paragraph → long paragraph → one SHORT punchy verdict sentence.\n"
-            "• Named rival comparison in every section (inline prose).\n"
-            "• India scenarios: BGMI, IPL Hotstar, metro commute, Sunday market, wedding selfie.\n"
-            "• Honest negatives: 'No wireless charging at ₹40,000 is a miss. Full stop.'\n\n"
-
-            "━━━ EXACT ARTICLE STRUCTURE ━━━\n\n"
+            "⚠️ CRITICAL DATA RULES:\n"
+            "• Use ONLY specs given above — never invent numbers\n"
+            "• If a spec is not listed → write 'not confirmed' — never guess\n"
+            "• NEVER use old Android versions (12, 13) unless confirmed above\n"
+            "• NEVER use fake benchmarks — only real numbers from specs\n"
+            "• The phone name throughout = EXACTLY: " + phone_clean + "\n\n"
 
             f"{title_line}"
 
-            "<h3>1. First Impressions — [Honest hook about this specific phone]</h3>\n"
-            "3-4 paragraphs. What you expected vs what you actually got.\n"
-            "Personal story of first picking it up. Who this phone is for.\n"
-            "End para: 'For [type of user] — this is worth your full attention.'\n\n"
+            "━━━ EXACT 16-SECTION STRUCTURE ━━━\n\n"
 
-            "<h3>2. Full Specs — Everything in One Place</h3>\n"
-            "ALL specs as clean list. Use this exact format:\n"
-            "<strong>Brand / Model:</strong> [name]<br/>\n"
-            "<strong>Launch Date (India):</strong> [date]<br/>\n"
-            "<strong>Price:</strong> [all variants with ₹]<br/>\n"
-            "<strong>Effective Price After Bank Offers:</strong> [₹]<br/>\n"
-            "<strong>Operating System:</strong> [Android version + UI]<br/>\n"
-            "<strong>Processor:</strong> [EXACT chip name + nm]<br/>\n"
-            "<strong>RAM:</strong> [GB + type]<br/>\n"
-            "<strong>Storage:</strong> [GB + type]<br/>\n"
-            "<strong>Display:</strong> [size + type + resolution + Hz]<br/>\n"
-            "<strong>Peak Brightness:</strong> [nits]<br/>\n"
-            "<strong>Rear Camera 1:</strong> [MP + sensor + OIS]<br/>\n"
-            "<strong>Rear Camera 2:</strong> [MP + type]<br/>\n"
-            "<strong>Front Camera:</strong> [MP]<br/>\n"
-            "<strong>Battery:</strong> [mAh + type]<br/>\n"
-            "<strong>Wired Charging:</strong> [W]<br/>\n"
-            "<strong>Wireless Charging:</strong> [W or No]<br/>\n"
-            "<strong>IP Rating:</strong> [rating]<br/>\n"
-            "<strong>Wi-Fi:</strong> [version]<br/>\n"
-            "<strong>Bluetooth:</strong> [version]<br/>\n"
-            "<strong>NFC:</strong> [Yes/No]<br/>\n"
-            "<strong>Software Promise:</strong> [years]<br/>\n"
-            f"<strong>Where to Buy:</strong> <a href='{buy_amazon}' rel='nofollow' target='_blank'>Amazon India</a> | "
-            f"<a href='{buy_flipkart}' rel='nofollow' target='_blank'>Flipkart</a><br/>\n"
-            f"<strong>Official Source:</strong> <a href='{official_url}' rel='nofollow' target='_blank'>{official_name}</a> | "
-            "<a href='https://www.gsmarena.com' rel='nofollow' target='_blank'>GSMArena specs</a><br/>\n\n"
+            "<h3>1. First Impressions — [Honest Hook About This Phone]</h3>\n"
+            "Start: 'I'll be honest with you...'\n"
+            "3-4 paragraphs. Personal story of first picking it up.\n"
+            "What you expected vs what you actually got.\n"
+            "End: 'For [type of Indian buyer] — this is worth your full attention.'\n\n"
 
-            "<h3>3. Design and Build — [One Strong Opinion Line]</h3>\n"
-            "3-4 long paragraphs describing it like you are holding it.\n"
-            "<strong>On the back panel</strong> — material, texture, color options described vividly.\n"
-            "<strong>On the camera module</strong> — size, placement, LED ring if any.\n"
-            "<strong>On durability</strong> — IP rating in plain English ('survived my bathroom steam').\n"
-            "Exact mm thickness + grams. Compare: 'at Xmm it is slimmer than [rival] at Ymm'.\n"
-            "One honest weakness. Short verdict sentence to close.\n\n"
+            "<h3>2. Transition — What Makes This Phone Special</h3>\n"
+            "Bridge from emotion to specs. Summarize 3-4 key highlights.\n"
+            "Chipset, display, camera, battery — one punchy line each.\n"
+            "End: 'This is not just design — it is backed by serious hardware.'\n\n"
 
-            "<h3>4. Display — [One Strong Opinion Line]</h3>\n"
-            "3-4 paragraphs.\n"
-            "Open: panel type + size + resolution + Hz all in one sentence.\n"
-            "<strong>On the brightness number</strong> — explain nits in real-life terms.\n"
-            "<strong>On the refresh rate</strong> — LTPO or standard Hz explained simply.\n"
-            "<strong>On colours and HDR</strong> — Netflix/Hotstar IPL test result.\n"
-            "<strong>On eye comfort</strong> — PWM dimming if applicable.\n"
-            "Named rival comparison. Verdict sentence.\n\n"
+            "<h3>3. Full Specs — Everything in One Place</h3>\n""⚠️ SPEC RULE: For EVERY line below — if the data is NOT in the official specs above, SKIP that entire line. Do not write the label. Do not write 'unknown' or 'not confirmed'. Just omit it completely.\n\n"
+            "Each spec on its own <p> tag with style='margin:8px 0;':\n"
+            f"<p style='margin:8px 0;'><strong>Brand / Model:</strong> {phone_clean}</p>\n"
+            "<p style='margin:8px 0;'><strong>Launch Date (India):</strong> [from specs above]</p>\n"
+            "<p style='margin:8px 0;'><strong>Price:</strong> [ALL variants — each on its own line with ₹]</p>\n"
+            "<p style='margin:8px 0;'><strong>Effective Price After Bank Offers:</strong> [₹]</p>\n"
+            "<p style='margin:8px 0;'><strong>Processor:</strong> [EXACT chip name from specs — no 'latest processor']</p>\n"
+            "<p style='margin:8px 0;'><strong>GPU:</strong> [exact GPU]</p>\n"
+            "<p style='margin:8px 0;'><strong>RAM:</strong> [GB + type from specs]</p>\n"
+            "<p style='margin:8px 0;'><strong>Storage:</strong> [GB + UFS type from specs]</p>\n"
+            "<!-- Only write Cooling line if confirmed in specs above, else skip entirely -->\n""<p style='margin:8px 0;'><strong>Cooling:</strong> [vapor chamber mm² — ONLY if in specs above]</p>\n"
+            "<p style='margin:8px 0;'><strong>Display:</strong> [size + panel + resolution + Hz from specs]</p>\n"
+            "<p style='margin:8px 0;'><strong>Refresh Rate:</strong> [Hz + LTPO if applicable]</p>\n"
+            "<p style='margin:8px 0;'><strong>Peak Brightness:</strong> [nits from specs]</p>\n"
+            "<p style='margin:8px 0;'><strong>Rear Camera 1:</strong> [MP + sensor name + aperture + OIS]</p>\n"
+            "<p style='margin:8px 0;'><strong>Rear Camera 2:</strong> [MP + type + zoom]</p>\n"
+            "<p style='margin:8px 0;'><strong>Rear Camera 3:</strong> [MP + type if exists]</p>\n"
+            "<p style='margin:8px 0;'><strong>Front Camera:</strong> [MP + aperture]</p>\n"
+            "<p style='margin:8px 0;'><strong>Battery:</strong> [mAh + type from specs]</p>\n"
+            "<p style='margin:8px 0;'><strong>Wired Charging:</strong> [W from specs]</p>\n"
+            "<p style='margin:8px 0;'><strong>Wireless Charging:</strong> [W or No]</p>\n"
+            "<p style='margin:8px 0;'><strong>IP Rating:</strong> [from specs]</p>\n"
+            "<p style='margin:8px 0;'><strong>Wi-Fi:</strong> [version from specs]</p>\n"
+            "<p style='margin:8px 0;'><strong>Bluetooth:</strong> [version from specs]</p>\n"
+            "<p style='margin:8px 0;'><strong>NFC:</strong> [Yes/No from specs]</p>\n"
+            "<p style='margin:8px 0;'><strong>Operating System:</strong> [Android version + UI name from specs]</p>\n"
+            "<p style='margin:8px 0;'><strong>Software Promise:</strong> [years OS + years security from specs]</p>\n"
+            "<p style='margin:8px 0;'><strong>Colours Available:</strong> [from specs]</p>\n"
+            f"<p style='margin:8px 0;'><strong>Where to Buy:</strong> "
+            f"<a href='{buy_amazon}' rel='nofollow' target='_blank'>Amazon India</a> | "
+            f"<a href='{buy_flipkart}' rel='nofollow' target='_blank'>Flipkart</a></p>\n"
+            f"<p style='margin:8px 0;'><strong>Official Source:</strong> "
+            f"<a href='{official_url}' rel='nofollow' target='_blank'>{official_name}</a> | "
+            "<a href='https://www.gsmarena.com' rel='nofollow' target='_blank'>GSMArena full specs</a></p>\n\n"
 
-            "<h3>5. Performance — [One Strong Opinion Line]</h3>\n"
-            "3-4 paragraphs.\n"
-            "EXACT chipset name + nm. No vague 'latest processor' ever.\n"
-            "<strong>In day to day use</strong> — app switching, RAM management, India scenario.\n"
-            "<strong>The storage matters too</strong> — UFS version, real-world speed feel.\n"
-            "<strong>Benchmark numbers if you care about them</strong> — AnTuTu, Geekbench.\n"
-            "<strong>The cooling system</strong> — vapor chamber size, real heat after 60min gaming.\n\n"
+            "<h3>4. Design and Build — [Strong Opinion Line]</h3>\n"
+            "Start: 'Let me spend a little extra time here because the design is the story.'\n"
+            "<strong>On the back panel</strong> — material, feel, colors described vividly\n"
+            "<strong>On the camera module</strong> — size, LED ring if any\n"
+            "<strong>On durability</strong> — IP rating in plain English\n"
+            "Exact mm thickness + grams weight. Compare to a named rival.\n"
+            "End: 'This does not look like anything else on the market right now.'\n\n"
 
-            "<h3>6. Gaming — [One Strong Opinion Line]</h3>\n"
-            "3-4 paragraphs. Most detailed gaming section.\n"
-            "<strong>BGMI</strong> — exact settings, locked fps, touch sampling Hz.\n"
-            "<strong>Call of Duty Mobile / Genshin / FC Mobile</strong> — graphics, fps, result.\n"
-            "<strong>The features that actually matter for gaming</strong> — explain plainly.\n"
-            "<strong>Gaming verdict</strong> — clear strong stance.\n\n"
+            "<h3>5. Display — [Strong Opinion Line]</h3>\n"
+            "<strong>On the brightness number</strong> — explain nits vs normal phones in plain English\n"
+            "<strong>On the refresh rate</strong> — LTPO explained simply, battery benefit\n"
+            "<strong>On colours and HDR</strong> — Netflix/Hotstar IPL test\n"
+            "<strong>On eye comfort</strong> — PWM dimming, DC dimming if applicable\n"
+            "End: 'One of the best displays you can buy at this price.'\n\n"
 
-            "<h3>7. Camera — [One Honest Opinion Line]</h3>\n"
-            "Open honest: 'This is not the best camera phone. But here is what it does well.'\n"
-            "Camera sub-sections as bullet list:\n"
+            "<h3>6. Performance — [Strong Opinion Line]</h3>\n"
+            "<strong>Chipset and why it matters</strong> — EXACT name + nm process\n"
+            "<strong>In day to day use</strong> — India scenario: Instagram → Chrome → BGMI\n"
+            "<strong>The storage matters too</strong> — UFS version, real-world speed feel\n"
+            "<strong>The cooling system</strong> — vapor chamber, real heat after 60min gaming\n"
+            "<strong>Benchmark numbers</strong> — AnTuTu, Geekbench (only if in specs above)\n"
+            "End: 'This phone simply does not lag.'\n\n"
+
+            "<h3>7. Gaming — [Strong Opinion Line]</h3>\n"
+            "<strong>BGMI</strong> — exact settings, fps locked or dropping, touch Hz\n"
+            "<strong>Call of Duty Mobile</strong> — graphics setting, fps, result\n"
+            "<strong>Genshin Impact or Wuthering Waves</strong> — max settings test\n"
+            "<strong>Gaming features that actually matter</strong> — Monster Mode, Game Boost etc\n"
+            "End: 'For gamers in India under ₹X — this is top-tier.'\n\n"
+
+            "<h3>8. Camera — Honest Review</h3>\n"
+            "Start: 'Let me be honest. This is not the best camera phone. But here is what it does well.'\n"
             "<ul>\n"
-            "<li><strong>The Main Camera — [sensor name]</strong><br/>daylight result, India scenario, named rival</li>\n"
-            "<li><strong>The telephoto — [zoom]x optical</strong><br/>portrait use, wedding test, zoom verdict</li>\n"
-            "<li><strong>The Ultra-wide — [MP]MP</strong><br/>colour consistency vs main camera</li>\n"
-            "<li><strong>Night photography</strong><br/>honest result — good or not? named rival</li>\n"
-            "<li><strong>Selfie camera — [MP]MP</strong><br/>skin tone accuracy, WhatsApp call</li>\n"
+            "<li><strong>Main Camera</strong> — daylight result, Sunday market test, dynamic range</li>\n"
+            "<li><strong>Telephoto</strong> — zoom range, portrait use, Indian wedding test</li>\n"
+            "<li><strong>Ultra-wide</strong> — colour consistency vs main camera</li>\n"
+            "<li><strong>Night Photography</strong> — honest result, named rival comparison</li>\n"
+            "<li><strong>Selfie Camera</strong> — Indian skin tone accuracy, WhatsApp call</li>\n"
+            "<li><strong>Video</strong> — max res + fps, OIS walk test, Reels verdict</li>\n"
             "</ul>\n"
-            "One overall camera verdict sentence.\n\n"
+            "End: 'Very capable. But not the absolute best. Here is where it sits.'\n\n"
 
-            "<h3>8. Battery Life and Charging — [One Strong Line]</h3>\n"
-            "2-3 paragraphs.\n"
-            "<strong>Real battery life</strong> — India drain log with EXACT percentages:\n"
-            "'8am: 100%. After 40min BGMI: X%. After 1hr metro commute: X%. At 11pm: X%.'\n"
-            "<strong>[W] wired charging</strong> — 0 to 50%, 0 to 100% time. Charger in box?\n"
-            "<strong>[W] wireless</strong> — if available, explain why it matters.\n"
-            "<strong>Battery verdict</strong> — clear strong sentence.\n\n"
+            "<h3>9. Battery — Lifestyle Impact</h3>\n"
+            "<strong>Real battery life</strong>:\n"
+            "India drain log — EXACT percentages:\n"
+            "'8am: 100%. After 40min BGMI: X%. After 1hr commute: X%. After 1hr Hotstar: X%. At 11pm: X%.'\n"
+            "<strong>Wired charging</strong> — 0 to 50%, 0 to 100% time\n"
+            "<strong>Wireless charging</strong> — if available, explain why it matters\n"
+            "End: 'Battery anxiety disappears completely with this phone.'\n\n"
 
-            "<h3>9. Software — [One Line About the UI]</h3>\n"
-            "2-3 paragraphs.\n"
-            "<strong>The day to day experience</strong> — smoothness, animations, notifications.\n"
-            "<strong>The AI features that are actually useful</strong> — 3 features in plain English.\n"
-            "<strong>The software support commitment</strong> — years explained + why it matters for Indians.\n\n"
+            "<h3>10. Software — Real Experience</h3>\n"
+            "Start: 'I know this UI is not everyone's first choice. Here is the honest truth.'\n"
+            "<strong>The day to day experience</strong> — smoothness, animations, notifications\n"
+            "<strong>The AI features that are actually useful</strong> — 3-4 features explained plainly\n"
+            "<strong>Bloatware count</strong> — how many apps, which ones annoyed you\n"
+            "<strong>The software support commitment</strong> — years OS + security, why it matters\n"
+            "End: 'Long-term value here is exceptional.'\n\n"
 
-            "<h3>10. Connectivity — They Didn't Miss Anything</h3>\n"
-            "5G bands listed. Airtel/Jio confirmed. WiFi version. Bluetooth. NFC for UPI.\n"
-            "Speaker — stereo or mono? Real listening test verdict.\n"
-            "Fingerprint + face unlock speed.\n\n"
+            "<h3>11. Connectivity — They Did Not Miss Anything</h3>\n"
+            "<strong>Wi-Fi version</strong> — what it means practically\n"
+            "<strong>Bluetooth version</strong> — earbuds pairing, stability\n"
+            "<strong>5G bands</strong> — list exact bands, Airtel + Jio confirmed\n"
+            "<strong>NFC</strong> — UPI payments tested\n"
+            "<strong>Fingerprint + Face Unlock</strong> — speed verdict\n"
+            "Mention if headphone jack absent: 'No headphone jack — fair to flag at this price.'\n"
+            "End: 'They did not miss anything important.'\n\n"
 
-            "<h3>11. India-Specific Things to Know</h3>\n"
-            "Battery differences vs global (if any). India price vs global.\n"
-            "India launch date vs global. Service centres — easy to find?\n\n"
+            "<h3>12. How It Compares — Against Real Rivals</h3>\n"
+            "Compare against 2-3 real named rivals at similar price.\n"
+            f"Against [Rival 1 at similar ₹]: where {phone_clean} wins and loses\n"
+            f"Against [Rival 2]: camera vs battery vs performance trade-off\n"
+            f"Against [Rival 3]: value comparison\n"
+            "End: 'Choose based on your priority. Here is mine.'\n\n"
 
-            "<h3>12. Who Should Buy This — And Who Should Not</h3>\n"
-            "Use bullet/italic style like reference article:\n"
-            "<em>If you game on your phone, even casually — <strong>yes. Buy it.</strong></em><br/>\n"
-            "<em>If battery life has been a frustration — <strong>yes. Buy it.</strong></em><br/>\n"
-            "<em>If you need the absolute best zoom — <strong>the [Rival] deserves your attention first.</strong></em><br/>\n\n"
+            "<h3>13. Price and Where to Buy — Best Deal Right Now</h3>\n"
+            "All variants listed clearly with ₹ prices.\n"
+            "Bank offers: HDFC/Axis/SBI exact discount amounts.\n"
+            "No Cost EMI: '₹X = ₹Y per month for 12 months'.\n"
+            "Free accessories bundled during launch window.\n"
+            f"<a href='{buy_amazon}' rel='nofollow' target='_blank'>👉 Buy on Amazon India</a> | "
+            f"<a href='{buy_flipkart}' rel='nofollow' target='_blank'>👉 Buy on Flipkart</a>\n"
+            f"Official site: <a href='{official_url}' rel='nofollow' target='_blank'>{official_name}</a>\n"
+            "'Which variant should you buy? Here is my recommendation.'\n\n"
 
-            "<h3>13. Final Verdict — My Honest Take</h3>\n"
-            "Score: X.X out of 10 — [One word verdict] as <strong>bold</strong>.\n"
-            "3 paragraphs — started sceptical, ending impressed (or not).\n"
-            "Is it perfect? No. Here is what it is not.\n"
-            f"'My pick: {phone_clean}. Here is exactly why.'\n\n"
+            "<h3>14. Pros and Cons — Honest List</h3>\n"
+            "<strong>What I Love:</strong>\n"
+            "<ul><li>Specific pro 1 with reason</li>\n"
+            "<li>Specific pro 2 with reason</li>\n"
+            "<li>Specific pro 3 with reason</li>\n"
+            "<li>Specific pro 4 with reason</li></ul>\n"
+            "<strong>What I Would Change:</strong>\n"
+            "<ul><li>Honest con 1 — be specific</li>\n"
+            "<li>Honest con 2 — be specific</li>\n"
+            "<li>Honest con 3 — be specific</li></ul>\n\n"
 
-            "<h3>14. Should You Buy It?</h3>\n"
-            "Italic conditional lines like reference:\n"
-            "<em>If [condition] — <strong>yes. Buy it.</strong></em>\n"
-            "Cover 5-6 different buyer profiles honestly.\n\n"
+            "<h3>15. Should You Buy It?</h3>\n"
+            "Each condition on its own <p> tag — one blank line between each:\n"
+            "<p><em>If you game on your phone, even casually — <strong>yes. Buy it.</strong></em></p>\n"
+            "<p><em>If battery life has frustrated you — <strong>yes. Buy it.</strong></em></p>\n"
+            "<p><em>If design matters to you — <strong>yes. Buy it.</strong></em></p>\n"
+            "<p><em>If you need the absolute best zoom camera — <strong>look at [named rival] first.</strong></em></p>\n"
+            "<p><em>If you are on a tight budget — <strong>consider [named budget alternative].</strong></em></p>\n"
+            "End: 'For most Indian users reading this — this is the right choice.'\n\n"
 
-            "<h3>15. How to Buy — Best Deals and Where to Get It</h3>\n"
-            "Bank offers (HDFC/Axis/SBI) with exact discount amounts.\n"
-            "No Cost EMI breakdown: '₹X = ₹Y/month for 12 months'.\n"
-            f"<a href=\'{buy_amazon}\' rel=\'nofollow\' target=\'_blank\'>👉 Buy on Amazon India</a> | "
-            f"<a href=\'{buy_flipkart}\' rel=\'nofollow\' target=\'_blank\'>👉 Buy on Flipkart</a>\n"
-            "Best time to buy advice. Price prediction.\n\n"
-
-            "<h3>16. FAQ — Real Questions, Real Answers</h3>\n"
-            "16 numbered FAQ questions. Each answer 70-90 words. Simple English.\n"
+            "<h3>16. Final Verdict and FAQ</h3>\n"
+            "<strong>Score: [X.X] out of 10</strong>\n"
+            "3 paragraphs:\n"
+            "Para 1 — Started sceptical, ending impressed (or not). Be honest.\n"
+            f"Para 2 — Is it perfect? No. Here is what it is not. But for ₹X it delivers...\n"
+            f"Para 3 — 'My pick: {phone_clean}. Here is exactly why I would spend my own money on it.'\n\n"
+            "Then 10 numbered FAQ questions. Each answer 70-90 words. Simple English.\n"
             f"1. What is the {phone_clean} price in India?\n"
-            f"2. Is the {phone_clean} worth buying in {year}?\n"
-            f"3. How does {phone_clean} compare to [closest rival]?\n"
-            f"4. Does {phone_clean} overheat during BGMI?\n"
-            f"5. How long does {phone_clean} battery last?\n"
-            f"6. How is the {phone_clean} camera in low light?\n"
-            f"7. Does {phone_clean} support 5G on Airtel and Jio?\n"
-            f"8. Which variant of {phone_clean} is best value?\n"
-            f"9. Does {phone_clean} have NFC for UPI?\n"
-            f"10. Is {phone_clean} good for Indian weddings photography?\n"
-            f"11. Does {phone_clean} come with charger in box?\n"
-            f"12. How is {phone_clean} display under direct sunlight?\n"
-            f"13. Is {phone_clean} good for college students?\n"
-            f"14. How many years of updates does {phone_clean} get?\n"
-            f"15. Should I wait for price drop or buy {phone_clean} now?\n\n"
+            f"2. How does {phone_clean} compare to its closest rival?\n"
+            f"3. Does {phone_clean} overheat during BGMI?\n"
+            f"4. How long does {phone_clean} battery last in real use?\n"
+            f"5. How is the {phone_clean} camera in low light?\n"
+            f"6. Does {phone_clean} support 5G on Airtel and Jio?\n"
+            f"7. Which variant of {phone_clean} is best value?\n"
+            f"8. Does {phone_clean} have NFC for UPI?\n"
+            f"9. How many years of updates does {phone_clean} get?\n"
+            f"10. Should I wait for price drop or buy {phone_clean} now?\n\n"
+            "End note: 'Prices may change. Always check official sources before buying.'\n\n"
 
-            "━━━ INTERNAL LINKS (weave naturally into paragraphs) ━━━\n"
+            "━━━ INTERNAL LINKS (weave into paragraphs naturally) ━━━\n"
             "<a href='https://www.technewsai.me/search/label/Smartphones'>Smartphones</a>\n"
             "<a href='https://www.technewsai.me/search/label/Earphones'>Earphones</a>\n"
             "<a href='https://www.technewsai.me/search/label/Laptops'>Laptops</a>\n"
             "<a href='https://www.technewsai.me/'>Tech News With AI</a>\n\n"
 
             "━━━ ABSOLUTE RULES ━━━\n"
-            "• HTML ONLY — ZERO markdown, ZERO **bold**, use <strong> only\n"
-            "• NO h4 tags anywhere — use <strong>bold</strong> for sub-headings\n"
-            "• NO comparison tables, NO pros/cons tables — pure prose\n"
-            "• EXACT specs — never invent numbers\n"
-            "• Simple conversational English throughout\n"
+            "• HTML ONLY — no markdown, no **bold**, use <strong>\n"
+            "• EXACT specs from above — never invent\n"
+            "• If spec unknown → write 'not confirmed yet'\n"
+            "• Simple conversational English\n"
             "• 7500 words minimum\n"
+            "• Phone name throughout = EXACTLY: " + phone_clean + "\n"
             "Write now:"
         )
 
@@ -4017,30 +4077,13 @@ def run_article_v28(story, is_search, label, atype, article_type, log):
     # ── NEW v33: Meta description comment ──
     meta_desc = build_meta_description(title, phone_name, words)
 
-    # ── CTA Block ──
-    cta_block = (
-        "<div style='background:linear-gradient(135deg,#1a73e8,#0d47a1);"
-        "border-radius:12px;padding:28px 24px;margin:40px 0;text-align:center;color:#fff;'>"
-        "<p style='font-size:18px;font-weight:700;margin:0 0 8px;'>📱 Stay Updated on Latest Phone Reviews</p>"
-        "<p style='font-size:14px;margin:0 0 16px;opacity:0.9;'>Get honest reviews of every new smartphone launch in India — before you buy.</p>"
-        "<a href='https://www.technewsai.me/' "
-        "style='background:#fff;color:#1a73e8;padding:10px 24px;border-radius:24px;"
-        "font-weight:700;text-decoration:none;font-size:14px;display:inline-block;margin:4px;'>"
-        "🏠 Visit Tech News With AI</a>"
-        "<a href='https://www.technewsai.me/search/label/Smartphones' "
-        "style='background:rgba(255,255,255,0.15);color:#fff;padding:10px 24px;border-radius:24px;"
-        "font-weight:700;text-decoration:none;font-size:14px;display:inline-block;margin:4px;border:1px solid rgba(255,255,255,0.4);'>"
-        "📲 All Smartphone Reviews</a>"
-        "</div>"
-    )
-
     # Footer
     social_block    = build_social_block(title, BLOG_URL)
     also_read_footer= build_also_read_box(cat, title)
     author_bio_html = build_author_bio()
     footer = (
         "<hr style='border:none;border-top:1px solid #d0d7de;margin:40px 0 0;'/>"
-        + cta_block + also_read_footer + social_block + author_bio_html
+        + also_read_footer + social_block + author_bio_html
     )
 
     # ── v34: Fetch all blog posts for smart interlinking ──
