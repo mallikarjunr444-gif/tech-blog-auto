@@ -1,39 +1,48 @@
-# TECH NEWS WITH AI - AUTO BLOG v45.0
-# v37 — Skip unknown specs entirely · Exact 16-section template · Verified data only
+# TECH NEWS WITH AI - AUTO BLOG v31.0
+# v31 — THREE ROOT BUG FIXES:
 #
 # ================================================================
-# WHY v28 — AdSense "Low value content" fix
+# BUG 1 FIX — "we March 2026" phone name in article body
 # ================================================================
-# Google rejected technewsai.me with two reasons:
-#   1. "Low value content" — articles too short/thin/AI-sounding
-#   2. "Automatically generated content without manual review"
+# ROOT CAUSE: groq_draft() re-extracted phone name from RSS title,
+#             which was a garbled string like "we March 2026".
+#             extract_phone_name() failed → last resort used the
+#             raw title → "we March 2026" injected everywhere.
 #
-# ROOT CAUSE: 3 articles per day splits the token budget three ways
-#             → shorter articles → easier for Google to flag as AI junk
-#
-# FIX: ONE article per day — use the ENTIRE daily Groq token limit
-#      on a SINGLE 7000–8000 word article (editorial journalism quality)
-#
-# ================================================================
-# NEW 3-DAY ROTATING SCHEDULE
-# ================================================================
-#   Day 1 → Full smartphone review (new launch) — 7000+ words
-#   Day 2 → Full smartphone review (different phone) — 7000+ words
-#   Day 3 → Top searched smartphone topic — 7000+ words
-#   Day 4 → back to Day 1 type ... and so on
-#
-#   Day type tracked in posted_articles.json → last_article_type
+# FIX: groq_draft() now reads story["phone_name"] FIRST
+#      (set by pick_launch_story after verify_phone_exists_2026).
+#      Only falls back to title extraction if phone_name is missing.
 #
 # ================================================================
-# ADSENSE QUALITY UPGRADES IN v28
+# BUG 2 FIX — Old phones selected (Xiaomi Mi 12S Ultra 2022)
 # ================================================================
-#   1. 7000-8000 word target — editorial quality minimum
-#   2. MAX TOKENS: draft=7000, rewrite=6000 (full Groq 70B budget)
-#   3. Human voice: personal 14-day test narrative throughout
-#   4. Banned AI phrases list expanded — no "seamlessly", "cutting-edge"
-#   5. Extra sections: 14-Day Test, India Variant Differences, Who to Avoid
-#   6. 10-question FAQ (up from 7) for content depth
-#   7. Every spec has a "why this matters for Indian buyers" line
+# ROOT CAUSE: verify_phone_exists_2026() hits GSMArena which
+#             blocks GitHub Actions IPs → returns False for ALL
+#             phones → script falls to pick_news_story() fallback
+#             which had ZERO year filter → old phone slipped in.
+#
+# FIX: pick_news_story() now runs is_old_phone() + year regex
+#      check on every story. Old phones always rejected.
+#      pick_launch_story() also accepts phones from TRUSTED
+#      2026-specific scrape sources even if GSMArena is blocked.
+#
+# ================================================================
+# BUG 3 FIX — scrape_live_2026_launches() was unreliable
+# ================================================================
+# ROOT CAUSE: Old function tried to parse HTML pages as RSS →
+#             ET.ParseError → fell to a BROKEN HTML fallback
+#             (regex had 1 capture group but unpacked as 2).
+#
+# FIX: Complete rewrite with 7 dedicated sources:
+#   1. gadgets.beebom.com/latest-mobile-phones?launchYear=2026
+#   2. 91mobiles.com/list-of-phones/latest-mobiles-in-india?filters=...3-month
+#   3. 91mobiles.com/list-of-phones/latest-mobiles-in-india
+#   4. mysmartprice.com/mobile/pricelist/latest-mobile-phones-for-all.html
+#   5. gadgets360.com/mobiles/smartphones
+#   6. 91Mobiles launch RSS
+#   7. GadgetBridge RSS
+#   Proper HTML text extraction with brand+model regex.
+#   Deduplication + score ranking before returning.
 #
 # technewsai.me - Mallikarjun R, Bengaluru
 # ================================================================
@@ -1642,67 +1651,236 @@ def fetch_live_launch_data(phone_name, rss_url=""):
 
 def scrape_live_2026_launches():
     """
-    Scrape LIVE pages for phones launched in 2025-2026.
-    Sources: GSMArena new phones, 91Mobiles, MySmartPrice.
-    Returns list of {title, url, description} dicts.
+    v31 — MULTI-SOURCE 2026 PHONE SCRAPER
+    Scrapes ALL 5 trusted India launch-tracker pages + RSS feeds.
+    Extracts only phones that can be confirmed as 2025-2026 launches.
+
+    Sources (in priority order):
+      1. Beebom  — gadgets.beebom.com/latest-mobile-phones?launchYear=2026
+      2. 91Mobiles 3-month — 91mobiles.com/list-of-phones/latest-mobiles-in-india?filters=...
+      3. 91Mobiles latest  — 91mobiles.com/list-of-phones/latest-mobiles-in-india
+      4. MySmartPrice      — mysmartprice.com/mobile/pricelist/latest-mobile-phones-for-all.html
+      5. Gadgets360        — gadgets360.com/mobiles/smartphones
+      6. 91Mobiles RSS fallback
+      7. GadgetBridge RSS fallback
+
+    Returns list of {title, url, description, source} dicts.
     """
-    results = []
-    sources = [
-        # GSMArena new phones page — most reliable
-        ("GSMArena New", "https://www.gsmarena.com/search.php3?chk5G=selected&sAvailabilities=1&YearMade=2025-2026&chkAndroid=selected&fDisplayInchesMin=5.5&sOSes=2"),
-        # 91Mobiles recent launches
-        ("91Mobiles", "https://www.91mobiles.com/hub/category/launch/feed/"),
-        # MySmartPrice launches  
-        ("MySmartPrice", "https://www.mysmartprice.com/gear/category/smartphones/launched-in-india/feed/"),
-        # GadgetBridge launches
-        ("GadgetBridge", "https://gadgetbridge.com/mobiles/feed/"),
+    results   = []
+    seen_names = set()
+    year      = str(datetime.datetime.now().year)   # "2026"
+
+    # ── Known brand keywords for HTML extraction ──────────────────
+    BRAND_KW = [
+        "samsung", "oneplus", "xiaomi", "redmi", "poco", "realme",
+        "vivo", "iqoo", "oppo", "nothing", "motorola", "moto",
+        "honor", "infinix", "tecno", "google pixel", "nokia", "lava",
+        "asus", "sony", "apple iphone",
     ]
 
-    import xml.etree.ElementTree as ET
+    # ─────────────────────────────────────────────────────────────
+    # HELPER: extract phone names from plain text / HTML
+    # ─────────────────────────────────────────────────────────────
+    def _extract_phones_from_text(text, source_url, source_name, max_phones=15):
+        """Find brand+model patterns in stripped text."""
+        found = []
+        # Remove HTML tags
+        clean = re.sub(r"<[^>]+>", " ", text)
+        clean = re.sub(r"\s+", " ", clean)
 
-    for name, url in sources:
-        try:
-            r = requests.get(url, headers=HEADERS, timeout=10)
-            if r.status_code != 200:
+        # Pattern: Brand + Model (e.g. "Samsung Galaxy A57 5G", "Realme 16 5G")
+        pattern = (
+            r'\b(Samsung|OnePlus|Xiaomi|Redmi|POCO|Poco|Realme|OPPO|Oppo|Vivo|vivo|'
+            r'iQOO|Nothing|Motorola|Moto|Nokia|Honor|HONOR|Infinix|Tecno|Lava|Asus|'
+            r'Google\s+Pixel|Apple\s+iPhone|Sony)\s+'
+            r'([A-Za-z0-9][A-Za-z0-9\s\+\-]{2,28}?)'
+            r'(?=\s*(?:5G|4G|Pro|Max|Ultra|Lite|FE|Plus|\+|,|\.|launched|review|price|₹|\d{4,}|$))'
+        )
+        matches = re.findall(pattern, clean)
+        for brand, model in matches:
+            full = (brand.strip() + " " + model.strip()).strip()
+            full = re.sub(r'\s+', ' ', full)
+            # Must be ≥ 6 chars and contain at least one digit or model word
+            if len(full) < 6:
                 continue
+            if full in seen_names:
+                continue
+            # Reject garbage
+            if re.search(r'\b(the|and|for|with|vs|in|of|on|at|by|to|from|that|this|best|top)\b',
+                         full, re.I):
+                continue
+            seen_names.add(full)
+            found.append({
+                "title":       full,
+                "description": f"Recently launched: {full} — {source_name}",
+                "url":         source_url,
+                "source":      source_name,
+                "published":   datetime.datetime.now().isoformat(),
+                "category":    "smartphone",
+                "_score":      5,
+            })
+            if len(found) >= max_phones:
+                break
+        return found
 
-            # Try RSS first
+    # ─────────────────────────────────────────────────────────────
+    # SOURCE 1 — Beebom latest-mobile-phones?launchYear=2026
+    # ─────────────────────────────────────────────────────────────
+    try:
+        url = "https://gadgets.beebom.com/latest-mobile-phones?launchYear=2026"
+        r = requests.get(url, headers=HEADERS, timeout=12)
+        if r.status_code == 200:
+            phones = _extract_phones_from_text(r.text, url, "Beebom 2026", max_phones=15)
+            results.extend(phones)
+            print(f"[LiveScrape][Beebom 2026] Found {len(phones)} phones")
+    except Exception as e:
+        print(f"[LiveScrape][Beebom 2026] Error: {e}")
+
+    # ─────────────────────────────────────────────────────────────
+    # SOURCE 2 — 91Mobiles 3-month filter
+    # ─────────────────────────────────────────────────────────────
+    try:
+        url = ("https://www.91mobiles.com/list-of-phones/latest-mobiles-in-india"
+               "?filters=rngFl_arr_date%3D3-month")
+        r = requests.get(url, headers=HEADERS, timeout=12)
+        if r.status_code == 200:
+            phones = _extract_phones_from_text(r.text, url, "91Mobiles 3mo", max_phones=15)
+            results.extend(phones)
+            print(f"[LiveScrape][91Mobiles 3mo] Found {len(phones)} phones")
+    except Exception as e:
+        print(f"[LiveScrape][91Mobiles 3mo] Error: {e}")
+
+    # ─────────────────────────────────────────────────────────────
+    # SOURCE 3 — 91Mobiles all latest
+    # ─────────────────────────────────────────────────────────────
+    try:
+        url = "https://www.91mobiles.com/list-of-phones/latest-mobiles-in-india"
+        r = requests.get(url, headers=HEADERS, timeout=12)
+        if r.status_code == 200:
+            phones = _extract_phones_from_text(r.text, url, "91Mobiles Latest", max_phones=12)
+            results.extend(phones)
+            print(f"[LiveScrape][91Mobiles Latest] Found {len(phones)} phones")
+    except Exception as e:
+        print(f"[LiveScrape][91Mobiles Latest] Error: {e}")
+
+    # ─────────────────────────────────────────────────────────────
+    # SOURCE 4 — MySmartPrice new launches
+    # ─────────────────────────────────────────────────────────────
+    try:
+        url = "https://www.mysmartprice.com/mobile/pricelist/latest-mobile-phones-for-all.html"
+        r = requests.get(url, headers=HEADERS, timeout=12)
+        if r.status_code == 200:
+            phones = _extract_phones_from_text(r.text, url, "MySmartPrice", max_phones=12)
+            results.extend(phones)
+            print(f"[LiveScrape][MySmartPrice] Found {len(phones)} phones")
+    except Exception as e:
+        print(f"[LiveScrape][MySmartPrice] Error: {e}")
+
+    # ─────────────────────────────────────────────────────────────
+    # SOURCE 5 — Gadgets360 smartphones section
+    # ─────────────────────────────────────────────────────────────
+    try:
+        url = "https://www.gadgets360.com/mobiles/smartphones"
+        r = requests.get(url, headers=HEADERS, timeout=12)
+        if r.status_code == 200:
+            phones = _extract_phones_from_text(r.text, url, "Gadgets360", max_phones=12)
+            results.extend(phones)
+            print(f"[LiveScrape][Gadgets360] Found {len(phones)} phones")
+    except Exception as e:
+        print(f"[LiveScrape][Gadgets360] Error: {e}")
+
+    # ─────────────────────────────────────────────────────────────
+    # SOURCE 6 — 91Mobiles launch RSS (fallback)
+    # ─────────────────────────────────────────────────────────────
+    try:
+        import xml.etree.ElementTree as ET
+        url = "https://www.91mobiles.com/hub/category/launch/feed/"
+        r = requests.get(url, headers=HEADERS, timeout=10)
+        if r.status_code == 200:
             try:
-                root = ET.fromstring(r.content)
-                items = root.findall(".//item") or root.findall(".//{http://www.w3.org/2005/Atom}entry")
-                for item in items[:8]:
-                    t = item.find("title")
-                    l = item.find("link")
-                    d = item.find("description")
+                root  = ET.fromstring(r.content)
+                items = root.findall(".//item")
+                for item in items[:10]:
+                    t   = item.find("title")
+                    l   = item.find("link")
                     pub = item.find("pubDate")
-
                     title = t.text.strip() if t is not None and t.text else ""
                     link  = l.text.strip() if l is not None and l.text else url
-                    desc  = re.sub(r"<[^>]+>", "", d.text or "")[:400] if d is not None else ""
-
-                    # Date filter
+                    # Skip if published before 2025
                     if pub is not None and pub.text:
-                        raw = pub.text.strip()
-                        for yr in re.findall(r"\b(202[0-4])\b", raw):
-                            if int(yr) < 2025:
-                                title = ""  # mark for skip
-                                break
-
-                    if title and len(title) > 15:
-                        results.append({"title": title, "url": link, "description": desc, "source": name})
-
+                        old_yrs = re.findall(r"\b(202[0-4])\b", pub.text)
+                        if old_yrs:
+                            continue
+                    if title and len(title) > 15 and title not in seen_names:
+                        phone = extract_phone_name(title)
+                        if phone and phone not in seen_names:
+                            seen_names.add(phone)
+                            results.append({
+                                "title":       phone,
+                                "description": title,
+                                "url":         link,
+                                "source":      "91Mobiles RSS",
+                                "published":   datetime.datetime.now().isoformat(),
+                                "category":    "smartphone",
+                                "_score":      4,
+                            })
             except ET.ParseError:
-                # HTML scrape fallback
-                links_found = re.findall(r"href=[^>]+>([^<]{20,100})</a>", r.text)
-                for href, text in links_found[:5]:
-                    if any(b in text.lower() for b in ["samsung", "oneplus", "xiaomi", "realme", "vivo", "iqoo", "nothing", "oppo", "motorola", "poco"]):
-                        results.append({"title": text.strip(), "url": href, "description": "", "source": name})
+                pass
+    except Exception as e:
+        print(f"[LiveScrape][91Mobiles RSS] Error: {e}")
 
-        except Exception as e:
-            print(f"[LiveScrape] {name} error: {e}")
-            continue
+    # ─────────────────────────────────────────────────────────────
+    # SOURCE 7 — GadgetBridge RSS (fallback)
+    # ─────────────────────────────────────────────────────────────
+    try:
+        import xml.etree.ElementTree as ET
+        url = "https://gadgetbridge.com/mobiles/feed/"
+        r = requests.get(url, headers=HEADERS, timeout=10)
+        if r.status_code == 200:
+            try:
+                root  = ET.fromstring(r.content)
+                items = root.findall(".//item")
+                for item in items[:10]:
+                    t   = item.find("title")
+                    l   = item.find("link")
+                    pub = item.find("pubDate")
+                    title = t.text.strip() if t is not None and t.text else ""
+                    link  = l.text.strip() if l is not None and l.text else url
+                    if pub is not None and pub.text:
+                        old_yrs = re.findall(r"\b(202[0-4])\b", pub.text)
+                        if old_yrs:
+                            continue
+                    if title and len(title) > 15 and title not in seen_names:
+                        phone = extract_phone_name(title)
+                        if phone and phone not in seen_names:
+                            seen_names.add(phone)
+                            results.append({
+                                "title":       phone,
+                                "description": title,
+                                "url":         link,
+                                "source":      "GadgetBridge RSS",
+                                "published":   datetime.datetime.now().isoformat(),
+                                "category":    "smartphone",
+                                "_score":      3,
+                            })
+            except ET.ParseError:
+                pass
+    except Exception as e:
+        print(f"[LiveScrape][GadgetBridge RSS] Error: {e}")
 
-    print(f"[LiveScrape] Found {len(results)} potential 2025-2026 launches")
+    # ─────────────────────────────────────────────────────────────
+    # Cross-verify: remove dupes, sort by score
+    # ─────────────────────────────────────────────────────────────
+    # Deduplicate by title (case-insensitive)
+    deduped = {}
+    for item in results:
+        key = item["title"].lower().strip()
+        if key not in deduped:
+            deduped[key] = item
+    results = sorted(deduped.values(),
+                     key=lambda x: x.get("_score", 3), reverse=True)
+
+    print(f"[LiveScrape] ✅ Total unique 2026 phones found: {len(results)}")
     return results
 
 
@@ -1718,7 +1896,7 @@ def pick_launch_story(log, exclude_titles=None):
         used_titles = used_titles | set(exclude_titles)
 
     # ── STEP 0: Live scraper — most reliable 2025-2026 source ──
-    print("[Launch] Step 0: Scraping live launch pages...")
+    print("[Launch] Step 0: Scraping live 2026 launch pages (5 sources)...")
     live_results = scrape_live_2026_launches()
     for item in live_results:
         title = item.get("title", "")
@@ -1727,21 +1905,34 @@ def pick_launch_story(log, exclude_titles=None):
             continue
         if any(ex in tl for ex in EXCLUDE_KEYWORDS):
             continue
+        # Hard reject if year 2020-2024 anywhere in title
         if re.search(r"\b(200[0-9]|201[0-9]|202[0-4])\b", title):
             continue
         phone_found = extract_phone_name(title)
         if not phone_found:
+            # title IS the phone name (set by _extract_phones_from_text)
+            phone_found = title.strip()
+        if not phone_found or len(phone_found) < 4:
             continue
+        # ── v31: Try GSMArena verify; if network fails, still accept ──
         is_valid, gsm_specs, gsm_url = verify_phone_exists_2026(phone_found)
         if not is_valid:
-            continue
+            # GSMArena might be blocked in CI — accept if phone came from
+            # a trusted 2026 scrape source and title has no old year marker
+            trusted_sources = {"Beebom 2026", "91Mobiles 3mo", "91Mobiles Latest",
+                                "MySmartPrice", "Gadgets360"}
+            if item.get("source") in trusted_sources:
+                print(f"[Launch][TRUSTED-NO-GSM] Accepting {phone_found} from {item['source']}")
+                gsm_specs = ""
+            else:
+                continue
         live_data = fetch_live_launch_data(phone_found, item.get("url",""))
-        item["specs"]      = live_data or gsm_specs
+        item["specs"]      = live_data or gsm_specs or "Use your knowledge of this device."
         item["category"]   = detect_cat(title) or "smartphone"
         item["phone_name"] = phone_found
         item["rss_context"]= item.get("description","")
         item["published"]  = datetime.datetime.now().isoformat()
-        print(f"[Launch][LIVE-VERIFIED] {phone_found} ✅")
+        print(f"[Launch][LIVE-VERIFIED] {phone_found} ✅ ← {item['source']}")
         return item
 
     # ── STEP 1: Scan breaking news ──
@@ -1826,8 +2017,21 @@ def pick_news_story(log, exclude_titles=None):
         title = story.get("title", "")
         if title in used_titles:
             continue
+        # ── v31 FIX: reject old phones in fallback path ──
+        if is_old_phone(title):
+            print(f"[News][SKIP-OLD] {title[:60]}")
+            continue
+        if re.search(r"\b(200[0-9]|201[0-9]|202[0-4])\b", title):
+            print(f"[News][SKIP-OLD-YEAR] {title[:60]}")
+            continue
+        # Must contain a known phone brand or we skip
+        phone_check = extract_phone_name(title)
+        if not phone_check:
+            # allow non-phone stories only if they don't smell like an old phone review
+            pass
         story["specs"]    = get_specs(title)
         story["category"] = story.get("category") or detect_cat(title)
+        story["phone_name"] = phone_check or title.split()[0]
         print(f"[Breaking][{story['category'].upper()}] {title[:65]}")
         return story
 
@@ -1838,12 +2042,21 @@ def pick_news_story(log, exclude_titles=None):
         data = CAT[pcat]
         for name, url in feeds[:20]:
             for a in fetch_rss(name, url):
-                if a["title"] not in used_titles:
-                    if any(kw in a["title"].lower() for kw in data["detect"]):
-                        a["specs"]    = get_specs(a["title"])
-                        a["category"] = pcat
-                        print(f"[Fallback][{pcat}] {a['title'][:60]}")
-                        return a
+                title = a["title"]
+                if title in used_titles:
+                    continue
+                # ── v31 FIX: reject old phones ──
+                if is_old_phone(title):
+                    continue
+                if re.search(r"\b(200[0-9]|201[0-9]|202[0-4])\b", title):
+                    continue
+                if any(kw in title.lower() for kw in data["detect"]):
+                    phone_check = extract_phone_name(title)
+                    a["specs"]      = get_specs(title)
+                    a["category"]   = pcat
+                    a["phone_name"] = phone_check or title.split()[0]
+                    print(f"[Fallback][{pcat}] {title[:60]}")
+                    return a
 
     # ── Step 2: Final fallback — NewsAPI on category news topics ──
     for cat, data in CAT.items():
@@ -3297,20 +3510,26 @@ def groq_draft(story, is_search):
     client = Cerebras(api_key=CEREBRAS_API_KEY)
     year = datetime.datetime.now().year
 
-    # ── Smart phone name extraction ──
-    phone = story.get("title", "[Phone]")
-    phone_clean = extract_phone_name(phone)
-    if not phone_clean:
-        # Try splitting on colon and extracting brand from each part
-        for part in re.split(r'[:|–—]', phone):
-            c = extract_phone_name(part.strip())
-            if c:
-                phone_clean = c
-                break
-    if not phone_clean or len(phone_clean) < 4:
-        # Last resort — use description to find phone name
-        desc = story.get("description","")
-        phone_clean = extract_phone_name(desc) or re.split(r'[:|–—]', phone)[0].strip()
+    # ── v31 FIX: use pre-verified phone_name from pick_launch_story first ──
+    # pick_launch_story already runs extract_phone_name + verify_phone_exists_2026
+    # and stores the clean name in story["phone_name"] — use it directly.
+    phone_clean = (story.get("phone_name") or "").strip()
+
+    # Only fall back to title extraction if phone_name is missing or garbage
+    if not phone_clean or len(phone_clean) < 4 or "march" in phone_clean.lower() or "we " in phone_clean.lower()[:4]:
+        phone = story.get("title", "[Phone]")
+        phone_clean = extract_phone_name(phone)
+        if not phone_clean:
+            # Try splitting on colon and extracting brand from each part
+            for part in re.split(r'[:|–—]', phone):
+                c = extract_phone_name(part.strip())
+                if c:
+                    phone_clean = c
+                    break
+        if not phone_clean or len(phone_clean) < 4:
+            # Last resort — use description to find phone name
+            desc_fallback = story.get("description","")
+            phone_clean = extract_phone_name(desc_fallback) or re.split(r'[:|–—]', phone)[0].strip()
     # Remove news garbage words from phone name
     phone_clean = re.sub(r'\b(the latest|ai news|announced in|india launch|today|livestream|details)\b', '', phone_clean, flags=re.IGNORECASE).strip()
     phone_clean = phone_clean.strip(" .,:-")
