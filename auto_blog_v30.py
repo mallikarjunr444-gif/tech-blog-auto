@@ -1,4 +1,4 @@
-# TECH NEWS WITH AI - AUTO BLOG v44.0
+# TECH NEWS WITH AI - AUTO BLOG v45.0
 # v37 — Skip unknown specs entirely · Exact 16-section template · Verified data only
 #
 # ================================================================
@@ -1476,58 +1476,100 @@ def should_post_cat(log, cat):
 
 def verify_phone_exists_2026(phone_name):
     """
-    Verify phone is real, launched in 2025-2026, and available in India.
-    Returns (is_valid, specs_data, official_url) or (False, "", "")
+    STRICT verification — phone MUST be confirmed 2025-2026 on GSMArena.
+    Returns (is_valid, specs_data, device_url).
+    On ANY network error → returns False (fail safe, never allow unverified).
     """
-    print(f"[Verify] Checking if {phone_name} is a real 2026 launch...")
-    
-    # Step 1: Search GSMArena
+    print(f"[Verify] Checking: {phone_name}")
     try:
         q = phone_name.replace(" ", "+")
         r = requests.get(
             f"https://www.gsmarena.com/search.php3?sQuickSearch={q}",
-            headers=HEADERS, timeout=10
+            headers=HEADERS, timeout=12
         )
-        # Find device links
+        if r.status_code != 200:
+            print(f"[Verify] GSMArena unreachable — REJECTING {phone_name}")
+            return False, "", ""
+
         links = re.findall(r'href="([a-z0-9_]+-\d+\.php)"', r.text)
         if not links:
-            print(f"[Verify] {phone_name} NOT found on GSMArena — skipping")
+            print(f"[Verify] {phone_name} not on GSMArena — REJECTED")
             return False, "", ""
-        
-        # Fetch device page
+
         device_url = "https://www.gsmarena.com/" + links[0]
-        r2 = requests.get(device_url, headers=HEADERS, timeout=10)
-        
-        # Check announced/released year
-        year_match = re.search(r'Announced\s*</td>\s*<td[^>]*>\s*(\d{4})', r2.text)
-        avail_match = re.search(r'Status\s*</td>\s*<td[^>]*>([^<]+)', r2.text)
-        
-        if year_match:
-            announced_year = int(year_match.group(1))
-            if announced_year < 2025:
-                print(f"[Verify] {phone_name} announced in {announced_year} — too old, skipping")
+        r2 = requests.get(device_url, headers=HEADERS, timeout=12)
+        if r2.status_code != 200:
+            print(f"[Verify] Cannot load GSMArena page — REJECTING {phone_name}")
+            return False, "", ""
+
+        page = r2.text
+
+        # ── Check ALL year mentions in the page ──
+        # GSMArena shows year in multiple places — find the announced year
+        year_found = None
+        # Method 1: structured table
+        for pat in [
+            r'Announced[^<]*<[^>]+>\s*(\d{4})',
+            r'announced.*?(\d{4})',
+            r'Released.*?(\d{4})',
+            r'(\d{4})\s*(?:Q[1-4]|January|February|March|April|May|June|July|August|September|October|November|December)',
+        ]:
+            m = re.search(pat, page, re.IGNORECASE)
+            if m:
+                yr = int(m.group(1))
+                if 2020 <= yr <= 2027:
+                    year_found = yr
+                    break
+
+        if year_found is None:
+            # Try finding any year 2020-2027 in the page title area
+            title_area = page[:3000]
+            years = re.findall(r'\b(202[0-7])\b', title_area)
+            if years:
+                year_found = int(years[0])
+
+        if year_found is not None:
+            if year_found < 2025:
+                print(f"[Verify] ❌ {phone_name} is from {year_found} — REJECTED (too old)")
                 return False, "", ""
-            print(f"[Verify] {phone_name} confirmed: announced {announced_year} ✅")
-        
-        if avail_match:
-            status = avail_match.group(1).strip()
-            print(f"[Verify] Status: {status}")
-            # Skip if cancelled, rumoured, or never released
-            if any(w in status.lower() for w in ["cancelled", "rumoured", "never", "concept"]):
-                print(f"[Verify] {phone_name} status is '{status}' — skipping")
+            print(f"[Verify] ✅ {phone_name} confirmed: {year_found}")
+        else:
+            # Cannot confirm year — REJECT (fail safe)
+            print(f"[Verify] ⚠️ Cannot confirm year for {phone_name} — REJECTED (fail safe)")
+            return False, "", ""
+
+        # ── Check status — reject cancelled/rumoured ──
+        status_m = re.search(r'Status[^<]*<[^>]+>([^<]+)', page, re.IGNORECASE)
+        if status_m:
+            status = status_m.group(1).strip().lower()
+            if any(w in status for w in ["cancelled", "cancel", "rumour", "concept", "never released"]):
+                print(f"[Verify] ❌ {phone_name} status = '{status}' — REJECTED")
                 return False, "", ""
-        
-        # Extract specs
+
+        # ── Extract full specs ──
         pairs = re.findall(
-            r'<td class="ttl">.*?<a[^>]*>([^<]+)</a>.*?</td>\s*<td class="nfo">([^<]+)',
-            r2.text, re.DOTALL
+            r'<td[^>]*class="ttl"[^>]*>.*?<a[^>]*>([^<]+)</a>.*?</td>\s*<td[^>]*class="nfo"[^>]*>([^<]+)',
+            page, re.DOTALL
         )
-        specs = "\n".join([k.strip() + ": " + v.strip() for k, v in pairs[:30]])
+        if not pairs:
+            # Fallback extraction
+            pairs = re.findall(r'<td class="ttl">.*?<a>([^<]+)</a>.*?</td>\s*<td class="nfo">([^<]+)', page, re.DOTALL)
+        specs = "\n".join([k.strip() + ": " + v.strip() for k, v in pairs[:35]])
+
+        if not specs:
+            # Try simpler pattern
+            specs = "\n".join([
+                k.strip() + ": " + v.strip()
+                for k, v in re.findall(r'<td[^>]*>([A-Z][^<]{2,30})</td>\s*<td[^>]*>([^<]{2,100})</td>', page)
+                if len(k.strip()) < 30
+            ][:30])
+
+        print(f"[Verify] ✅ Got {len(pairs)} spec entries for {phone_name}")
         return True, specs, device_url
 
     except Exception as e:
-        print(f"[Verify] Error checking {phone_name}: {e}")
-        return True, "", ""  # Allow if we can't check (network issue)
+        print(f"[Verify] ERROR for {phone_name}: {e} — REJECTED (fail safe)")
+        return False, "", ""
 
 
 def fetch_live_launch_data(phone_name, rss_url=""):
@@ -1598,18 +1640,112 @@ def fetch_live_launch_data(phone_name, rss_url=""):
     return combined
 
 
+def scrape_live_2026_launches():
+    """
+    Scrape LIVE pages for phones launched in 2025-2026.
+    Sources: GSMArena new phones, 91Mobiles, MySmartPrice.
+    Returns list of {title, url, description} dicts.
+    """
+    results = []
+    sources = [
+        # GSMArena new phones page — most reliable
+        ("GSMArena New", "https://www.gsmarena.com/search.php3?chk5G=selected&sAvailabilities=1&YearMade=2025-2026&chkAndroid=selected&fDisplayInchesMin=5.5&sOSes=2"),
+        # 91Mobiles recent launches
+        ("91Mobiles", "https://www.91mobiles.com/hub/category/launch/feed/"),
+        # MySmartPrice launches  
+        ("MySmartPrice", "https://www.mysmartprice.com/gear/category/smartphones/launched-in-india/feed/"),
+        # GadgetBridge launches
+        ("GadgetBridge", "https://gadgetbridge.com/mobiles/feed/"),
+    ]
+
+    import xml.etree.ElementTree as ET
+
+    for name, url in sources:
+        try:
+            r = requests.get(url, headers=HEADERS, timeout=10)
+            if r.status_code != 200:
+                continue
+
+            # Try RSS first
+            try:
+                root = ET.fromstring(r.content)
+                items = root.findall(".//item") or root.findall(".//{http://www.w3.org/2005/Atom}entry")
+                for item in items[:8]:
+                    t = item.find("title")
+                    l = item.find("link")
+                    d = item.find("description")
+                    pub = item.find("pubDate")
+
+                    title = t.text.strip() if t is not None and t.text else ""
+                    link  = l.text.strip() if l is not None and l.text else url
+                    desc  = re.sub(r"<[^>]+>", "", d.text or "")[:400] if d is not None else ""
+
+                    # Date filter
+                    if pub is not None and pub.text:
+                        raw = pub.text.strip()
+                        for yr in re.findall(r"\b(202[0-4])\b", raw):
+                            if int(yr) < 2025:
+                                title = ""  # mark for skip
+                                break
+
+                    if title and len(title) > 15:
+                        results.append({"title": title, "url": link, "description": desc, "source": name})
+
+            except ET.ParseError:
+                # HTML scrape fallback
+                links_found = re.findall(r"href=[^>]+>([^<]{20,100})</a>", r.text)
+                for href, text in links_found[:5]:
+                    if any(b in text.lower() for b in ["samsung", "oneplus", "xiaomi", "realme", "vivo", "iqoo", "nothing", "oppo", "motorola", "poco"]):
+                        results.append({"title": text.strip(), "url": href, "description": "", "source": name})
+
+        except Exception as e:
+            print(f"[LiveScrape] {name} error: {e}")
+            continue
+
+    print(f"[LiveScrape] Found {len(results)} potential 2025-2026 launches")
+    return results
+
+
 def pick_launch_story(log, exclude_titles=None):
     """
     Pick a new smartphone LAUNCH story from RSS feeds.
     Prioritises articles with LAUNCH_KEYWORDS and excludes EXCLUDE_KEYWORDS.
     Used for Day 1 and Day 2 of the 3-day review cycle.
     """
-    print("\n[Launch] Fetching new smartphone launch stories from RSS feeds...")
+    print("\n[Launch] Finding VERIFIED 2025-2026 smartphone launches...")
     used_titles = {e.get("title", "") for e in log}
     if exclude_titles:
         used_titles = used_titles | set(exclude_titles)
 
-    # Step 1: Scan breaking news for launch articles
+    # ── STEP 0: Live scraper — most reliable 2025-2026 source ──
+    print("[Launch] Step 0: Scraping live launch pages...")
+    live_results = scrape_live_2026_launches()
+    for item in live_results:
+        title = item.get("title", "")
+        tl = title.lower()
+        if title in used_titles:
+            continue
+        if any(ex in tl for ex in EXCLUDE_KEYWORDS):
+            continue
+        if re.search(r"\b(200[0-9]|201[0-9]|202[0-4])\b", title):
+            continue
+        phone_found = extract_phone_name(title)
+        if not phone_found:
+            continue
+        is_valid, gsm_specs, gsm_url = verify_phone_exists_2026(phone_found)
+        if not is_valid:
+            continue
+        live_data = fetch_live_launch_data(phone_found, item.get("url",""))
+        item["specs"]      = live_data or gsm_specs
+        item["category"]   = detect_cat(title) or "smartphone"
+        item["phone_name"] = phone_found
+        item["rss_context"]= item.get("description","")
+        item["published"]  = datetime.datetime.now().isoformat()
+        print(f"[Launch][LIVE-VERIFIED] {phone_found} ✅")
+        return item
+
+    # ── STEP 1: Scan breaking news ──
+    print("[Launch] Step 1: Scanning breaking news RSS...")
     breaking = fetch_breaking_news(log)
     for story in breaking:
         title = story.get("title", "")
@@ -3804,7 +3940,7 @@ def main():
     }
 
     print("=======================================================")
-    print(f" TECH NEWS WITH AI - AUTO BLOG v44.0")
+    print(f" TECH NEWS WITH AI - AUTO BLOG v45.0")
     print(f" {today}")
     print(f" TODAY: {day_labels[a_type]}")
     print(f" ONE article — full daily Groq token budget")
