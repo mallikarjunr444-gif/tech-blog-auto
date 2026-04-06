@@ -1,5 +1,46 @@
-# TECH NEWS WITH AI - AUTO BLOG v31.0
-# v31 — THREE ROOT BUG FIXES:
+# TECH NEWS WITH AI - AUTO BLOG v32.0
+# v32 — ROOT CAUSE FIX: Fake phone names like "Samsung One"
+#
+# ================================================================
+# BUG — "Samsung One" / "Vivo Mobile" / fake models in articles
+# ================================================================
+# ROOT CAUSE: _extract_phones_from_text regex was matching brand
+#   name + ANY adjacent word, including "Samsung One UI" → "Samsung One"
+#   "Vivo Mobile" from navigation text, "Realme Latest" from headings.
+#   verify_phone_exists_2026() then gets blocked by GitHub Actions
+#   IP filtering on GSMArena → falls to trusted-source bypass →
+#   "Samsung One" gets accepted and written as a full article.
+#
+# FIX: New is_plausible_phone_model() validator runs at 3 points:
+#
+#   1. Inside extract_phone_name() — blocks garbage at extraction
+#      "Samsung One" → ❌  "Samsung Galaxy S26" → ✅
+#
+#   2. Inside _extract_phones_from_text() — blocks garbage from
+#      HTML scraping before it ever enters the candidates list
+#
+#   3. Inside pick_launch_story() trusted-source bypass — even
+#      if GSMArena is blocked, model must pass the sanity check
+#
+# VALIDATOR RULES (is_plausible_phone_model):
+#   ✅ PASS: name contains at least one digit (A57, S26, 16, T5x)
+#   ✅ PASS: digit-free known family (Nord, Edge, Fold, Flip, Neo)
+#   ❌ FAIL: model is a single generic word (One, Mobile, New, Latest)
+#   ❌ FAIL: Samsung without "Galaxy" and without any digit
+#   ❌ FAIL: all model words are stop/generic words
+#
+# REAL PHONES THAT PASS (April 2026 launches from your URLs):
+#   Samsung Galaxy S26 Ultra ✅  Vivo T5x 5G ✅
+#   Realme P4 Lite 5G ✅         POCO X8 Pro Max ✅
+#   OnePlus Nord 6 ✅            Nothing Phone 4a ✅
+#   Motorola Edge 70 Fusion ✅   Redmi 15A 5G ✅
+#
+# GARBAGE THAT NOW GETS REJECTED:
+#   Samsung One ❌   Vivo Mobile ❌   Realme Latest ❌
+#   OnePlus New ❌   Samsung Store ❌  Xiaomi India ❌
+#
+# technewsai.me - Mallikarjun R, Bengaluru
+# ================================================================
 #
 # ================================================================
 # BUG 1 FIX — "we March 2026" phone name in article body
@@ -836,7 +877,8 @@ def extract_phone_name(title):
     e.g. "The latest AI news: Vivo V70 FE India Launch" → "Vivo V70 FE"
     e.g. "Samsung Galaxy S26 Review India 2026" → "Samsung Galaxy S26"
     e.g. "iQOO 15 Apex Edition Full Review" → "iQOO 15 Apex Edition"
-    Returns empty string if no known brand found.
+    Returns empty string if no known brand found OR model fails sanity check.
+    v32: now calls is_plausible_phone_model() to reject garbage like "Samsung One"
     """
     # Pattern: find brand name + model in title
     for brand in PHONE_BRANDS:
@@ -847,7 +889,7 @@ def extract_phone_name(title):
             name = m.group(0).strip()
             # Clean trailing words
             name = re.sub(r'\s+(India|Review|Launch|Price|Full|Specs|Hands|First|Official|\d{4}).*$', '', name, flags=re.IGNORECASE).strip()
-            if len(name) >= 4:
+            if len(name) >= 4 and is_plausible_phone_model(name):
                 return name
     return ""
 
@@ -881,6 +923,84 @@ def is_old_phone(title):
             yr = int(m.group(1))
             if yr < 2025:
                 return True
+    return False
+
+
+# ── Known Samsung model families that are real ──────────────────
+SAMSUNG_REAL_FAMILIES = {
+    "galaxy", "s26", "s25", "s24", "a57", "a56", "a55", "a36", "a35",
+    "a17", "a16", "m17", "m16", "m56", "m55", "f17", "f16", "xcover",
+}
+
+# ── Generic fake model words to always reject ───────────────────
+FAKE_MODEL_WORDS = {
+    "one", "two", "three", "four", "five", "six", "seven", "eight",
+    "nine", "ten", "ui", "os", "app", "store", "india", "mobile",
+    "phone", "smartphone", "device", "latest", "new", "best", "top",
+    "launch", "review", "price", "buy", "sale", "offer", "deal",
+    "series", "edition", "version", "update", "news", "blog",
+}
+
+def is_plausible_phone_model(phone_name):
+    """
+    Returns True only if phone_name looks like a REAL phone model.
+
+    Rules:
+      1. Must contain at least one digit  (Samsung Galaxy A57 ✅, Samsung One ❌)
+         OR be in a known digit-free model family (Nothing Phone, Moto Edge)
+      2. Model word after brand must NOT be a generic English word
+      3. Must be ≥ 6 characters total
+      4. Samsung-specific: "Samsung One" is rejected (One = One UI, not a model)
+
+    Examples:
+      ✅ Samsung Galaxy S26 Ultra, Realme 16 5G, Vivo T5x, POCO X8 Pro Max
+      ✅ Nothing Phone 4a, OnePlus Nord 6, Motorola Edge 70 Fusion
+      ❌ Samsung One, Vivo Mobile, Realme Latest, OnePlus New
+    """
+    if not phone_name or len(phone_name) < 6:
+        return False
+
+    parts = phone_name.strip().split()
+    if len(parts) < 2:
+        return False
+
+    # The model part = everything after the brand word
+    model_part = " ".join(parts[1:]).strip()
+    model_lower = model_part.lower()
+
+    # Reject if the whole model is a single generic word
+    if model_lower in FAKE_MODEL_WORDS:
+        return False
+
+    # Reject if ALL words in model are generic/stop words
+    model_words = model_lower.split()
+    if all(w in FAKE_MODEL_WORDS for w in model_words):
+        return False
+
+    # Reject Samsung-specific fake models
+    brand_lower = parts[0].lower()
+    if brand_lower == "samsung":
+        first_model_word = model_words[0] if model_words else ""
+        if first_model_word in FAKE_MODEL_WORDS:
+            return False
+        # Samsung models must start with "Galaxy" or contain a digit
+        if first_model_word != "galaxy" and not re.search(r'\d', phone_name):
+            return False
+
+    # Good if contains at least one digit (most real model names do)
+    if re.search(r'\d', phone_name):
+        return True
+
+    # Good if recognised digit-free model family
+    digit_free_ok = {
+        "nord", "edge", "ace", "find", "reno", "magic", "narzo",
+        "note", "flip", "fold", "ultra", "pro", "max", "lite",
+        "nothing phone", "play", "turbo", "neo",
+    }
+    if any(kw in model_lower for kw in digit_free_ok):
+        return True
+
+    # Reject everything else without a digit
     return False
 
 
@@ -1705,9 +1825,13 @@ def scrape_live_2026_launches():
                 continue
             if full in seen_names:
                 continue
-            # Reject garbage
+            # Reject garbage english words
             if re.search(r'\b(the|and|for|with|vs|in|of|on|at|by|to|from|that|this|best|top)\b',
                          full, re.I):
+                continue
+            # ── v32 KEY FIX: validate this is a real phone model ──
+            # Rejects "Samsung One", "Vivo Mobile", "Realme Latest" etc.
+            if not is_plausible_phone_model(full):
                 continue
             seen_names.add(full)
             found.append({
@@ -1914,17 +2038,18 @@ def pick_launch_story(log, exclude_titles=None):
             phone_found = title.strip()
         if not phone_found or len(phone_found) < 4:
             continue
-        # ── v31: Try GSMArena verify; if network fails, still accept ──
+        # ── v32: Try GSMArena verify; if network fails, still accept ──
         is_valid, gsm_specs, gsm_url = verify_phone_exists_2026(phone_found)
         if not is_valid:
             # GSMArena might be blocked in CI — accept if phone came from
-            # a trusted 2026 scrape source and title has no old year marker
+            # a trusted 2026 scrape source AND passes model name sanity check
             trusted_sources = {"Beebom 2026", "91Mobiles 3mo", "91Mobiles Latest",
                                 "MySmartPrice", "Gadgets360"}
-            if item.get("source") in trusted_sources:
+            if item.get("source") in trusted_sources and is_plausible_phone_model(phone_found):
                 print(f"[Launch][TRUSTED-NO-GSM] Accepting {phone_found} from {item['source']}")
                 gsm_specs = ""
             else:
+                print(f"[Launch][SKIP-FAKE-MODEL] Rejected: '{phone_found}'")
                 continue
         live_data = fetch_live_launch_data(phone_found, item.get("url",""))
         item["specs"]      = live_data or gsm_specs or "Use your knowledge of this device."
