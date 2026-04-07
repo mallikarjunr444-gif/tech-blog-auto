@@ -1,4 +1,5 @@
-# TECH NEWS WITH AI - AUTO BLOG v32.0
+# TECH NEWS WITH AI - AUTO BLOG v33.0
+# v33 — ROOT CAUSE FIX: Old phones (OnePlus 11 2023) selected instead of 2026 phones
 # v32 — ROOT CAUSE FIX: Fake phone names like "Samsung One"
 #
 # ================================================================
@@ -1848,6 +1849,33 @@ def scrape_live_2026_launches():
         return found
 
     # ─────────────────────────────────────────────────────────────
+    # SOURCE 0 — GSMArena 2026 release year (most authoritative)
+    # Only shows phones where announced/released year = 2026
+    # ─────────────────────────────────────────────────────────────
+    try:
+        url = "https://www.gsmarena.com/search.php3?releaseYear=2026&chk_new=1"
+        r = requests.get(url, headers=HEADERS, timeout=12)
+        if r.status_code == 200:
+            phones = _extract_phones_from_text(r.text, url, "GSMArena 2026", max_phones=20)
+            # Boost score — this is the most date-precise source
+            for p in phones:
+                p["_score"] = 10
+            results.extend(phones)
+            print(f"[LiveScrape][GSMArena 2026] Found {len(phones)} phones")
+        else:
+            # Also try the no-filter new phones page
+            url2 = "https://www.gsmarena.com/search.php3?chk_new=1"
+            r2 = requests.get(url2, headers=HEADERS, timeout=12)
+            if r2.status_code == 200:
+                phones = _extract_phones_from_text(r2.text, url2, "GSMArena New", max_phones=15)
+                for p in phones:
+                    p["_score"] = 8
+                results.extend(phones)
+                print(f"[LiveScrape][GSMArena New] Found {len(phones)} phones")
+    except Exception as e:
+        print(f"[LiveScrape][GSMArena 2026] Error: {e}")
+
+    # ─────────────────────────────────────────────────────────────
     # SOURCE 1 — Beebom latest-mobile-phones?launchYear=2026
     # ─────────────────────────────────────────────────────────────
     try:
@@ -1855,13 +1883,31 @@ def scrape_live_2026_launches():
         r = requests.get(url, headers=HEADERS, timeout=12)
         if r.status_code == 200:
             phones = _extract_phones_from_text(r.text, url, "Beebom 2026", max_phones=15)
+            for p in phones:
+                p["_score"] = 9
             results.extend(phones)
             print(f"[LiveScrape][Beebom 2026] Found {len(phones)} phones")
     except Exception as e:
         print(f"[LiveScrape][Beebom 2026] Error: {e}")
 
     # ─────────────────────────────────────────────────────────────
-    # SOURCE 2 — 91Mobiles 3-month filter
+    # SOURCE 2a — 91Mobiles 1-month filter (strictest date filter)
+    # ─────────────────────────────────────────────────────────────
+    try:
+        url = ("https://www.91mobiles.com/list-of-phones/latest-mobiles-in-india"
+               "?filters=rngFl_arr_date%3D1-month")
+        r = requests.get(url, headers=HEADERS, timeout=12)
+        if r.status_code == 200:
+            phones = _extract_phones_from_text(r.text, url, "91Mobiles 1mo", max_phones=15)
+            for p in phones:
+                p["_score"] = 9
+            results.extend(phones)
+            print(f"[LiveScrape][91Mobiles 1mo] Found {len(phones)} phones")
+    except Exception as e:
+        print(f"[LiveScrape][91Mobiles 1mo] Error: {e}")
+
+    # ─────────────────────────────────────────────────────────────
+    # SOURCE 2b — 91Mobiles 3-month filter
     # ─────────────────────────────────────────────────────────────
     try:
         url = ("https://www.91mobiles.com/list-of-phones/latest-mobiles-in-india"
@@ -1869,47 +1915,72 @@ def scrape_live_2026_launches():
         r = requests.get(url, headers=HEADERS, timeout=12)
         if r.status_code == 200:
             phones = _extract_phones_from_text(r.text, url, "91Mobiles 3mo", max_phones=15)
+            for p in phones:
+                p["_score"] = 8
             results.extend(phones)
             print(f"[LiveScrape][91Mobiles 3mo] Found {len(phones)} phones")
     except Exception as e:
         print(f"[LiveScrape][91Mobiles 3mo] Error: {e}")
 
     # ─────────────────────────────────────────────────────────────
-    # SOURCE 3 — 91Mobiles all latest
+    # SOURCE 3 — Smartprix new launches 2026 (date-sorted, India)
+    # NOTE: This is a date-filtered page — only recent launches.
     # ─────────────────────────────────────────────────────────────
     try:
-        url = "https://www.91mobiles.com/list-of-phones/latest-mobiles-in-india"
+        url = "https://www.smartprix.com/mobiles/new-launches"
         r = requests.get(url, headers=HEADERS, timeout=12)
         if r.status_code == 200:
-            phones = _extract_phones_from_text(r.text, url, "91Mobiles Latest", max_phones=12)
-            results.extend(phones)
-            print(f"[LiveScrape][91Mobiles Latest] Found {len(phones)} phones")
+            # Only accept phones where surrounding text has 2026 or current month
+            phones = _extract_phones_from_text(r.text, url, "Smartprix New", max_phones=12)
+            # Extra filter: reject if page context has the phone alongside a pre-2025 year
+            cur_year = str(datetime.datetime.now().year)
+            filtered = []
+            page_text = re.sub(r"<[^>]+>", " ", r.text)
+            for p in phones:
+                pn = p["title"]
+                # Find context window around phone name in page text
+                idx = page_text.lower().find(pn.lower()[:10])
+                if idx >= 0:
+                    ctx = page_text[max(0, idx-100):idx+200]
+                    old_yr = re.findall(r'\b(202[0-4])\b', ctx)
+                    if old_yr:
+                        print(f"[LiveScrape][Smartprix] Rejecting {pn} — context year {old_yr[0]}")
+                        continue
+                p["_score"] = 7
+                filtered.append(p)
+            results.extend(filtered)
+            print(f"[LiveScrape][Smartprix New] Found {len(filtered)} phones (after date filter)")
     except Exception as e:
-        print(f"[LiveScrape][91Mobiles Latest] Error: {e}")
+        print(f"[LiveScrape][Smartprix New] Error: {e}")
 
     # ─────────────────────────────────────────────────────────────
-    # SOURCE 4 — MySmartPrice new launches
+    # SOURCE 4 — MySmartPrice new launches (UNFILTERED — low trust)
+    # Kept only for fallback; score capped at 3 (below RSS sources)
     # ─────────────────────────────────────────────────────────────
     try:
         url = "https://www.mysmartprice.com/mobile/pricelist/latest-mobile-phones-for-all.html"
         r = requests.get(url, headers=HEADERS, timeout=12)
         if r.status_code == 200:
-            phones = _extract_phones_from_text(r.text, url, "MySmartPrice", max_phones=12)
+            phones = _extract_phones_from_text(r.text, url, "MySmartPrice", max_phones=8)
+            for p in phones:
+                p["_score"] = 3  # LOW — unfiltered page lists all-time phones
             results.extend(phones)
-            print(f"[LiveScrape][MySmartPrice] Found {len(phones)} phones")
+            print(f"[LiveScrape][MySmartPrice] Found {len(phones)} phones (low-trust fallback)")
     except Exception as e:
         print(f"[LiveScrape][MySmartPrice] Error: {e}")
 
     # ─────────────────────────────────────────────────────────────
-    # SOURCE 5 — Gadgets360 smartphones section
+    # SOURCE 5 — Gadgets360 smartphones (UNFILTERED — low trust)
     # ─────────────────────────────────────────────────────────────
     try:
-        url = "https://www.gadgets360.com/mobiles/smartphones"
+        url = "https://www.gadgets360.com/mobiles/new-launches"
         r = requests.get(url, headers=HEADERS, timeout=12)
         if r.status_code == 200:
-            phones = _extract_phones_from_text(r.text, url, "Gadgets360", max_phones=12)
+            phones = _extract_phones_from_text(r.text, url, "Gadgets360", max_phones=8)
+            for p in phones:
+                p["_score"] = 3  # LOW — unfiltered
             results.extend(phones)
-            print(f"[LiveScrape][Gadgets360] Found {len(phones)} phones")
+            print(f"[LiveScrape][Gadgets360] Found {len(phones)} phones (low-trust fallback)")
     except Exception as e:
         print(f"[LiveScrape][Gadgets360] Error: {e}")
 
@@ -2038,18 +2109,29 @@ def pick_launch_story(log, exclude_titles=None):
             phone_found = title.strip()
         if not phone_found or len(phone_found) < 4:
             continue
-        # ── v32: Try GSMArena verify; if network fails, still accept ──
+        # ── v33: Try GSMArena verify; if network fails, only trust DATE-FILTERED sources ──
         is_valid, gsm_specs, gsm_url = verify_phone_exists_2026(phone_found)
         if not is_valid:
-            # GSMArena might be blocked in CI — accept if phone came from
-            # a trusted 2026 scrape source AND passes model name sanity check
-            trusted_sources = {"Beebom 2026", "91Mobiles 3mo", "91Mobiles Latest",
-                                "MySmartPrice", "Gadgets360"}
-            if item.get("source") in trusted_sources and is_plausible_phone_model(phone_found):
+            # GSMArena is blocked in GitHub Actions CI.
+            # ONLY bypass for sources that have a date filter baked into their URL.
+            # "91Mobiles Latest", "MySmartPrice", "Gadgets360" are EXCLUDED because
+            # those pages list phones of ALL years — they are what caused OnePlus 11 Pro
+            # (2023) and other old phones to slip through.
+            # Score >= 7 = date-filtered source (GSMArena 2026, Beebom 2026, 91Mobiles 1mo,
+            #              91Mobiles 3mo, Smartprix New, GSMArena New).
+            DATE_FILTERED_TRUSTED = {
+                "GSMArena 2026", "GSMArena New",
+                "Beebom 2026",
+                "91Mobiles 1mo", "91Mobiles 3mo",
+                "Smartprix New",
+            }
+            if (item.get("source") in DATE_FILTERED_TRUSTED
+                    and item.get("_score", 0) >= 7
+                    and is_plausible_phone_model(phone_found)):
                 print(f"[Launch][TRUSTED-NO-GSM] Accepting {phone_found} from {item['source']}")
                 gsm_specs = ""
             else:
-                print(f"[Launch][SKIP-FAKE-MODEL] Rejected: '{phone_found}'")
+                print(f"[Launch][SKIP-UNVERIFIED] Rejected (unfiltered/low-score source): '{phone_found}' from {item.get('source','?')}")
                 continue
         live_data = fetch_live_launch_data(phone_found, item.get("url",""))
         item["specs"]      = live_data or gsm_specs or "Use your knowledge of this device."
