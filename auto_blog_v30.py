@@ -1,4 +1,4 @@
-# TECH NEWS WITH AI - AUTO BLOG v45.0
+# TECH NEWS WITH AI - AUTO BLOG v46.0
 # v37 — Skip unknown specs entirely · Exact 16-section template · Verified data only
 #
 # ================================================================
@@ -841,6 +841,73 @@ def extract_phone_name(title):
             if len(name) >= 4:
                 return name
     return ""
+
+    return ""
+
+
+# ================================================================
+# SMARTPHONE ONLY — strict filter
+# Only these brands make smartphones we want to review
+# Logitech, Razer, JBL, Sony headsets etc. NEVER pass this
+# ================================================================
+SMARTPHONE_BRANDS_ONLY = {
+    "samsung", "apple", "iphone", "oneplus", "xiaomi", "redmi", "poco",
+    "realme", "oppo", "vivo", "iqoo", "nothing", "google", "pixel",
+    "motorola", "moto", "nokia", "honor", "infinix", "tecno", "lava",
+    "asus", "rog phone", "blackshark", "nubia", "zte", "huawei",
+    "micromax", "itel", "gionee", "coolpad", "lenovo", "htc",
+}
+
+SMARTPHONE_MODEL_KEYWORDS = {
+    "phone", "smartphone", "5g", "4g", "android", "iphone", "galaxy",
+    "note", "pro", "ultra", "plus", "max", "lite", "mini", "edge",
+    "fold", "flip", "neo", "fe", "se", "ace", "turbo", "play",
+    "series", "gen", "pad phone",
+}
+
+NON_PHONE_KEYWORDS = {
+    "headset", "headphone", "earphone", "earbuds", "speaker", "mouse",
+    "keyboard", "monitor", "laptop", "tablet", "pad", "watch", "band",
+    "charger", "cable", "case", "cover", "powerbank", "router", "tv",
+    "camera", "drone", "printer", "scanner", "projector", "gaming chair",
+    "gaming desk", "microphone", "webcam", "gamepad", "controller",
+    "logitech", "razer", "steelseries", "corsair", "hyperx", "jbl",
+    "bose", "sennheiser", "boat", "noise", "skullcandy", "anker",
+    "superstrike", "superlight", "pro x", "g pro", "g502", "g305",
+}
+
+def is_smartphone_article(title, description=""):
+    """
+    Returns True ONLY if the title is about a smartphone from a known brand.
+    Rejects headsets, mice, tablets, laptops, accessories etc.
+    """
+    tl = title.lower()
+    dl = description.lower() if description else ""
+
+    # 1. Immediate reject if non-phone keyword found
+    for kw in NON_PHONE_KEYWORDS:
+        if kw in tl:
+            return False
+
+    # 2. Must have a known smartphone brand
+    has_brand = any(b in tl for b in SMARTPHONE_BRANDS_ONLY)
+    if not has_brand:
+        return False
+
+    # 3. Must NOT be about accessories/peripherals
+    # Even Samsung makes TVs and monitors — reject those
+    non_phone_signals = [
+        "tv", "television", "monitor", "display panel", "soundbar",
+        "refrigerator", "washing machine", "air conditioner",
+        "earbuds", "buds", "watch", "band", "ring"
+    ]
+    for sig in non_phone_signals:
+        if sig in tl:
+            # Allow if "phone" is also mentioned
+            if "phone" not in tl and "smartphone" not in tl:
+                return False
+
+    return True
 
 
 # Keywords that signal a GENUINE new product launch (not a rumour or deal)
@@ -1688,7 +1755,7 @@ def scrape_live_2026_launches():
                                 title = ""  # mark for skip
                                 break
 
-                    if title and len(title) > 15:
+                    if title and len(title) > 15 and is_smartphone_article(title, desc):
                         results.append({"title": title, "url": link, "description": desc, "source": name})
 
             except ET.ParseError:
@@ -1729,6 +1796,10 @@ def pick_launch_story(log, exclude_titles=None):
             continue
         if re.search(r"\b(200[0-9]|201[0-9]|202[0-4])\b", title):
             continue
+        # STRICT: only smartphones from known brands
+        if not is_smartphone_article(title, item.get("description","")):
+            print(f"[Launch][SKIP-NOT-PHONE] {title[:55]}")
+            continue
         phone_found = extract_phone_name(title)
         if not phone_found:
             continue
@@ -1737,7 +1808,7 @@ def pick_launch_story(log, exclude_titles=None):
             continue
         live_data = fetch_live_launch_data(phone_found, item.get("url",""))
         item["specs"]      = live_data or gsm_specs
-        item["category"]   = detect_cat(title) or "smartphone"
+        item["category"]   = "smartphone"
         item["phone_name"] = phone_found
         item["rss_context"]= item.get("description","")
         item["published"]  = datetime.datetime.now().isoformat()
@@ -1762,6 +1833,10 @@ def pick_launch_story(log, exclude_titles=None):
             print(f"[Launch][SKIP-OLD-YEAR] {title[:60]}")
             continue
         if any(lk in tl for lk in LAUNCH_KEYWORDS):
+            # STRICT: only smartphones
+            if not is_smartphone_article(title, story.get("description","")):
+                print(f"[Launch][SKIP-NOT-PHONE] {title[:55]}")
+                continue
             phone_found = extract_phone_name(title)
             if not phone_found:
                 print(f"[Launch][SKIP-NOBRAND] {title[:60]}")
@@ -1795,6 +1870,8 @@ def pick_launch_story(log, exclude_titles=None):
             if re.search(r"\b(200[0-9]|201[0-9]|202[0-4])\b", a["title"]):
                 continue
             if any(lk in tl for lk in LAUNCH_KEYWORDS):
+                if not is_smartphone_article(a["title"], a.get("description","")):
+                    continue
                 phone_found = extract_phone_name(a["title"])
                 if not phone_found:
                     continue
@@ -3940,7 +4017,7 @@ def main():
     }
 
     print("=======================================================")
-    print(f" TECH NEWS WITH AI - AUTO BLOG v45.0")
+    print(f" TECH NEWS WITH AI - AUTO BLOG v46.0")
     print(f" {today}")
     print(f" TODAY: {day_labels[a_type]}")
     print(f" ONE article — full daily Groq token budget")
