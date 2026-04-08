@@ -1,4 +1,4 @@
-# TECH NEWS WITH AI - AUTO BLOG v46.0
+# TECH NEWS WITH AI - AUTO BLOG v47.0
 # v37 — Skip unknown specs entirely · Exact 16-section template · Verified data only
 #
 # ================================================================
@@ -279,6 +279,9 @@ def fetch_breaking_news(log, max_results=20):
                 score += 1
 
             # Only keep stories with a meaningful score
+            # STRICT: smartphones only — no headsets, mice, keyboards etc.
+            if not is_smartphone_article(title, a.get("description","")):
+                continue
             if score >= 2:
                 candidates.append({
                     "title":       title,
@@ -924,6 +927,14 @@ EXCLUDE_KEYWORDS = [
     "report", "tipped", "allegedly", "could", "might", "may launch",
     "deal", "discount", "sale offer", "cashback", "coupon",
     "best phones list", "top 5", "top 10", "buying guide",
+    # Peripherals and non-phones — NEVER write about these
+    "logitech", "razer", "corsair", "hyperx", "steelseries",
+    "superstrike", "superlight", "deathadder", "viper",
+    "headset", "earbuds", "earphone", "speaker", "soundbar",
+    "mouse", "keyboard", "monitor", "webcam", "microphone",
+    "gaming chair", "gaming desk", "controller", "gamepad",
+    "router", "modem", "smartwatch", "fitness band",
+    "laptop", "macbook", "chromebook", "tablet",
 ]
 
 # Old phone model years — never write reviews for these
@@ -1891,36 +1902,54 @@ def pick_launch_story(log, exclude_titles=None):
 
 
 def pick_news_story(log, exclude_titles=None):
-    print("\n[News] Fetching live breaking news from RSS feeds...")
+    print("\n[News] Fetching live breaking news — smartphones only...")
     used_titles = {e.get("title","") for e in log}
     if exclude_titles:
         used_titles = used_titles | exclude_titles
 
-    # ── Step 0: Fetch live breaking stories via fetch_breaking_news() ──
-    # Scans BREAKING_RSS_PRIORITY + ALL_RSS, scores by recency & relevance
     breaking = fetch_breaking_news(log)
     for story in breaking:
         title = story.get("title", "")
         if title in used_titles:
             continue
-        story["specs"]    = get_specs(title)
-        story["category"] = story.get("category") or detect_cat(title)
-        print(f"[Breaking][{story['category'].upper()}] {title[:65]}")
+        # STRICT: smartphones only
+        if not is_smartphone_article(title, story.get("description","")):
+            print(f"[News][SKIP-NOT-PHONE] {title[:55]}")
+            continue
+        # STRICT: 2025-2026 only
+        if re.search(r"\b(200[0-9]|201[0-9]|202[0-4])\b", title):
+            print(f"[News][SKIP-OLD-YEAR] {title[:55]}")
+            continue
+        phone_found = extract_phone_name(title)
+        if not phone_found:
+            print(f"[News][SKIP-NOBRAND] {title[:55]}")
+            continue
+        story["specs"]    = get_specs(phone_found)
+        story["category"] = "smartphone"
+        story["phone_name"] = phone_found
+        print(f"[News][✅] {phone_found} ← {title[:50]}")
         return story
 
-    # ── Step 1: Fallback — scan ALL_RSS for any category match ──
+    # ── Step 1: Fallback — scan ALL_RSS for smartphones only ──
     feeds = ALL_RSS[:]
     random.shuffle(feeds)
-    for pcat in ["smartphone", "laptop"]:
-        data = CAT[pcat]
-        for name, url in feeds[:20]:
-            for a in fetch_rss(name, url):
-                if a["title"] not in used_titles:
-                    if any(kw in a["title"].lower() for kw in data["detect"]):
-                        a["specs"]    = get_specs(a["title"])
-                        a["category"] = pcat
-                        print(f"[Fallback][{pcat}] {a['title'][:60]}")
-                        return a
+    for name, url in feeds[:20]:
+        for a in fetch_rss(name, url):
+            title = a["title"]
+            if title in used_titles:
+                continue
+            if not is_smartphone_article(title, a.get("description","")):
+                continue
+            if re.search(r"\b(200[0-9]|201[0-9]|202[0-4])\b", title):
+                continue
+            phone_found = extract_phone_name(title)
+            if not phone_found:
+                continue
+            a["specs"]    = get_specs(phone_found)
+            a["category"] = "smartphone"
+            a["phone_name"] = phone_found
+            print(f"[Fallback][✅] {phone_found} ← {title[:55]}")
+            return a
 
     # ── Step 2: Final fallback — NewsAPI on category news topics ──
     for cat, data in CAT.items():
@@ -4017,7 +4046,7 @@ def main():
     }
 
     print("=======================================================")
-    print(f" TECH NEWS WITH AI - AUTO BLOG v46.0")
+    print(f" TECH NEWS WITH AI - AUTO BLOG v47.0")
     print(f" {today}")
     print(f" TODAY: {day_labels[a_type]}")
     print(f" ONE article — full daily Groq token budget")
