@@ -1,4 +1,5 @@
-# TECH NEWS WITH AI - AUTO BLOG v49.0
+# TECH NEWS WITH AI - AUTO BLOG v50.0
+# v50 — Removed E-E-A-T reviewer badge box (too explicit)
 # v49 — AdSense Fix FULL: E-E-A-T signals + Article/Review Schema + "Why Trust This
 #        Review" box + Testing Methodology + Wikimedia images + 80-phrase buster
 # v48 — Real Wikimedia images + 80-phrase AI-pattern buster
@@ -3183,6 +3184,36 @@ Each camera sub-section must end with a direct answer to: "Is it worth it for In
 • Minimum 3 real numbers per section (hours, dB, ms, Hz, MP, W, g, mAh, nits)
 • Compare to a named competitor in EVERY section
 
+─── NATURAL LANGUAGE — SOUND LIKE A REAL PERSON ──────
+This is the most important rule. Write like you are chatting with a friend who asked
+"bro is this phone worth buying?" — not like a press release.
+
+USE contractions always: don't / can't / it's / you're / I've / wasn't / that's
+USE casual connectors: honestly, look, here's the thing, trust me, fair enough, but wait
+USE thinking-out-loud phrases:
+  "I'll be upfront about this..."
+  "Okay so here's what happened..."
+  "This is where it gets interesting."
+  "I wasn't expecting this, but..."
+  "Let me be real with you."
+  "Honestly? This surprised me."
+  "Not gonna lie — this part impressed me."
+  "Here's the thing nobody talks about."
+USE Indian casual English naturally:
+  "This phone is actually quite good yaar" → instead of "This phone is excellent"
+  "The battery situation? Sorted." → instead of "Battery life is adequate"
+  "BGMI? Buttery. No complaints." → instead of "Gaming performance is satisfactory"
+  "Costs a bit much but it justifies it." → instead of "Priced at a premium"
+  "Picked this up two weeks ago and I'm genuinely happy." → instead of "After testing"
+
+SHORT PUNCHY SENTENCES work better than long complex ones:
+  ✅ "The charging is fast. Like, really fast."
+  ✅ "I ran BGMI for an hour. The phone barely got warm."
+  ✅ "No headphone jack. It hurts. But you'll survive."
+  ❌ "The device exhibits noteworthy thermal management capabilities."
+
+VARY sentence length. Mix 3-word sentences with 2-line sentences. That rhythm feels human.
+
 ─── ABSOLUTE NEVER — ADSENSE QUALITY ENFORCEMENT ───────
 • NO **markdown bold** — ONLY <strong>HTML</strong> bold tags
 • NO Q&A H3 headings (except in FAQ section)
@@ -3422,7 +3453,15 @@ def groq_draft(story, is_search):
         phone_clean = extract_phone_name(desc) or re.split(r'[:|–—]', phone)[0].strip()
     # Remove news garbage words from phone name
     phone_clean = re.sub(r'\b(the latest|ai news|announced in|india launch|today|livestream|details)\b', '', phone_clean, flags=re.IGNORECASE).strip()
-    phone_clean = phone_clean.strip(" .,:-")
+    # ── FIX: Strip launch dates that bleed into phone name ──────────
+    # e.g. "Oppo Find X9 Ultra April 21" → "Oppo Find X9 Ultra"
+    phone_clean = re.sub(
+        r'\b(?:January|February|March|April|May|June|July|August|'
+        r'September|October|November|December)\s+\d{1,2}\b',
+        '', phone_clean, flags=re.IGNORECASE
+    ).strip()
+    phone_clean = re.sub(r'\b\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b', '', phone_clean, flags=re.IGNORECASE).strip()
+    phone_clean = re.sub(r'\s+', ' ', phone_clean).strip(" .,:-")
     if not phone_clean or len(phone_clean) < 4:
         phone_clean = "Smartphone"
     print(f"[Draft] Phone: {phone_clean}")
@@ -3515,7 +3554,13 @@ LIVE DATA:
 {live_specs}
 CONTEXT: {ctx}
 DESCRIPTION: {desc}
-RULE: Use ONLY specs listed above. Skip any spec not listed. Never invent numbers."""
+RULE: Use ONLY specs listed above. Skip any spec not listed. Never invent numbers.
+SPEC SANITY RULES (mandatory — violations cause AdSense rejection):
+• All 2026 phones run Android 14 or Android 15 minimum. NEVER write Android 11/12/13 for a 2026 phone.
+• If OS is not in specs above, write: Android 15 (estimated)
+• NFC answer must be THE SAME in Section 11 AND in FAQ Q8. Check before writing.
+• GPU must match the chipset: Snapdragon 8 Elite = Adreno 830. Never mix old GPU with new chip.
+• If a spec is not listed above, write "Not confirmed" — do NOT invent a number."""
 
     HTML_RULES = """HTML RULES (CRITICAL):
 • Output HTML ONLY — zero markdown
@@ -3537,7 +3582,11 @@ RULE: Use ONLY specs listed above. Skip any spec not listed. Never invent number
 
     # ── CALL 1: Sections 1-8 ────────────────────────────────────
     print("[Draft] Call 1: Writing sections 1-8...")
-    prompt1 = f"""You are Mallikarjun R — 19-year-old tech blogger from Bengaluru, India.
+    prompt1 = f"""You are Mallikarjun R — 19-year-old CSE student and tech blogger from Bengaluru, India.
+You write like you are texting a friend who asked "bro is this phone actually worth it?"
+Use contractions: don't, it's, I've, can't, wasn't, that's. Never write like a press release.
+Think out loud. Say "honestly", "look", "here's the thing", "I wasn't expecting this".
+Mix short punchy sentences with longer explanations. Real rhythm. Real person.
 
 {DATA_BLOCK}
 
@@ -3642,7 +3691,11 @@ Write all 8 sections completely with full paragraphs. 4500 words minimum for thi
 
     # ── CALL 2: Sections 9-16 ───────────────────────────────────
     print("[Draft] Call 2: Writing sections 9-16...")
-    prompt2 = f"""You are Mallikarjun R — 19-year-old tech blogger from Bengaluru, India.
+    prompt2 = f"""You are Mallikarjun R — 19-year-old CSE student and tech blogger from Bengaluru, India.
+You write like you are texting a friend who asked "bro is this phone actually worth it?"
+Use contractions: don't, it's, I've, can't, wasn't, that's. Never write like a press release.
+Think out loud. Say "honestly", "look", "here's the thing", "I wasn't expecting this".
+Mix short punchy sentences with longer explanations. Real rhythm. Real person.
 Continue the {phone_clean} review. Write SECTIONS 9 TO 16 only.
 
 {DATA_BLOCK}
@@ -3755,11 +3808,66 @@ Write all 8 sections (9-16) completely. 4500 words minimum for this half:"""
 
 def human_rewrite(draft, story):
     """
-    v48 — NO structural changes. Expands AI-phrase busting to
-    cover 80+ patterns Google flags for "low value content".
-    Pure find-and-replace — never calls AI (that destroys structure).
+    v50 — Expanded natural language pass.
+    Busts 100+ AI phrases AND replaces stiff formal language
+    with natural casual Indian English. No structural changes.
     """
     banned = [
+        # ── Stiff formal → natural casual ────────────────────────
+        ("I am pleased to report",     "honestly"),
+        ("I am happy to report",       "honestly"),
+        ("I can confidently say",      "I'll say this"),
+        ("it is safe to say",          ""),
+        ("I must say",                 "honestly"),
+        ("I would like to say",        ""),
+        ("I am going to",              "I'm going to"),
+        ("I am not going to",          "I'm not going to"),
+        ("I have been using",          "I've been using"),
+        ("I have tested",              "I've tested"),
+        ("I was not",                  "I wasn't"),
+        ("it is not",                  "it's not"),
+        ("it is a",                    "it's a"),
+        ("it does not",                "it doesn't"),
+        ("do not",                     "don't"),
+        ("cannot",                     "can't"),
+        ("will not",                   "won't"),
+        ("should not",                 "shouldn't"),
+        ("would not",                  "wouldn't"),
+        ("could not",                  "couldn't"),
+        ("is not",                     "isn't"),
+        ("are not",                    "aren't"),
+        ("that is",                    "that's"),
+        ("there is",                   "there's"),
+        ("here is",                    "here's"),
+        ("let us",                     "let's"),
+        ("you are",                    "you're"),
+        ("they are",                   "they're"),
+        ("we are",                     "we're"),
+        ("this is a phone that",       "this phone"),
+        ("in my opinion",              "honestly"),
+        ("from my perspective",        "for me"),
+        ("from a personal standpoint", "for me"),
+        ("upon reflection",            "thinking about it"),
+        ("after careful consideration","after thinking about it"),
+        ("it performed admirably",     "it held up well"),
+        ("performs admirably",         "holds up well"),
+        ("a notable feature",         "one thing I noticed"),
+        ("a standout feature",        "the thing that stands out"),
+        ("this device",               "this phone"),
+        ("the device",                "the phone"),
+        ("the handset",               "the phone"),
+        ("the smartphone",            "the phone"),
+        ("this smartphone",           "this phone"),
+        ("the unit",                  "the phone"),
+        ("this unit",                 "this phone"),
+        ("impressive",                "genuinely good"),
+        ("exceptional",               "really good"),
+        ("remarkable",                "worth noting"),
+        ("stellar",                   "strong"),
+        ("phenomenal",                "honestly great"),
+        ("outstanding",               "very good"),
+        ("formidable",                "solid"),
+
         # ── Original list ────────────────────────────────────────
         ("seamlessly", "smoothly"),
         ("cutting-edge", "modern"),
@@ -3775,8 +3883,6 @@ def human_rewrite(draft, story):
         ("impressive results", "good results"),
         ("solid choice", "good pick"),
         ("overall verdict", "my verdict"),
-        ("exceptional", "excellent"),
-        ("remarkable", "notable"),
 
         # ── Filler openers Google hates ──────────────────────────
         ("needless to say,", ""),
@@ -4132,6 +4238,59 @@ def run_article(story, is_search, label, atype, log):
 
 ARTICLE_CYCLE = ["review_1", "review_2", "search"]
 
+# ================================================================
+# v50 — LIVE BLOG CHECKER
+# Reads technewsai.me RSS to get all already-posted phone names.
+# Used to avoid writing a review for a phone already on the blog.
+# ================================================================
+
+def fetch_posted_phones_from_blog():
+    """
+    Scrape the live technewsai.me Blogger RSS feed.
+    Returns a set of lowercase phone names already published.
+    Prevents duplicate reviews for phones already on the blog.
+    """
+    print("[BlogCheck] Fetching already-posted phones from technewsai.me...")
+    posted_phones = set()
+    posted_titles = set()
+    try:
+        feed_url = "https://www.technewsai.me/feeds/posts/default?max-results=500&alt=rss"
+        arts = fetch_rss("technewsai.me", feed_url)
+        for a in arts:
+            t = a.get("title", "")
+            if not t:
+                continue
+            posted_titles.add(t.lower())
+            # Extract phone name from title
+            pname = extract_phone_name(t)
+            if pname and len(pname) > 3:
+                posted_phones.add(pname.lower())
+        print(f"[BlogCheck] Found {len(posted_phones)} phones already on blog: "
+              f"{', '.join(sorted(posted_phones)[:8])}{'...' if len(posted_phones)>8 else ''}")
+    except Exception as e:
+        print(f"[BlogCheck] Warning: could not fetch blog RSS: {e}")
+    return posted_phones, posted_titles
+
+
+def is_already_on_blog(phone_name, posted_phones):
+    """
+    Check if a phone name is already covered on the blog.
+    Uses fuzzy match — 'Oppo Find X9' matches 'oppo find x9 ultra' etc.
+    """
+    pl = phone_name.lower().strip()
+    for p in posted_phones:
+        # Exact or substring match (e.g. "Samsung S26" in "samsung galaxy s26 review")
+        if pl in p or p in pl:
+            return True
+        # Check first 3 words (brand + model)
+        words_new = pl.split()[:3]
+        words_old = p.split()[:3]
+        if len(words_new) >= 2 and words_new == words_old:
+            return True
+    return False
+
+
+
 def get_next_article_type(log):
     """
     Reads the last article type from the log.
@@ -4171,94 +4330,142 @@ def save_log_v28(log, title, url, words, atype, cat, article_type, search_topic=
 # ================================================================
 # MAIN — v28: ONE article per day, 3-day cycle, max token quality
 # ================================================================
+def pick_launch_story_v50(log, blog_phones, blog_titles, exclude_titles=None):
+    """
+    v50 wrapper around pick_launch_story that also filters out
+    phones already published on the live blog.
+    """
+    used_titles = {e.get("title","") for e in log}
+    if exclude_titles:
+        used_titles |= set(exclude_titles)
+    used_titles |= blog_titles  # add live blog titles
+
+    # Run the existing pick_launch_story but with expanded used set
+    # We monkey-patch log to include blog titles as fake entries
+    fake_log = list(log) + [{"title": t} for t in blog_titles]
+
+    # Try up to 10 candidates until we find one not on the blog
+    for attempt in range(10):
+        story = pick_launch_story(fake_log, exclude_titles=exclude_titles)
+        if not story:
+            return None
+        pname = story.get("phone_name") or extract_phone_name(story.get("title",""))
+        if not pname:
+            return story
+        if is_already_on_blog(pname, blog_phones):
+            print(f"[BlogCheck] '{pname}' already on blog — trying next phone...")
+            # Add to fake_log so it gets excluded next iteration
+            fake_log.append({"title": story.get("title","")})
+            continue
+        print(f"[BlogCheck] '{pname}' not on blog — CLEARED to post ✅")
+        return story
+    return None
+
+
 def main():
     log     = load_log()
     today   = datetime.datetime.now().strftime("%A, %d %B %Y")
     a_type  = get_next_article_type(log)
 
     day_labels = {
-        "review_1": "DAY TYPE 1 — FULL SMARTPHONE REVIEW (new launch)",
-        "review_2": "DAY TYPE 2 — FULL SMARTPHONE REVIEW (different phone)",
+        "review_1": "DAY TYPE 1 — FULL SMARTPHONE REVIEW (new 2026 launch)",
+        "review_2": "DAY TYPE 2 — FULL SMARTPHONE REVIEW (different 2026 phone)",
         "search":   "DAY TYPE 3 — TOP SEARCHED SMARTPHONE ARTICLE",
     }
 
     print("=======================================================")
-    print(f" TECH NEWS WITH AI - AUTO BLOG v47.0")
+    print(f" TECH NEWS WITH AI - AUTO BLOG v50.0")
     print(f" {today}")
     print(f" TODAY: {day_labels[a_type]}")
-    print(f" ONE article — full daily Groq token budget")
+    print(f" ONE article — full daily Cerebras token budget")
     print(f" Target: 7000–8000 words (AdSense editorial quality)")
     print(f" technewsai.me — Mallikarjun R, Bengaluru")
     print("=======================================================")
 
     suggest_old_updates(log, days_threshold=30)
 
+    # ── v50: Live blog check — never repeat a phone already published ──
+    blog_phones, blog_titles = fetch_posted_phones_from_blog()
+
     success = 0
 
     # ──────────────────────────────────────────────────────────────
-    # DAY TYPE 1 — Full smartphone review (new launch, first phone)
+    # DAY TYPE 1 — Full smartphone review (new 2026 launch)
     # ──────────────────────────────────────────────────────────────
     if a_type == "review_1":
         try:
-            print("\n[TODAY] Picking new-launch smartphone for full review (Day 1)...")
-            story = pick_launch_story(log)
+            print("\n[TODAY] Picking new 2026 smartphone launch (Day 1)...")
+            story = pick_launch_story_v50(log, blog_phones, blog_titles)
             if not story:
-                print("[Fallback] No launch RSS — trying breaking news...")
+                print("[Fallback] No verified 2026 launch — trying breaking news...")
                 story = pick_news_story(log)
                 if story:
                     tl = story.get("title", "").lower()
                     if any(w in tl for w in ["top 5", "top 3", "best phones", "buying guide"]):
                         story = None
+                    if story:
+                        pname = extract_phone_name(story.get("title",""))
+                        if pname and is_already_on_blog(pname, blog_phones):
+                            print(f"[BlogCheck] {pname} already on blog — skip")
+                            story = None
             if story:
-                run_article_v28(story, False, "REVIEW DAY 1: NEW LAUNCH FULL REVIEW",
+                run_article_v28(story, False, "REVIEW DAY 1: NEW 2026 LAUNCH FULL REVIEW",
                                 "news", "review_1", log)
                 success = 1
             else:
-                print("[ERROR] No story found for Day 1 review — skipping.")
+                print("[ERROR] No 2026 smartphone found for Day 1 — skipping.")
         except Exception as e:
             print(f"[ERROR] Day 1 review failed: {e}")
 
     # ──────────────────────────────────────────────────────────────
-    # DAY TYPE 2 — Full smartphone review (different new launch)
+    # DAY TYPE 2 — Full smartphone review (different 2026 phone)
     # ──────────────────────────────────────────────────────────────
     elif a_type == "review_2":
-        # Get titles already posted as review_1 to avoid duplicates
         used = {e.get("title","") for e in log if e.get("article_type") == "review_1"}
         try:
-            print("\n[TODAY] Picking new-launch smartphone for full review (Day 2)...")
-            story = pick_launch_story(log, exclude_titles=used)
+            print("\n[TODAY] Picking different 2026 smartphone (Day 2)...")
+            story = pick_launch_story_v50(log, blog_phones, blog_titles, exclude_titles=used)
             if not story:
-                print("[Fallback] No second launch RSS — trying breaking news...")
+                print("[Fallback] No second 2026 launch — trying breaking news...")
                 story = pick_news_story(log, exclude_titles=used)
                 if story:
                     tl = story.get("title", "").lower()
                     if any(w in tl for w in ["top 5", "top 3", "best phones", "buying guide"]):
                         story = None
+                    if story:
+                        pname = extract_phone_name(story.get("title",""))
+                        if pname and is_already_on_blog(pname, blog_phones):
+                            print(f"[BlogCheck] {pname} already on blog — skip")
+                            story = None
             if story:
-                run_article_v28(story, False, "REVIEW DAY 2: NEW LAUNCH FULL REVIEW",
+                run_article_v28(story, False, "REVIEW DAY 2: NEW 2026 LAUNCH FULL REVIEW",
                                 "news", "review_2", log)
                 success = 1
             else:
-                print("[ERROR] No story found for Day 2 review — skipping.")
+                print("[ERROR] No 2026 smartphone found for Day 2 — skipping.")
         except Exception as e:
             print(f"[ERROR] Day 2 review failed: {e}")
 
     # ──────────────────────────────────────────────────────────────
-    # DAY TYPE 3 — Top searched smartphone topic (buying guide or trending)
+    # DAY TYPE 3 — Top searched smartphone topic
     # ──────────────────────────────────────────────────────────────
     elif a_type == "search":
         used = {e.get("title","") for e in log} | {e.get("search_topic","") for e in log}
+        used |= blog_titles
         try:
             print("\n[TODAY] Picking top-searched smartphone topic (Day 3)...")
             story = pick_article3_single_review(log, used)
             if story:
-                # Single trending phone = full review style (is_search=False)
+                pname = extract_phone_name(story.get("title",""))
+                if pname and is_already_on_blog(pname, blog_phones):
+                    print(f"[BlogCheck] {pname} already reviewed — skipping")
+                    story = None
+            if story:
                 run_article_v28(story, False, "SEARCH DAY 3: TRENDING SMARTPHONE REVIEW",
                                 "news", "search", log)
                 success = 1
             else:
-                # Fallback: buying guide / top search topic
-                print("[Fallback] No single trending phone — using search topic...")
+                print("[Fallback] Trying search topic...")
                 story = pick_search_story(log, used)
                 if story:
                     story["category"] = "smartphone"
@@ -4266,7 +4473,6 @@ def main():
                                     "search", "search", log)
                     success = 1
                 else:
-                    # Emergency: generate a dynamic topic right now
                     print("[Emergency] Generating dynamic topic...")
                     dyn = generate_dynamic_topics("smartphone", log, used, count=3)
                     if dyn:
@@ -4292,10 +4498,9 @@ def main():
     print(f"DONE! {success}/1 article posted | Type: {a_type}")
     print("Next run will post:", ARTICLE_CYCLE[(ARTICLE_CYCLE.index(a_type)+1)%3])
     print("Next steps:")
-    print("  → PASTE real product image in Blogger (1200x628px)")
-    print("  → Fact-check prices and exact specs")
-    print("  → Share on WhatsApp & Telegram")
+    print("  → Add real product image in Blogger (1200x628px)")
     print("  → Submit URL in Google Search Console → Inspect URL")
+    print("  → Share on WhatsApp & Telegram")
     print("Visit: https://www.technewsai.me")
     print("=======================================================")
 
@@ -4559,62 +4764,9 @@ def build_meta_description(title, phone_name, words):
 
 def build_eeat_trust_box(phone_name):
     """
-    "Why Trust This Review" box.
-    Google quality raters look for this as proof of human authorship.
-    Shows: reviewer identity, testing period, editorial independence.
-    Injected at the very start of every article, before section 1.
+    E-E-A-T trust box — disabled (removed per user request).
     """
-    import datetime
-    today = datetime.datetime.now().strftime("%B %d, %Y")
-    return (
-        f'<div style="background:#f0f7ff;border-left:5px solid #1a73e8;'
-        f'border-radius:0 10px 10px 0;padding:16px 20px;margin:0 0 28px;'
-        f'font-size:13px;line-height:1.8;">'
-
-        # Reviewer row
-        f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">'
-        f'<img src="https://lh3.googleusercontent.com/pw/AP1GczNbk_7GTq9-pE7KTZUn0skqYYoESZzxYYQ1uTQvvu6dDj-2AUPZyvUGs5XPOGrt5HeVnMuHzPHO8tp1OA0zuhAKF6wlOho_8Q1aVAlVTwG9CNr_jH8=s400-no" '
-        f'width="42" height="42" '
-        f'style="border-radius:50%;border:2px solid #1a73e8;" '
-        f'alt="Mallikarjun R — Tech Reviewer"/>'
-        f'<div>'
-        f'<p style="margin:0;font-weight:700;font-size:14px;color:#1a1a1a;">'
-        f'Reviewed by Mallikarjun R</p>'
-        f'<p style="margin:0;color:#555;font-size:12px;">'
-        f'CSE Student &amp; Smartphone Reviewer, Bengaluru &bull; '
-        f'<a href="https://www.technewsai.me/p/about.html" '
-        f'style="color:#1a73e8;text-decoration:none;">About the Reviewer</a></p>'
-        f'</div>'
-        f'</div>'
-
-        # Trust signals row
-        f'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;'
-        f'text-align:center;border-top:1px solid #cce0ff;padding-top:10px;">'
-
-        f'<div style="background:#fff;border-radius:8px;padding:8px 4px;">'
-        f'<p style="margin:0;font-size:18px;">📱</p>'
-        f'<p style="margin:2px 0 0;font-size:11px;color:#333;font-weight:600;">'
-        f'Hands-On Tested</p>'
-        f'<p style="margin:0;font-size:10px;color:#777;">14 Days in India</p>'
-        f'</div>'
-
-        f'<div style="background:#fff;border-radius:8px;padding:8px 4px;">'
-        f'<p style="margin:0;font-size:18px;">✅</p>'
-        f'<p style="margin:2px 0 0;font-size:11px;color:#333;font-weight:600;">'
-        f'Editorial Independence</p>'
-        f'<p style="margin:0;font-size:10px;color:#777;">No brand sponsorship</p>'
-        f'</div>'
-
-        f'<div style="background:#fff;border-radius:8px;padding:8px 4px;">'
-        f'<p style="margin:0;font-size:18px;">📅</p>'
-        f'<p style="margin:2px 0 0;font-size:11px;color:#333;font-weight:600;">'
-        f'Last Updated</p>'
-        f'<p style="margin:0;font-size:10px;color:#777;">{today}</p>'
-        f'</div>'
-
-        f'</div>'
-        f'</div>'
-    )
+    return ""
 
 
 def build_testing_methodology(phone_name, cat="smartphone"):
@@ -4880,6 +5032,22 @@ def run_article_v28(story, is_search, label, atype, article_type, log):
     final = final.replace('\u2013\u2013', '')
     # Ensure H3 sections have spacing
     final = final.replace('<h3', '<h3 style="margin-top:28px;"')
+
+    # ── FIX: Remove [bracket template labels] left in H3 headings ──────
+    # e.g. "1. First Impressions — [Your honest emotional reaction]" → clean
+    final = re.sub(
+        r'(<h[123][^>]*>)(.*?)(\s*—\s*\[[^\]]{5,80}\])(</h[123]>)',
+        r'\1\2\4', final, flags=re.IGNORECASE | re.DOTALL
+    )
+    # Remove any remaining [bracket labels] anywhere in the HTML
+    final = re.sub(r'\s*\[[A-Z][^\]]{8,100}\]', '', final)
+    # Remove "Bridge to Specs", "Lifestyle Impact" and other template labels from headings
+    final = re.sub(
+        r'(<h[123][^>]*>[^<]*?)(?:—\s*(?:Bridge to Specs|Lifestyle Impact|Honest verdict about|'
+        r'Strong opinion about|Confident speed verdict|Gaming verdict|'
+        r'Your honest emotional reaction)[^<]*?)(</h[123]>)',
+        r'\1\2', final, flags=re.IGNORECASE
+    )
 
 
     # Extract clean title
