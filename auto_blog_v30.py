@@ -1,18 +1,18 @@
-# TECH NEWS WITH AI - AUTO BLOG v51.0
-# v51 — 4-part phone selection fix:
-#   1. NON_PHONE_KEYWORDS expanded: "wallet","aadhaar","payment","credential","service",
-#      "update","feature","platform","app" etc — blocks service/feature articles entirely
-#   2. NON_PHONE_TITLE_PATTERNS: regex list rejecting "Now Supports", "Rolls Out",
-#      "Goes Global", "Aadhaar" etc — "Google Wallet Now Supports Aadhaar" → REJECTED
-#   3. is_smartphone_article() v51: requires at least one phone-specific signal in title
-#      (launch/review/specs/price/camera/battery...) — pure brand names without phone
-#      context (e.g. "Google Wallet India") are now rejected
-#   4. extract_phone_name() v51: hard cap at 4 model words; rejects titles containing
-#      service/feature keywords before any extraction attempt
-#   5. groq_draft() v51: uses story["phone_name"] (pre-GSMArena-verified) as primary
-#      source — never re-extracts from title, eliminating root cause of "Google Wallet"
-#      being written as if it were a smartphone model
-#   6. pick_news_story() v51: added verify_phone_exists_2026() check in all paths
+# TECH NEWS WITH AI - AUTO BLOG v52.0
+# v52 — Fix "0 posts / all phones rejected" bug from v51:
+#   ROOT CAUSE 1: extract_phone_name() included noise words in model name
+#     "Pixel 10a with us" → "Pixel 10a with" → GSMArena search fails → REJECTED
+#     "OnePlus just made a phone" → "OnePlus just" → REJECTED
+#     FIX: Token-by-token extraction with hard STOP_WORDS set — stops at "with",
+#          "just", "for", "has", "india", "review" etc. before they enter model name
+#   ROOT CAUSE 2: verify_phone_exists_2026() hard-rejected ALL phones when GSMArena
+#     was rate-limiting or blocking (returned no links for real phones like Vivo X300 FE)
+#     FIX: Two-tier verification:
+#       Tier 1: GSMArena (strict, year-checked) — used when accessible
+#       Tier 2: is_plausible_phone_model() — used as fallback when GSMArena
+#               returns no results or is unreachable (has brand + model token)
+#   ROOT CAUSE 3 (v51): NON_PHONE_KEYWORDS rejecting "Google Wallet" articles — KEPT
+#   ROOT CAUSE 4 (v51): groq_draft() using story["phone_name"] not re-extracting — KEPT
 # v49 — AdSense Fix FULL: E-E-A-T signals + Article/Review Schema + "Why Trust This
 #        Review" box + Testing Methodology + Wikimedia images + 80-phrase buster
 # v48 — Real Wikimedia images + 80-phrase AI-pattern buster
@@ -843,13 +843,18 @@ PHONE_BRANDS = [
 
 def extract_phone_name(title):
     """
-    v51 — Extract real phone model name from RSS title.
-    Hard caps model portion at 4 words to prevent grabbing entire sentences.
-    e.g. "Samsung Galaxy S26 Review India 2026" → "Samsung Galaxy S26"
-    e.g. "Google Wallet Now Supports Aadhaar..." → "" (rejected — no phone model)
+    v52 — Extract real phone model name from RSS title.
+    - Stops model extraction at the first noise/stop word
+    - Hard caps model portion at 4 words
+    - Rejects service/app/feature keywords before extraction
+    e.g. "Samsung Galaxy S26 Review India 2026"   → "Samsung Galaxy S26"
+    e.g. "Nothing Phone 4a Pro hands on first look" → "Nothing Phone 4a Pro"
+    e.g. "Pixel 10a with us"                        → "Pixel 10a"
+    e.g. "OnePlus just made a phone"                → ""
+    e.g. "Google Wallet Now Supports Aadhaar..."    → ""
     Returns empty string if no valid phone model found.
     """
-    # v51: Hard reject titles that are clearly NOT phone launches
+    # Hard reject titles that are clearly NOT phone launches
     tl_check = title.lower()
     for pat in NON_PHONE_TITLE_PATTERNS:
         if re.search(pat, tl_check):
@@ -859,32 +864,87 @@ def extract_phone_name(title):
         if kw in tl_check:
             return ""
 
+    # Words that STOP model extraction — anything from here on is noise
+    STOP_WORDS = {
+        # Verbs / generic words that cannot be part of a model name
+        "just", "made", "makes", "with", "for", "has", "have", "had", "gets",
+        "got", "adds", "added", "now", "supports", "launches", "launched",
+        "announced", "available", "coming", "arrives", "arrives", "goes",
+        "rolls", "update", "updated", "revealed", "leaked", "spotted", "seen",
+        "tested", "reviewed", "unboxed", "listed", "surfaces", "tipped",
+        "expected", "confirmed", "could", "will", "would", "may", "might",
+        "should", "is", "are", "was", "were", "be", "been", "being",
+        # Location / marketing words
+        "india", "indian", "global", "worldwide", "officially", "soon",
+        "today", "tomorrow", "next", "week", "month", "year",
+        # Price / review words
+        "review", "price", "specs", "hands", "first", "look", "full", "official",
+        "top", "best", "vs", "versus", "compared", "comparison",
+        # Articles and prepositions
+        "a", "an", "the", "in", "at", "on", "of", "to", "by", "as", "or",
+        "and", "but", "that", "this", "these", "those", "from", "about",
+        # Time words
+        "january", "february", "march", "april", "may", "june",
+        "july", "august", "september", "october", "november", "december",
+    }
+
+    # Words that are VALID model name tokens (numbers, known suffixes, alpha-numeric)
+    def is_model_token(word):
+        w = word.lower()
+        if w in STOP_WORDS:
+            return False
+        # Pure alphabetic common words ≤4 chars that aren't model codes → reject
+        # Model tokens are: numbers, alphanumeric (S26, 15R), known suffixes, caps
+        VALID_SUFFIXES = {
+            "pro", "ultra", "plus", "lite", "fe", "max", "mini", "air", "s",
+            "x", "z", "a", "e", "f", "t", "r", "c", "u", "v", "g", "m", "n",
+            "apex", "neo", "ace", "gt", "rs", "t", "prime", "series",
+            "edge", "fold", "flip", "note", "magic", "nova", "play",
+            "pad", "tab", "turbo", "speed", "sport", "gaming",
+            # v52: added series family names
+            "galaxy", "phone", "nord", "find", "pad", "watch", "book",
+            "nazo", "narzo", "smart", "go", "power", "number", "spark",
+            "infinix", "camon", "hot",
+        }
+        if re.search(r'\d', w):   # has a digit → always a model token
+            return True
+        if w in VALID_SUFFIXES:
+            return True
+        if len(w) <= 2:           # short codes like "5G", "FE", "GT"
+            return True
+        if word.isupper() and len(word) >= 2:  # ALL CAPS = model code (FE, GT, RS)
+            return True
+        # v52: Title-case word (e.g. "Galaxy", "Nord", "Find", "Magic") not in STOP_WORDS
+        # → treat as valid sub-brand / series name
+        if word[0].isupper() and word[1:].islower() and len(word) >= 3:
+            return True
+        return False
+
     for brand in PHONE_BRANDS:
-        pat = rf'\b{re.escape(brand)}\s+([\w]+(?:\s+[\w]+){{0,3}})'
+        pat = rf'\b{re.escape(brand)}\b'
         m = re.search(pat, title, re.IGNORECASE)
-        if m:
-            # Brand + up to 4 model words
-            model_words = m.group(1).strip()
-            name = brand + " " + model_words
-            # Clean trailing stop words
-            name = re.sub(
-                r'\s+(India|Review|Launch|Price|Full|Specs|Hands|First|Official|'
-                r'Announced|Available|Now|Supports?|Gets?|Adds?|Update|\d{4}).*$',
-                '', name, flags=re.IGNORECASE
-            ).strip()
-            # Must have at least brand + one real model token (number or known suffix)
-            tokens = name.split()
-            if len(tokens) < 2:
-                continue
-            # v51: Reject if second token is a non-model word
-            non_model_second = {"wallet", "pay", "now", "gets", "adds", "rolls",
-                                 "announces", "launches", "expands", "supports",
-                                 "store", "app", "cloud", "service", "feature",
-                                 "platform", "digital", "new", "latest", "official"}
-            if tokens[-1].lower() in non_model_second or tokens[1].lower() in non_model_second:
-                continue
-            if len(name) >= 6:
-                return name
+        if not m:
+            continue
+        # Start collecting model tokens after the brand
+        rest = title[m.end():].strip().split()
+        model_tokens = []
+        for word in rest:
+            clean = re.sub(r'[^a-zA-Z0-9]', '', word)  # strip punctuation
+            if not clean:
+                break
+            if not is_model_token(clean):
+                break   # stop at first non-model word
+            model_tokens.append(clean)
+            if len(model_tokens) == 4:  # hard cap
+                break
+        if not model_tokens:
+            continue
+        name = brand + " " + " ".join(model_tokens)
+        # Additional final cleanup: strip trailing non-model suffix
+        name = re.sub(r'\s+(India|Review|Launch|Price|Full|Specs|Official|\d{4}).*$',
+                      '', name, flags=re.IGNORECASE).strip()
+        if len(name) >= 6:
+            return name
     return ""
 
 
@@ -1647,101 +1707,130 @@ def should_post_cat(log, cat):
 # and was launched in 2025-2026 before writing any article
 # ================================================================
 
+def is_plausible_phone_model(name):
+    """
+    v52 — Lightweight plausibility check when GSMArena is unavailable.
+    A name is plausible if it has a known brand + at least one model-like token.
+    """
+    if not name or len(name) < 6:
+        return False
+    nl = name.lower()
+    has_brand = any(b.lower() in nl for b in PHONE_BRANDS)
+    if not has_brand:
+        return False
+    # Must contain a digit OR a known phone suffix after the brand
+    PHONE_SUFFIXES = {
+        "pro", "ultra", "plus", "lite", "fe", "max", "mini", "air", "apex",
+        "neo", "ace", "gt", "rs", "prime", "edge", "fold", "flip", "note",
+        "magic", "turbo", "series", "phone",
+    }
+    tokens = name.split()
+    model_part = tokens[1:]  # everything after brand
+    for t in model_part:
+        if re.search(r'\d', t):
+            return True
+        if t.lower() in PHONE_SUFFIXES:
+            return True
+    return False
+
+
 def verify_phone_exists_2026(phone_name):
     """
-    STRICT verification — phone MUST be confirmed 2025-2026 on GSMArena.
+    v52 — Two-tier verification:
+    Tier 1: GSMArena search (strict, year-confirmed)
+    Tier 2: Plausibility check (fallback when GSMArena is blocked/rate-limited)
     Returns (is_valid, specs_data, device_url).
-    On ANY network error → returns False (fail safe, never allow unverified).
     """
     print(f"[Verify] Checking: {phone_name}")
+
+    # ── Tier 1: GSMArena ──
     try:
         q = phone_name.replace(" ", "+")
         r = requests.get(
             f"https://www.gsmarena.com/search.php3?sQuickSearch={q}",
             headers=HEADERS, timeout=12
         )
-        if r.status_code != 200:
-            print(f"[Verify] GSMArena unreachable — REJECTING {phone_name}")
-            return False, "", ""
+        gsmarena_reachable = (r.status_code == 200)
+        links = re.findall(r'href="([a-z0-9_]+-\d+\.php)"', r.text) if gsmarena_reachable else []
 
-        links = re.findall(r'href="([a-z0-9_]+-\d+\.php)"', r.text)
-        if not links:
-            print(f"[Verify] {phone_name} not on GSMArena — REJECTED")
-            return False, "", ""
+        if gsmarena_reachable and links:
+            device_url = "https://www.gsmarena.com/" + links[0]
+            r2 = requests.get(device_url, headers=HEADERS, timeout=12)
+            if r2.status_code == 200:
+                page = r2.text
 
-        device_url = "https://www.gsmarena.com/" + links[0]
-        r2 = requests.get(device_url, headers=HEADERS, timeout=12)
-        if r2.status_code != 200:
-            print(f"[Verify] Cannot load GSMArena page — REJECTING {phone_name}")
-            return False, "", ""
+                # Check announced year
+                year_found = None
+                for pat in [
+                    r'Announced[^<]*<[^>]+>\s*(\d{4})',
+                    r'announced.*?(\d{4})',
+                    r'Released.*?(\d{4})',
+                    r'(\d{4})\s*(?:Q[1-4]|January|February|March|April|May|June|July|August|September|October|November|December)',
+                ]:
+                    m = re.search(pat, page, re.IGNORECASE)
+                    if m:
+                        yr = int(m.group(1))
+                        if 2020 <= yr <= 2027:
+                            year_found = yr
+                            break
+                if year_found is None:
+                    years = re.findall(r'\b(202[0-7])\b', page[:3000])
+                    if years:
+                        year_found = int(years[0])
 
-        page = r2.text
+                if year_found is not None:
+                    if year_found < 2025:
+                        print(f"[Verify] ❌ {phone_name} is from {year_found} — REJECTED (too old)")
+                        return False, "", ""
+                    print(f"[Verify] ✅ {phone_name} confirmed on GSMArena: {year_found}")
+                else:
+                    # Year unknown on GSMArena page — fall through to plausibility
+                    print(f"[Verify] ⚠️ GSMArena year unclear for {phone_name} — using plausibility")
+                    if not is_plausible_phone_model(phone_name):
+                        return False, "", ""
+                    print(f"[Verify] ✅ {phone_name} passed plausibility (GSMArena year unclear)")
 
-        # ── Check ALL year mentions in the page ──
-        # GSMArena shows year in multiple places — find the announced year
-        year_found = None
-        # Method 1: structured table
-        for pat in [
-            r'Announced[^<]*<[^>]+>\s*(\d{4})',
-            r'announced.*?(\d{4})',
-            r'Released.*?(\d{4})',
-            r'(\d{4})\s*(?:Q[1-4]|January|February|March|April|May|June|July|August|September|October|November|December)',
-        ]:
-            m = re.search(pat, page, re.IGNORECASE)
-            if m:
-                yr = int(m.group(1))
-                if 2020 <= yr <= 2027:
-                    year_found = yr
-                    break
+                # Reject cancelled/rumoured
+                status_m = re.search(r'Status[^<]*<[^>]+>([^<]+)', page, re.IGNORECASE)
+                if status_m:
+                    status = status_m.group(1).strip().lower()
+                    if any(w in status for w in ["cancelled", "cancel", "rumour", "concept", "never released"]):
+                        print(f"[Verify] ❌ {phone_name} status = '{status}' — REJECTED")
+                        return False, "", ""
 
-        if year_found is None:
-            # Try finding any year 2020-2027 in the page title area
-            title_area = page[:3000]
-            years = re.findall(r'\b(202[0-7])\b', title_area)
-            if years:
-                year_found = int(years[0])
+                # Extract specs
+                pairs = re.findall(
+                    r'<td[^>]*class="ttl"[^>]*>.*?<a[^>]*>([^<]+)</a>.*?</td>\s*<td[^>]*class="nfo"[^>]*>([^<]+)',
+                    page, re.DOTALL
+                )
+                if not pairs:
+                    pairs = re.findall(r'<td class="ttl">.*?<a>([^<]+)</a>.*?</td>\s*<td class="nfo">([^<]+)', page, re.DOTALL)
+                specs = "\n".join([k.strip() + ": " + v.strip() for k, v in pairs[:35]])
+                if not specs:
+                    specs = "\n".join([
+                        k.strip() + ": " + v.strip()
+                        for k, v in re.findall(r'<td[^>]*>([A-Z][^<]{2,30})</td>\s*<td[^>]*>([^<]{2,100})</td>', page)
+                        if len(k.strip()) < 30
+                    ][:30])
 
-        if year_found is not None:
-            if year_found < 2025:
-                print(f"[Verify] ❌ {phone_name} is from {year_found} — REJECTED (too old)")
-                return False, "", ""
-            print(f"[Verify] ✅ {phone_name} confirmed: {year_found}")
-        else:
-            # Cannot confirm year — REJECT (fail safe)
-            print(f"[Verify] ⚠️ Cannot confirm year for {phone_name} — REJECTED (fail safe)")
-            return False, "", ""
+                print(f"[Verify] ✅ Got {len(pairs)} spec entries for {phone_name}")
+                return True, specs, device_url
 
-        # ── Check status — reject cancelled/rumoured ──
-        status_m = re.search(r'Status[^<]*<[^>]+>([^<]+)', page, re.IGNORECASE)
-        if status_m:
-            status = status_m.group(1).strip().lower()
-            if any(w in status for w in ["cancelled", "cancel", "rumour", "concept", "never released"]):
-                print(f"[Verify] ❌ {phone_name} status = '{status}' — REJECTED")
-                return False, "", ""
-
-        # ── Extract full specs ──
-        pairs = re.findall(
-            r'<td[^>]*class="ttl"[^>]*>.*?<a[^>]*>([^<]+)</a>.*?</td>\s*<td[^>]*class="nfo"[^>]*>([^<]+)',
-            page, re.DOTALL
-        )
-        if not pairs:
-            # Fallback extraction
-            pairs = re.findall(r'<td class="ttl">.*?<a>([^<]+)</a>.*?</td>\s*<td class="nfo">([^<]+)', page, re.DOTALL)
-        specs = "\n".join([k.strip() + ": " + v.strip() for k, v in pairs[:35]])
-
-        if not specs:
-            # Try simpler pattern
-            specs = "\n".join([
-                k.strip() + ": " + v.strip()
-                for k, v in re.findall(r'<td[^>]*>([A-Z][^<]{2,30})</td>\s*<td[^>]*>([^<]{2,100})</td>', page)
-                if len(k.strip()) < 30
-            ][:30])
-
-        print(f"[Verify] ✅ Got {len(pairs)} spec entries for {phone_name}")
-        return True, specs, device_url
+        # ── GSMArena found page but couldn't load detail, or search returned no links ──
+        if gsmarena_reachable and not links:
+            print(f"[Verify] GSMArena: {phone_name} not found — trying plausibility fallback")
+        elif not gsmarena_reachable:
+            print(f"[Verify] GSMArena unreachable — trying plausibility fallback for {phone_name}")
 
     except Exception as e:
-        print(f"[Verify] ERROR for {phone_name}: {e} — REJECTED (fail safe)")
+        print(f"[Verify] GSMArena error: {e} — trying plausibility fallback")
+
+    # ── Tier 2: Plausibility fallback (used when GSMArena is blocked/rate-limited) ──
+    if is_plausible_phone_model(phone_name):
+        print(f"[Verify] ✅ {phone_name} passed plausibility check (GSMArena unavailable)")
+        return True, "", ""
+    else:
+        print(f"[Verify] ❌ {phone_name} failed plausibility — REJECTED")
         return False, "", ""
 
 
