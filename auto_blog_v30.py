@@ -1,5 +1,18 @@
-# TECH NEWS WITH AI - AUTO BLOG v50.0
-# v50 — Removed E-E-A-T reviewer badge box (too explicit)
+# TECH NEWS WITH AI - AUTO BLOG v51.0
+# v51 — 4-part phone selection fix:
+#   1. NON_PHONE_KEYWORDS expanded: "wallet","aadhaar","payment","credential","service",
+#      "update","feature","platform","app" etc — blocks service/feature articles entirely
+#   2. NON_PHONE_TITLE_PATTERNS: regex list rejecting "Now Supports", "Rolls Out",
+#      "Goes Global", "Aadhaar" etc — "Google Wallet Now Supports Aadhaar" → REJECTED
+#   3. is_smartphone_article() v51: requires at least one phone-specific signal in title
+#      (launch/review/specs/price/camera/battery...) — pure brand names without phone
+#      context (e.g. "Google Wallet India") are now rejected
+#   4. extract_phone_name() v51: hard cap at 4 model words; rejects titles containing
+#      service/feature keywords before any extraction attempt
+#   5. groq_draft() v51: uses story["phone_name"] (pre-GSMArena-verified) as primary
+#      source — never re-extracts from title, eliminating root cause of "Google Wallet"
+#      being written as if it were a smartphone model
+#   6. pick_news_story() v51: added verify_phone_exists_2026() check in all paths
 # v49 — AdSense Fix FULL: E-E-A-T signals + Article/Review Schema + "Why Trust This
 #        Review" box + Testing Methodology + Wikimedia images + 80-phrase buster
 # v48 — Real Wikimedia images + 80-phrase AI-pattern buster
@@ -830,25 +843,48 @@ PHONE_BRANDS = [
 
 def extract_phone_name(title):
     """
-    Intelligently extract the real phone model name from RSS title.
-    e.g. "The latest AI news: Vivo V70 FE India Launch" → "Vivo V70 FE"
+    v51 — Extract real phone model name from RSS title.
+    Hard caps model portion at 4 words to prevent grabbing entire sentences.
     e.g. "Samsung Galaxy S26 Review India 2026" → "Samsung Galaxy S26"
-    e.g. "iQOO 15 Apex Edition Full Review" → "iQOO 15 Apex Edition"
-    Returns empty string if no known brand found.
+    e.g. "Google Wallet Now Supports Aadhaar..." → "" (rejected — no phone model)
+    Returns empty string if no valid phone model found.
     """
-    # Pattern: find brand name + model in title
+    # v51: Hard reject titles that are clearly NOT phone launches
+    tl_check = title.lower()
+    for pat in NON_PHONE_TITLE_PATTERNS:
+        if re.search(pat, tl_check):
+            return ""
+    for kw in ["wallet", "aadhaar", "credential", "payment", "service", "update",
+               "feature", "platform", "cloud", "app", "store", "global", "expands"]:
+        if kw in tl_check:
+            return ""
+
     for brand in PHONE_BRANDS:
-        # Look for brand anywhere in title
-        pat = rf'\b{re.escape(brand)}\s+[\w\s]+?(?=\s*(?:India|Review|Launch|Price|Full|Specs|Hands|First|Official|Announced|Available|\d{{4}}|$))'
+        pat = rf'\b{re.escape(brand)}\s+([\w]+(?:\s+[\w]+){{0,3}})'
         m = re.search(pat, title, re.IGNORECASE)
         if m:
-            name = m.group(0).strip()
-            # Clean trailing words
-            name = re.sub(r'\s+(India|Review|Launch|Price|Full|Specs|Hands|First|Official|\d{4}).*$', '', name, flags=re.IGNORECASE).strip()
-            if len(name) >= 4:
+            # Brand + up to 4 model words
+            model_words = m.group(1).strip()
+            name = brand + " " + model_words
+            # Clean trailing stop words
+            name = re.sub(
+                r'\s+(India|Review|Launch|Price|Full|Specs|Hands|First|Official|'
+                r'Announced|Available|Now|Supports?|Gets?|Adds?|Update|\d{4}).*$',
+                '', name, flags=re.IGNORECASE
+            ).strip()
+            # Must have at least brand + one real model token (number or known suffix)
+            tokens = name.split()
+            if len(tokens) < 2:
+                continue
+            # v51: Reject if second token is a non-model word
+            non_model_second = {"wallet", "pay", "now", "gets", "adds", "rolls",
+                                 "announces", "launches", "expands", "supports",
+                                 "store", "app", "cloud", "service", "feature",
+                                 "platform", "digital", "new", "latest", "official"}
+            if tokens[-1].lower() in non_model_second or tokens[1].lower() in non_model_second:
+                continue
+            if len(name) >= 6:
                 return name
-    return ""
-
     return ""
 
 
@@ -881,19 +917,52 @@ NON_PHONE_KEYWORDS = {
     "logitech", "razer", "steelseries", "corsair", "hyperx", "jbl",
     "bose", "sennheiser", "boat", "noise", "skullcandy", "anker",
     "superstrike", "superlight", "pro x", "g pro", "g502", "g305",
+    # ── v51: Reject service/app/feature articles that aren't phone launches ──
+    "wallet", "pay", "payment", "aadhaar", "uidai", "upi", "gpay",
+    "google pay", "samsung pay", "apple pay", "digital id", "digital identity",
+    "verifiable credential", "credential", "passkey", "app update", "app launch",
+    "feature update", "new feature", "software update", "os update",
+    "service launch", "platform launch", "cloud", "streaming service",
+    "subscription", "store", "play store", "app store", "galaxy store",
+    "smarttag", "smart tag", "find my", "security update", "patch",
+    "vulnerability", "breach", "hack", "leak", "recall", "ban", "fine",
+    "lawsuit", "acquisition", "merger", "partnership", "investment",
+    "revenue", "profit", "loss", "earnings", "stock", "share price",
+    "semiconductor", "chip fab", "factory", "plant", "layoff", "hiring",
 }
+
+# ── v51: Title patterns that signal a non-phone article (regex) ──
+NON_PHONE_TITLE_PATTERNS = [
+    r'\bnow supports?\b',           # "X Now Supports Aadhaar"
+    r'\bsupports?\s+\w+\s+credential', # "Supports Verifiable Credentials"
+    r'\brolls?\s*out\b',            # "X Rolls Out Feature"
+    r'\bgets?\s+\w+\s+update\b',    # "X Gets Major Update"
+    r'\bintegrat\w+\b',             # "integrates", "integration"
+    r'\bpartnersh\w+\b',            # "partnership"
+    r'\bannounces?\s+\w+\s+(?:service|feature|update|support)\b',
+    r'\b(?:ios|android)\s+\d+\s+(?:update|feature|support)\b',
+    r'\bgoes?\s+global\b',          # "X Goes Global"
+    r'\bexpands?\s+to\b',           # "X Expands to India"
+    r'\bdigital\s+id\b',
+    r'\bid\s+verification\b',
+    r'\baadhaar\b',
+]
 
 def is_smartphone_article(title, description=""):
     """
-    Returns True ONLY if the title is about a smartphone from a known brand.
-    Rejects headsets, mice, tablets, laptops, accessories etc.
+    Returns True ONLY if the title is about a smartphone LAUNCH/REVIEW from a known brand.
+    v51: Rejects service updates, app features, digital wallet news, Aadhaar stories etc.
     """
     tl = title.lower()
-    dl = description.lower() if description else ""
 
     # 1. Immediate reject if non-phone keyword found
     for kw in NON_PHONE_KEYWORDS:
         if kw in tl:
+            return False
+
+    # 1b. v51: Reject via title patterns (service/feature/update articles)
+    for pat in NON_PHONE_TITLE_PATTERNS:
+        if re.search(pat, tl):
             return False
 
     # 2. Must have a known smartphone brand
@@ -901,18 +970,40 @@ def is_smartphone_article(title, description=""):
     if not has_brand:
         return False
 
-    # 3. Must NOT be about accessories/peripherals
-    # Even Samsung makes TVs and monitors — reject those
+    # 3. Must NOT be about accessories/peripherals/non-phone products
     non_phone_signals = [
         "tv", "television", "monitor", "display panel", "soundbar",
         "refrigerator", "washing machine", "air conditioner",
-        "earbuds", "buds", "watch", "band", "ring"
+        "earbuds", "buds", "watch", "band", "ring",
+        "wallet", "payment", "digital id", "aadhaar", "credential",
     ]
     for sig in non_phone_signals:
         if sig in tl:
-            # Allow if "phone" is also mentioned
             if "phone" not in tl and "smartphone" not in tl:
                 return False
+
+    # 4. v51: Title must have at least one PHONE-specific signal
+    #    Prevents "Google Wallet India 2026" from passing as a phone article
+    phone_signals = [
+        "phone", "smartphone", "5g", "4g", "launch", "launched", "review",
+        "specs", "price", "hands on", "first look", "unboxing", "camera",
+        "battery", "display", "chipset", "processor", "ram", "storage",
+        "announced", "available", "sale", "flipkart", "amazon india",
+        "series", "model", "edition", "pro", "ultra", "lite", "plus",
+    ]
+    # Brand names that ARE phone model signals (e.g. "Pixel 10", "Galaxy S26")
+    brand_model_patterns = [
+        r'\b(galaxy|iphone|pixel|nord|oneplus\s+\d|redmi|poco|narzo|'
+        r'find\s+x|reno|a\d+\s+pro|v\d+|x\d+|note\s+\d|s\d+\s+fe|'
+        r'moto\s+g|edge\s+\d|nothing\s+phone|iqoo\s+\d)\b',
+    ]
+    has_phone_signal = any(s in tl for s in phone_signals)
+    for pat in brand_model_patterns:
+        if re.search(pat, tl, re.IGNORECASE):
+            has_phone_signal = True
+            break
+    if not has_phone_signal:
+        return False
 
     return True
 
@@ -1928,7 +2019,12 @@ def pick_news_story(log, exclude_titles=None):
         if not phone_found:
             print(f"[News][SKIP-NOBRAND] {title[:55]}")
             continue
-        story["specs"]    = get_specs(phone_found)
+        # v51: Verify phone actually exists on GSMArena
+        is_valid, gsm_specs, _ = verify_phone_exists_2026(phone_found)
+        if not is_valid:
+            print(f"[News][SKIP-UNVERIFIED] {phone_found}")
+            continue
+        story["specs"]    = gsm_specs or get_specs(phone_found)
         story["category"] = "smartphone"
         story["phone_name"] = phone_found
         print(f"[News][✅] {phone_found} ← {title[:50]}")
@@ -1949,7 +2045,12 @@ def pick_news_story(log, exclude_titles=None):
             phone_found = extract_phone_name(title)
             if not phone_found:
                 continue
-            a["specs"]    = get_specs(phone_found)
+            # v51: Verify
+            is_valid, gsm_specs, _ = verify_phone_exists_2026(phone_found)
+            if not is_valid:
+                print(f"[Fallback][SKIP-UNVERIFIED] {phone_found}")
+                continue
+            a["specs"]    = gsm_specs or get_specs(phone_found)
             a["category"] = "smartphone"
             a["phone_name"] = phone_found
             print(f"[Fallback][✅] {phone_found} ← {title[:55]}")
@@ -1963,9 +2064,19 @@ def pick_news_story(log, exclude_titles=None):
             arts = fetch_newsapi(topic)
             if arts and arts[0]["title"] not in used_titles:
                 a = arts[0]
-                a["specs"]    = get_specs(a["title"])
+                t = a["title"]
+                if not is_smartphone_article(t, a.get("description","")):
+                    continue
+                phone_found = extract_phone_name(t)
+                if not phone_found:
+                    continue
+                is_valid, gsm_specs, _ = verify_phone_exists_2026(phone_found)
+                if not is_valid:
+                    continue
+                a["specs"]    = gsm_specs or get_specs(phone_found)
                 a["category"] = cat
-                print(f"[NewsAPI][{cat}] {a['title'][:60]}")
+                a["phone_name"] = phone_found
+                print(f"[NewsAPI][{cat}] {t[:60]}")
                 return a
     return None
 
@@ -3430,31 +3541,34 @@ def pick_top5_phones(topic, cat, ctx):
 
 def groq_draft(story, is_search):
     """
-    v44 — TWO API CALLS for complete 16 sections.
+    v51 — TWO API CALLS for complete 16 sections.
     Call 1: Sections 1-8. Call 2: Sections 9-16. Combined = full article.
+    v51 fix: Always uses story["phone_name"] (pre-verified) as primary phone name.
     """
     from cerebras.cloud.sdk import Cerebras
     client = Cerebras(api_key=CEREBRAS_API_KEY)
     year = datetime.datetime.now().year
 
-    # ── Smart phone name extraction ──
-    phone = story.get("title", "[Phone]")
-    phone_clean = extract_phone_name(phone)
-    if not phone_clean:
-        # Try splitting on colon and extracting brand from each part
-        for part in re.split(r'[:|–—]', phone):
-            c = extract_phone_name(part.strip())
-            if c:
-                phone_clean = c
-                break
+    # ── v51 FIX: Use pre-verified phone_name FIRST — never re-extract from title ──
+    # story["phone_name"] is set by pick_launch_story after GSMArena verification.
+    # Re-extracting from title was the root cause of "Google Wallet" being used as phone name.
+    phone_clean = story.get("phone_name", "").strip()
     if not phone_clean or len(phone_clean) < 4:
-        # Last resort — use description to find phone name
-        desc = story.get("description","")
-        phone_clean = extract_phone_name(desc) or re.split(r'[:|–—]', phone)[0].strip()
-    # Remove news garbage words from phone name
+        # Secondary: try extracting from title (only if phone_name missing)
+        phone = story.get("title", "[Phone]")
+        phone_clean = extract_phone_name(phone)
+        if not phone_clean:
+            for part in re.split(r'[:|–—]', phone):
+                c = extract_phone_name(part.strip())
+                if c:
+                    phone_clean = c
+                    break
+    if not phone_clean or len(phone_clean) < 4:
+        # Last resort — description
+        desc_tmp = story.get("description","")
+        phone_clean = extract_phone_name(desc_tmp) or ""
+    # Clean up noise words regardless
     phone_clean = re.sub(r'\b(the latest|ai news|announced in|india launch|today|livestream|details)\b', '', phone_clean, flags=re.IGNORECASE).strip()
-    # ── FIX: Strip launch dates that bleed into phone name ──────────
-    # e.g. "Oppo Find X9 Ultra April 21" → "Oppo Find X9 Ultra"
     phone_clean = re.sub(
         r'\b(?:January|February|March|April|May|June|July|August|'
         r'September|October|November|December)\s+\d{1,2}\b',
