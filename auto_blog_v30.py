@@ -1379,19 +1379,33 @@ def scrape_smartprix_launches(max_results=10):
     # Sort by score
     candidates.sort(key=lambda x: x["_score"], reverse=True)
 
-    # Enrich top candidates with specs and return first unused one
+    # v53: Enrich top candidates with specs and return first VERIFIED 2026 phone
     for story in candidates[:15]:
         title = story["title"]
         print(f"[Launch][{story['source']}] {title[:70]} (score={story['_score']})")
 
-        # Fetch specs from GSMArena
-        gsm_specs = get_specs(title)
+        # v53: Extract phone name and verify it's a 2026 phone
+        phone_name = extract_phone_name(title)
+        if not phone_name:
+            print(f"[Launch] Could not extract phone name from: {title[:70]}")
+            continue
+        
+        # v53: STRICT 2026 VERIFICATION
+        is_valid, specs, device_url = verify_phone_exists_2026(phone_name)
+        if not is_valid:
+            print(f"[Launch] ❌ Skipping {phone_name} — not verified as 2026")
+            continue
+        
+        print(f"[Launch] ✅ Accepted {phone_name} — verified 2026 phone")
+
+        # Fetch specs from GSMArena (backup if verify didn't get them)
+        gsm_specs = get_specs(title) if not specs else ""
 
         # Fetch specs from official page
         official_specs = fetch_official_page_specs(story.get("url", ""))
 
-        # Combine both spec sources
-        combined_specs = ""
+        # Combine all spec sources
+        combined_specs = specs or ""
         if gsm_specs:
             combined_specs += "=== GSMArena Specs ===\n" + gsm_specs + "\n\n"
         if official_specs:
@@ -1402,7 +1416,7 @@ def scrape_smartprix_launches(max_results=10):
 
         return story
 
-    # ── v27 FALLBACK: RSS found nothing — scrape live web pages for recent launches ──
+    # ── v53 FALLBACK: RSS found nothing — scrape live web pages for recent launches ──
     print("[Launch] RSS found no launch stories — switching to LIVE WEB SCRAPING fallback...")
 
     scraped_all = []
@@ -1419,11 +1433,25 @@ def scrape_smartprix_launches(max_results=10):
         seen_scraped.add(title)
 
         print(f"[Launch-Scraped][{story['source']}] {title[:70]}")
+        
+        # v53: Extract phone name and verify it's a 2026 phone
+        phone_name = extract_phone_name(title)
+        if not phone_name:
+            print(f"[Launch-Scraped] Could not extract phone name from: {title[:70]}")
+            continue
+        
+        # v53: STRICT 2026 VERIFICATION
+        is_valid, specs, device_url = verify_phone_exists_2026(phone_name)
+        if not is_valid:
+            print(f"[Launch-Scraped] ❌ Skipping {phone_name} — not verified as 2026")
+            continue
+        
+        print(f"[Launch-Scraped] ✅ Accepted {phone_name} — verified 2026 phone")
 
         # Enrich with specs
-        gsm_specs      = get_specs(title)
+        gsm_specs      = get_specs(title) if not specs else ""
         official_specs = fetch_official_page_specs(story.get("url", ""))
-        combined_specs = ""
+        combined_specs = specs or ""
         if gsm_specs:
             combined_specs += "=== GSMArena Specs ===\n" + gsm_specs + "\n\n"
         if official_specs:
@@ -1433,7 +1461,7 @@ def scrape_smartprix_launches(max_results=10):
         story["rss_context"] = get_rss_context([title.split()[0], title.split()[-1]])
         return story
 
-    print("[Launch] Web scraping also found nothing — caller will handle final fallback")
+    print("[Launch] Web scraping also found no verified 2026 phones — caller will handle final fallback")
     return None
 
 def detect_cat(title):
@@ -1699,12 +1727,37 @@ def should_post_cat(log, cat):
     return days_since_cat(log, cat) >= days_needed
 
 # ================================================================
+# OFFICIAL BRAND WEBSITE MAPPING
+# Connect with manufacturer websites for official launch data
+# ================================================================
+OFFICIAL_BRAND_WEBSITES = {
+    "samsung":   "https://www.samsung.com/in/news/",
+    "apple":     "https://www.apple.com/newsroom/",
+    "oneplus":   "https://www.oneplus.com/in/about/news",
+    "xiaomi":    "https://www.mi.com/in/news/",
+    "realme":    "https://www.realme.com/in/newsroom",
+    "oppo":      "https://www.oppo.com/in/about-oppo/news/",
+    "vivo":      "https://www.vivo.com/in/about-vivo/news",
+    "iqoo":      "https://www.iqoo.com/in/news",
+    "nothing":   "https://nothing.tech/newsroom",
+    "google":    "https://blog.google/products/pixel/",
+    "motorola":  "https://newsroom.motorola.com/",
+    "nokia":     "https://www.nokia.com/phones/news/",
+    "honor":     "https://www.hihonor.com/global/news/",
+    "infinix":   "https://www.infinixmobility.com/en-in/news/",
+    "tecno":     "https://www.tecno-mobile.com/en-in/news/",
+    "poco":      "https://in.poc.phone/news/",
+    "lava":      "https://www.lavamobiles.com/news/",
+    "micromax":  "https://in.micromaxinfo.com/news/",
+}
+
+# ================================================================
 # STORY PICKERS
 # ================================================================
 # ================================================================
-# v40 — PHONE VERIFICATION SYSTEM
-# Checks GSMArena + brand official site to confirm phone EXISTS
-# and was launched in 2025-2026 before writing any article
+# v53 — PHONE VERIFICATION SYSTEM (ENHANCED FOR 2026 ONLY)
+# Checks GSMArena + official brand websites to confirm phone EXISTS
+# and was LAUNCHED IN 2026 ONLY before writing any article
 # ================================================================
 
 def is_plausible_phone_model(name):
@@ -1734,16 +1787,69 @@ def is_plausible_phone_model(name):
     return False
 
 
+def fetch_brand_website_launch_info(phone_name):
+    """
+    v53 — Fetch launch date and specs from official brand website newsroom.
+    Returns (found, year, specs_summary).
+    Connects with official manufacturer websites to verify 2026 launches.
+    """
+    brand = phone_name.split()[0].lower()
+    if brand not in OFFICIAL_BRAND_WEBSITES:
+        return False, None, ""
+    
+    url = OFFICIAL_BRAND_WEBSITES[brand]
+    try:
+        r = requests.get(url, headers=HEADERS, timeout=12)
+        if r.status_code != 200:
+            return False, None, ""
+        
+        text = re.sub(r"<[^>]+>", " ", r.text)[:5000]
+        text_lower = text.lower()
+        phone_lower = phone_name.lower()
+        
+        # Check if this phone is mentioned on the brand's news page
+        if phone_lower not in text_lower and phone_name.split()[1].lower() not in text_lower:
+            return False, None, ""
+        
+        # Extract year mentions
+        years = re.findall(r'\b(202[6-7])\b', text)
+        if years:
+            year = int(years[0])  # Most recent year found
+            if year != 2026:
+                print(f"[BrandSite] {brand} {phone_name}: Found year {year} (need 2026)")
+                return False, year, ""
+            print(f"[BrandSite] ✅ {phone_name} confirmed on {brand} official site: {year}")
+            return True, year, text[:500]
+        
+        return False, None, ""
+    except Exception as e:
+        print(f"[BrandSite] Error fetching {brand}: {e}")
+        return False, None, ""
+
+
 def verify_phone_exists_2026(phone_name):
     """
-    v52 — Two-tier verification:
-    Tier 1: GSMArena search (strict, year-confirmed)
-    Tier 2: Plausibility check (fallback when GSMArena is blocked/rate-limited)
+    v53 — THREE-TIER VERIFICATION (STRICT 2026 ONLY):
+    Tier 1: Official Brand Website (manufacturer newsroom) — highest priority
+    Tier 2: GSMArena search (strict, year-confirmed)
+    Tier 3: Plausibility check (fallback when both above unavailable)
+    
+    ⚠️ CRITICAL: Only accepts phones announced/launched in 2026.
+    Rejects all 2025 and earlier models.
     Returns (is_valid, specs_data, device_url).
     """
-    print(f"[Verify] Checking: {phone_name}")
+    print(f"[Verify] Checking: {phone_name} (2026 ONLY)")
 
-    # ── Tier 1: GSMArena ──
+    # ── Tier 1: Official Brand Website (NEW) ──
+    brand_valid, brand_year, brand_specs = fetch_brand_website_launch_info(phone_name)
+    if brand_valid and brand_year == 2026:
+        print(f"[Verify] ✅✅ {phone_name} VERIFIED 2026 on official brand website")
+        return True, brand_specs or "Official brand website confirmed.", ""
+    elif brand_year and brand_year < 2026:
+        print(f"[Verify] ❌ {phone_name} is from {brand_year} — REJECTED (not 2026)")
+        return False, "", ""
+
+    # ── Tier 2: GSMArena ──
     try:
         q = phone_name.replace(" ", "+")
         r = requests.get(
@@ -1759,7 +1865,7 @@ def verify_phone_exists_2026(phone_name):
             if r2.status_code == 200:
                 page = r2.text
 
-                # Check announced year
+                # ⚠️ STRICT: Check announced year — ONLY 2026 ACCEPTED
                 year_found = None
                 for pat in [
                     r'Announced[^<]*<[^>]+>\s*(\d{4})',
@@ -1774,21 +1880,20 @@ def verify_phone_exists_2026(phone_name):
                             year_found = yr
                             break
                 if year_found is None:
-                    years = re.findall(r'\b(202[0-7])\b', page[:3000])
+                    years = re.findall(r'\b(202[6-7])\b', page[:3000])
                     if years:
                         year_found = int(years[0])
 
                 if year_found is not None:
-                    if year_found < 2025:
-                        print(f"[Verify] ❌ {phone_name} is from {year_found} — REJECTED (too old)")
+                    # ⚠️ v53 STRICT: ONLY 2026 — reject 2025 and earlier
+                    if year_found != 2026:
+                        print(f"[Verify] ❌ {phone_name} is from {year_found} — REJECTED (not 2026)")
                         return False, "", ""
                     print(f"[Verify] ✅ {phone_name} confirmed on GSMArena: {year_found}")
                 else:
-                    # Year unknown on GSMArena page — fall through to plausibility
-                    print(f"[Verify] ⚠️ GSMArena year unclear for {phone_name} — using plausibility")
-                    if not is_plausible_phone_model(phone_name):
-                        return False, "", ""
-                    print(f"[Verify] ✅ {phone_name} passed plausibility (GSMArena year unclear)")
+                    # Year unknown on GSMArena page — reject it (we need 2026 confirmation)
+                    print(f"[Verify] ❌ {phone_name}: Year not found on GSMArena — REJECTED (cannot verify 2026)")
+                    return False, "", ""
 
                 # Reject cancelled/rumoured
                 status_m = re.search(r'Status[^<]*<[^>]+>([^<]+)', page, re.IGNORECASE)
@@ -1818,20 +1923,18 @@ def verify_phone_exists_2026(phone_name):
 
         # ── GSMArena found page but couldn't load detail, or search returned no links ──
         if gsmarena_reachable and not links:
-            print(f"[Verify] GSMArena: {phone_name} not found — trying plausibility fallback")
+            print(f"[Verify] GSMArena: {phone_name} not found")
         elif not gsmarena_reachable:
-            print(f"[Verify] GSMArena unreachable — trying plausibility fallback for {phone_name}")
+            print(f"[Verify] GSMArena unreachable")
 
     except Exception as e:
-        print(f"[Verify] GSMArena error: {e} — trying plausibility fallback")
+        print(f"[Verify] GSMArena error: {e}")
 
-    # ── Tier 2: Plausibility fallback (used when GSMArena is blocked/rate-limited) ──
-    if is_plausible_phone_model(phone_name):
-        print(f"[Verify] ✅ {phone_name} passed plausibility check (GSMArena unavailable)")
-        return True, "", ""
-    else:
-        print(f"[Verify] ❌ {phone_name} failed plausibility — REJECTED")
-        return False, "", ""
+    # ── Tier 3: NO FALLBACK — Strict 2026 only ──
+    # v53: Do NOT use plausibility fallback anymore
+    # If phone cannot be verified as 2026 on official sources, REJECT it
+    print(f"[Verify] ❌ {phone_name} — REJECTED (Cannot verify 2026 launch)")
+    return False, "", ""
 
 
 def fetch_live_launch_data(phone_name, rss_url=""):
