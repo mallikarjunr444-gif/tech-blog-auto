@@ -47,6 +47,8 @@ jobs:
           if grep -q "Posted!" run_output.txt; then
             echo "✅ Blog posted successfully!"
             grep "Posted!" run_output.txt
+          elif grep -q "No 2026 smartphone found for Day 1" run_output.txt || grep -q "No 2026 smartphone found for Day 2" run_output.txt; then
+            echo "⚠️ No eligible smartphone found today — skipping without failing the workflow"
           else
             echo "❌ ERROR: No post detected — check logs above"
             exit 1

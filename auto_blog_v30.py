@@ -4988,7 +4988,7 @@ def main():
                                 "news", "review_1", log)
                 success = 1
             else:
-                print("[ERROR] No 2026 smartphone found for Day 1 — skipping.")
+                print("[SKIP] No 2026 smartphone found for Day 1 — skipping.")
         except Exception as e:
             print(f"[ERROR] Day 1 review failed: {e}")
 
@@ -5017,7 +5017,7 @@ def main():
                                 "news", "review_2", log)
                 success = 1
             else:
-                print("[ERROR] No 2026 smartphone found for Day 2 — skipping.")
+                print("[SKIP] No 2026 smartphone found for Day 2 — skipping.")
         except Exception as e:
             print(f"[ERROR] Day 2 review failed: {e}")
 
