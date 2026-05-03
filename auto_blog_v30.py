@@ -910,8 +910,10 @@ def extract_phone_name(title):
             return True
         if w in VALID_SUFFIXES:
             return True
-        if len(w) <= 2:           # short codes like "5G", "FE", "GT"
+        if len(w) == 2:           # short codes like "5G", "FE", "GT"
             return True
+        if len(w) == 1:
+            return False
         if word.isupper() and len(word) >= 2:  # ALL CAPS = model code (FE, GT, RS)
             return True
         # v52: Title-case word (e.g. "Galaxy", "Nord", "Find", "Magic") not in STOP_WORDS
@@ -943,6 +945,8 @@ def extract_phone_name(title):
         # Additional final cleanup: strip trailing non-model suffix
         name = re.sub(r'\s+(India|Review|Launch|Price|Full|Specs|Official|\d{4}).*$',
                       '', name, flags=re.IGNORECASE).strip()
+        if any(kw in name.lower() for kw in NON_PHONE_MODEL_KEYWORDS):
+            continue
         if len(name) >= 6:
             return name
     return ""
@@ -1008,6 +1012,15 @@ NON_PHONE_TITLE_PATTERNS = [
     r'\baadhaar\b',
 ]
 
+# Product families that are never smartphones, even if the brand overlaps.
+NON_PHONE_MODEL_KEYWORDS = {
+    "zenbook", "vivobook", "thinkpad", "ideapad", "yoga", "legion",
+    "inspiron", "xps", "pavilion", "spectre", "envy", "swift", "nitro",
+    "predator", "blade", "galaxy book", "surface laptop", "surface pro",
+    "macbook", "chromebook", "notebook", "ultrabook", "rog flow", "rog zephyrus",
+    "galaxy tab", "ipad", "matebook", "honor magicbook", "book", "laptop",
+}
+
 def is_smartphone_article(title, description=""):
     """
     Returns True ONLY if the title is about a smartphone LAUNCH/REVIEW from a known brand.
@@ -1017,6 +1030,10 @@ def is_smartphone_article(title, description=""):
 
     # 1. Immediate reject if non-phone keyword found
     for kw in NON_PHONE_KEYWORDS:
+        if kw in tl:
+            return False
+
+    for kw in NON_PHONE_MODEL_KEYWORDS:
         if kw in tl:
             return False
 
