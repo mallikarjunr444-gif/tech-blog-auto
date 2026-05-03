@@ -4983,6 +4983,15 @@ def main():
                         if pname and is_already_on_blog(pname, blog_phones):
                             print(f"[BlogCheck] {pname} already on blog — skip")
                             story = None
+            if not story:
+                print("[Fallback] Trying single-phone review fallback for Day 1...")
+                used = {e.get("title", "") for e in log}
+                story = pick_article3_single_review(log, used)
+                if not story:
+                    print("[Fallback] Trying search fallback for Day 1...")
+                    story = pick_search_story(log, used)
+                    if story:
+                        story["category"] = "smartphone"
             if story:
                 run_article_v28(story, False, "REVIEW DAY 1: NEW 2026 LAUNCH FULL REVIEW",
                                 "news", "review_1", log)
@@ -5012,6 +5021,14 @@ def main():
                         if pname and is_already_on_blog(pname, blog_phones):
                             print(f"[BlogCheck] {pname} already on blog — skip")
                             story = None
+            if not story:
+                print("[Fallback] Trying single-phone review fallback for Day 2...")
+                story = pick_article3_single_review(log, used)
+                if not story:
+                    print("[Fallback] Trying search fallback for Day 2...")
+                    story = pick_search_story(log, used)
+                    if story:
+                        story["category"] = "smartphone"
             if story:
                 run_article_v28(story, False, "REVIEW DAY 2: NEW 2026 LAUNCH FULL REVIEW",
                                 "news", "review_2", log)
